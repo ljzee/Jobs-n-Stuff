@@ -1,0 +1,29 @@
+{
+  "name": "cmpt470-group1",
+  "version": "1.0.0",
+  "description": "Group 1 CMPT 470 project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "npm-run-all --parallel start playground",
+    "playground": "graphql playground",
+    "prisma": "prisma"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@csil-git1.cs.surrey.sfu.ca:whosford/cmpt470-group1.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.16.3",
+    "express-graphql": "^0.6.12",
+    "graphql": "^0.13.2",
+    "graphql-yoga": "^1.14.8",
+    "jsonwebtoken": "^8.3.0",
+    "prisma-binding": "^2.1.0"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.3"
+  }
+}
