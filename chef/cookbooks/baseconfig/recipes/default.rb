@@ -28,6 +28,10 @@ execute 'install build-essential' do
   command 'apt-get install -y build-essential'
 end
 
+execute 'npm configuration' do
+  command 'npm config set unsafe-perm true'
+end
+
 execute 'global packages' do
   command 'npm i -g prisma graphql-cli create-react-app'
 end
