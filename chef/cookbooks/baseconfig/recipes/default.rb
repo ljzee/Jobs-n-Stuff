@@ -5,6 +5,9 @@ end
 execute 'apt_update' do
   command 'apt-get update'
 end
+execute 'apt_upgrade' do
+  command 'apt-get upgrade -y'
+end
 
 # Base configuration recipe in Chef.
 package "wget"
