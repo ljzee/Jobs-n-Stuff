@@ -12,15 +12,15 @@ class Link extends Component {
         <div className="flex items-center">
           <span className="gray">{this.props.index + 1}.</span>
           {authToken && (
-            <div className="ml1 gray f11" onClick={() => this._voteForLink()}>
-              ▲
-            </div>
+            <button className="ml1 gray f11" onClick={() => this._voteForLink()}>
+              Vote!
+            </button>
           )}
         </div>
         <div className="ml1">
-          <div>
+          <a href={this.props.link.url}>
             {this.props.link.description} ({this.props.link.url})
-          </div>
+          </a>
           <div className="f6 lh-copy gray">
             {this.props.link.votes.length} votes | by{' '}
             {this.props.link.postedBy

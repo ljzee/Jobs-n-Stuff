@@ -10,8 +10,8 @@ datamodel: datamodel.graphql
 # You can only access the API when providing JWTs that are signed with this secret
 secret: group1CMPT470secret
 
-#cluster: public-sprinklegazelle-454/prisma-eu1
-endpoint: https://eu1.prisma.sh/public-sprinklegazelle-454/group1-cmpt470-project/dev
+# Docker endpoint
+endpoint: http://localhost:4466
 
 hooks:
   post-deploy:

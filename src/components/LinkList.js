@@ -31,7 +31,7 @@ class LinkList extends Component {
             <Link
               key={link.id}
               updateStoreAfterVote={this._updateCacheAfterVote}
-              index={index + ((page - 1) * LINKS_PER_PAGE)}
+              index={index}
               link={link}
             />
           ))}

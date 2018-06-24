@@ -1,3 +1,12 @@
+sys_env_file = Chef::Util::FileEdit.new('/etc/environment')
+{
+  'PRISMA_MANAGEMENT_API_SECRET' => 'group1CMPT470secret'
+}.each do |name, val|
+  sys_env_file.insert_line_if_no_match /^#{name}\=/, "#{name}=\"#{val}\""
+  sys_env_file.write_file
+end
+
+
 # Make sure the Apt package lists are up to date, so we're downloading versions that exist.
 cookbook_file "apt-sources.list" do
   path "/etc/apt/sources.list"
@@ -12,6 +21,7 @@ end
 # Base configuration recipe in Chef.
 package "wget"
 package "ntp"
+
 cookbook_file "ntp.conf" do
   path "/etc/ntp.conf"
 end
@@ -29,6 +39,22 @@ end
 
 execute 'install build-essential' do
   command 'apt-get install -y build-essential'
+end
+
+execute 'install docker pre-requisites' do
+  command 'apt install -y apt-transport-https ca-certificates curl software-properties-common'
+end
+
+execute 'get docker key' do
+  command 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
+end
+
+execute 'set up stable docker repo' do
+  command 'add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
+end
+
+execute 'install docker' do
+  command 'apt-get install -y docker-ce docker-compose'
 end
 
 execute 'npm configuration' do
@@ -59,8 +85,17 @@ execute 'resolve project ajv dependency' do
   cwd '/home/vagrant/project'
 end
 
+execute 'start docker' do
+  command 'docker-compose up -d'
+  cwd '/home/vagrant/project/server'
+end
+
+execute 'sleep before prisma deploy' do
+  command 'sleep 10'
+end
+
 execute 'prisma deploy' do
-  command 'prisma deploy'
+  command 'prisma deploy --env-file .env'
   cwd '/home/vagrant/project/server'
 end
 
