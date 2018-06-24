@@ -1,12 +1,3 @@
-sys_env_file = Chef::Util::FileEdit.new('/etc/environment')
-{
-  'PRISMA_MANAGEMENT_API_SECRET' => 'group1CMPT470secret'
-}.each do |name, val|
-  sys_env_file.insert_line_if_no_match /^#{name}\=/, "#{name}=\"#{val}\""
-  sys_env_file.write_file
-end
-
-
 # Make sure the Apt package lists are up to date, so we're downloading versions that exist.
 cookbook_file "apt-sources.list" do
   path "/etc/apt/sources.list"
