@@ -3,22 +3,32 @@ import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { AUTH_TOKEN } from '../constants'
 import { Button, FormGroup, FormControl, ControlLabel } from "react-bootstrap"
-import "../styles/Login.css";
+import "../styles/Signup.css"
 
-class Login extends Component {
+class Signup extends Component {
   state = {
+    name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   }
 
   render() {
     return (
-      <div className="Login">
+      <div className="Signup">
         <form onSubmit={this._handleSubmit}>
+          <FormGroup controlId="name" bsSize="large">
+            <ControlLabel>Name</ControlLabel>
+            <FormControl
+              autoFocus
+              type="text"
+              value={this.state.name}
+              onChange={this._handleChange}
+            />
+          </FormGroup>
           <FormGroup controlId="email" bsSize="large">
             <ControlLabel>Email</ControlLabel>
             <FormControl
-              autoFocus
               type="email"
               value={this.state.email}
               onChange={this._handleChange}
@@ -27,9 +37,17 @@ class Login extends Component {
           <FormGroup controlId="password" bsSize="large">
             <ControlLabel>Password</ControlLabel>
             <FormControl
-              type="password"
               value={this.state.password}
               onChange={this._handleChange}
+              type="password"
+            />
+          </FormGroup>
+          <FormGroup controlId="confirmPassword" bsSize="large">
+            <ControlLabel>Confirm Password</ControlLabel>
+            <FormControl
+              value={this.state.confirmPassword}
+              onChange={this._handleChange}
+              type="password"
             />
           </FormGroup>
           <Button
@@ -38,7 +56,7 @@ class Login extends Component {
             disabled={!this._validateForm()}
             type="submit"
           >
-            Login
+            Signup
           </Button>
         </form>
       </div>
@@ -46,7 +64,11 @@ class Login extends Component {
   }
 
   _validateForm() {
-    return this.state.email.length > 0 && this.state.password.length > 0;
+    return (
+      this.state.email.length > 0 &&
+      this.state.password.length > 0 &&
+      this.state.password === this.state.confirmPassword
+    )
   }
 
   _handleChange = event => {
@@ -55,16 +77,17 @@ class Login extends Component {
     });
   }
 
-  _handleSubmit = async (event) => {
+  _handleSubmit= async (event) => {
     event.preventDefault()
-    const { email, password } = this.state
-    const result = await this.props.loginMutation({
+    const { name, email, password } = this.state
+    const result = await this.props.signupMutation({
       variables: {
+        name,
         email,
         password,
       },
     })
-    const { token } = result.data.login
+    const { token } = result.data.signup
     this._saveUserData(token)
     this.props.history.push(`/dashboard`)
   }
@@ -74,14 +97,14 @@ class Login extends Component {
   }
 }
 
-const LOGIN_MUTATION = gql`
-  mutation LoginMutation($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+const SIGNUP_MUTATION = gql`
+  mutation SignupMutation($email: String!, $password: String!, $name: String!) {
+    signup(email: $email, password: $password, name: $name) {
       token
     }
   }
 `
 
 export default compose(
-  graphql(LOGIN_MUTATION, { name: 'loginMutation' }),
-)(Login)
+  graphql(SIGNUP_MUTATION, { name: 'signupMutation' }),
+)(Signup)

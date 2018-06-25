@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Nav, Navbar, NavItem } from 'react-bootstrap'
 import { withRouter } from 'react-router'
 import { AUTH_TOKEN } from '../constants'
 
@@ -7,47 +7,51 @@ class Header extends Component {
   render() {
     const authToken = localStorage.getItem(AUTH_TOKEN)
     return (
-      <div className="flex pa1 justify-between nowrap orange">
-        <div className="flex flex-fixed black">
-          <div className="fw7 mr1">Hacker News</div>
-          <Link to="/" className="ml1 no-underline black">
-            new
-          </Link>
-          <div className="ml1">|</div>
-          <Link to="/search" className="ml1 no-underline black">
-            search
-          </Link>
-          <div className="ml1">|</div>
-          <Link to="/top" className="ml1 no-underline black">
-            top
-          </Link>
-          {authToken && (
-            <div className="flex">
-              <div className="ml1">|</div>
-              <Link to="/create" className="ml1 no-underline black">
-                submit
-              </Link>
-            </div>
-          )}
-        </div>
-        <div className="flex flex-fixed">
-          {authToken ? (
-            <div
-              className="ml1 pointer black"
-              onClick={() => {
-                localStorage.removeItem(AUTH_TOKEN)
-                this.props.history.push(`/`)
-              }}
-            >
-              logout
-            </div>
-          ) : (
-            <Link to="/login" className="ml1 no-underline black">
-              login
-            </Link>
-          )}
-        </div>
-      </div>
+      <header>
+          {authToken
+            ? this.loggedInNavBar()
+            : this.newUserNavBar()}
+      </header>
+    )
+  }
+
+  loggedInNavBar() {
+    return (
+      <Navbar inverse staticTop>
+        <Navbar.Header>
+          <Navbar.Brand>
+            <a href="/dashboard">Dashboard</a>
+          </Navbar.Brand>
+        </Navbar.Header>
+        <Nav pullRight>
+          <NavItem eventKey={1} href="/profile">Profile</NavItem>
+          <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
+          <NavItem eventKey={3} href="/"
+            onClick={() => {
+              localStorage.removeItem(AUTH_TOKEN)
+              this.props.history.push(`/`)
+            }}
+          >
+            Logout
+          </NavItem>
+        </Nav>
+      </Navbar>
+    )
+  }
+
+  newUserNavBar() {
+    return (
+      <Navbar inverse staticTop>
+        <Navbar.Header>
+          <Navbar.Brand>
+            <a href="/">Website Name</a>
+          </Navbar.Brand>
+        </Navbar.Header>
+        <Nav pullRight>
+          <NavItem eventKey={1} href="/login">Login</NavItem>
+          <NavItem eventKey={2} href="/signup">Signup</NavItem>
+        </Nav>
+      </Navbar>
     )
   }
 }
