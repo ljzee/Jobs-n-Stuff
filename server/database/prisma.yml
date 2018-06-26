@@ -8,7 +8,7 @@
 datamodel: datamodel.graphql
 
 # You can only access the API when providing JWTs that are signed with this secret
-secret: group1CMPT470secret
+secret: ${env:PRISMA_MANAGEMENT_API_SECRET}
 
 # Docker endpoint
 endpoint: http://localhost:4466
@@ -18,3 +18,4 @@ hooks:
     - echo "Deployment finished"
     - graphql get-schema --project database
     - graphql prepare
+    - node seed.js

@@ -2,8 +2,8 @@ import React, { Component } from 'react'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { AUTH_TOKEN } from '../constants'
-import { Button, FormGroup, FormControl, ControlLabel } from "react-bootstrap"
-import "../styles/Signup.css"
+import { Button, FormGroup, FormControl, ControlLabel } from 'react-bootstrap'
+import '../styles/Signup.css'
 
 class Signup extends Component {
   state = {
