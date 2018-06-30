@@ -1,7 +1,7 @@
-import React, { Component } from 'react'
-import { Nav, Navbar, NavItem } from 'react-bootstrap'
-import { withRouter } from 'react-router'
-import { AUTH_TOKEN } from '../constants'
+import React, { Component } from 'react';
+import { Nav, Navbar, NavItem } from 'react-bootstrap';
+import { withRouter } from 'react-router';
+import { AUTH_TOKEN } from '../constants';
 
 class Header extends Component {
   render() {
@@ -12,7 +12,7 @@ class Header extends Component {
             ? this.loggedInNavBar()
             : this.newUserNavBar()}
       </header>
-    )
+    );
   }
 
   loggedInNavBar() {
@@ -36,7 +36,7 @@ class Header extends Component {
           </NavItem>
         </Nav>
       </Navbar>
-    )
+    );
   }
 
   newUserNavBar() {
@@ -52,8 +52,9 @@ class Header extends Component {
           <NavItem eventKey={2} href="/signup">Signup</NavItem>
         </Nav>
       </Navbar>
-    )
+    );
   }
+
 }
 
-export default withRouter(Header)
+export default withRouter(Header);

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button } from 'react-bootstrap'
+import { Button } from 'react-bootstrap';
 
 class WelcomePage extends Component {
   render() {
@@ -9,7 +9,7 @@ class WelcomePage extends Component {
         <h3>Made for CMPT 470 by Group 1</h3>
         <Button href="/signup">Create Account</Button>
       </div>
-    )
+    );
   }
 }
 

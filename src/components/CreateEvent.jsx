@@ -6,7 +6,7 @@ class CreateEvent extends Component {
       <div className="CreateEvent">
         <h1>This is the page where company can create event</h1>
       </div>
-    )
+    );
   }
 }
 

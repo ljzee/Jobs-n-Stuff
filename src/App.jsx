@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
-import Header from './components/Header'
-import WelcomePage from './components/WelcomePage'
-import Dashboard from './components/Dashboard'
-import Profile from './components/Profile'
-import CreateEvent from './components/CreateEvent'
-import Login from './components/Login'
-import Signup from './components/Signup'
-
+import Header from './components/Header';
+import WelcomePage from './components/WelcomePage.jsx';
+import Dashboard from './components/Dashboard.jsx';
+import Profile from './components/Profile.jsx';
+import CreateEvent from './components/CreateEvent.jsx';
+import Login from './components/Login';
+import Signup from './components/Signup';
 import './styles/App.css';
 
 class App extends Component {
@@ -18,7 +17,7 @@ class App extends Component {
         <div className="App">
           <Header />
           <div className="container">
-            <Route exact path="/" component={WelcomePage} />
+            <Route exact path='/' component={WelcomePage} />
             <Route exact path='/login' component={Login} />
             <Route exact path='/signup' component={Signup} />
             <Route exact path='/dashboard' component={Dashboard} />
@@ -31,4 +30,4 @@ class App extends Component {
   }
 }
 
-export default App
+export default App;

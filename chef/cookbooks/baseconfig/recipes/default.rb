@@ -99,7 +99,3 @@ execute 'apollo server' do
   command 'npm start > /dev/null &'
   cwd '/home/vagrant/project'
 end
-
-execute 'wait for servers' do
-  command 'sleep 10'
-end

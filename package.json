@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "ajv": "^6.5.1",
+    "ajv": "^6.5.2",
     "ajv-keywords": "^3.2.0",
     "apollo-boost": "^0.1.10",
     "apollo-link-ws": "^1.0.8",
+    "express": "^4.16.3",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
     "react": "^16.4.1",
@@ -16,7 +17,8 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "1.1.4",
-    "subscriptions-transport-ws": "^0.9.11"
+    "subscriptions-transport-ws": "^0.9.11",
+    "validator": "^10.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
