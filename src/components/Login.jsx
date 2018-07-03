@@ -43,7 +43,7 @@ class Login extends React.Component {
       } catch (Error) {
         state.summary = Error.message.replace('GraphQL error: ', '');
         this.resetValidationStates();
-        this.setState(state)
+        this.setState(state);
       }
     }
   }

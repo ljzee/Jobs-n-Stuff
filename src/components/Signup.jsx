@@ -6,7 +6,6 @@ import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-b
 import { Link } from 'react-router-dom';
 import validator from 'validator';
 import '../styles/Signup.css'
-import { stat } from 'fs';
 
 class Signup extends React.Component {
 
@@ -52,7 +51,7 @@ class Signup extends React.Component {
       } catch (Error) {
         state.summary = Error.message.replace('GraphQL error: ', '');
         this.resetValidationStates();
-        this.setState(state)
+        this.setState(state);
       }
     }
   }
