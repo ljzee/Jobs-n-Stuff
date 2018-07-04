@@ -5,6 +5,6 @@ Instructions:
 2. `vagrant up`
 3. Navigate to `localhost:3000`
 
-Database has been seeded with admin user:
-Email - admin@email.com
+Database has been seeded with admin user:\n
+Email - admin@email.com\n
 Password - admin_password
