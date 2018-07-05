@@ -11,10 +11,9 @@ class Signup extends React.Component {
 
   state = {
     email: {value: '', isValid: true, message: '', validState: null},
-    name: {value: '', isValid: true, message: '', validState: null},
+    username: {value: '', isValid: true, message: '', validState: null},
     password: {value: '', isValid: true, message: '', validState: null},
-    confirmPassword: {value: '', isValid: true, message: '', validState: null},
-    summary: ''
+    confirmPassword: {value: '', isValid: true, message: '', validState: null}
   }
 
   handleChange = (e) => {
@@ -30,16 +29,19 @@ class Signup extends React.Component {
     e.preventDefault();
     this.resetValidationStates();
     var state = this.state;
-    const name = state.name.value;
+    const username = state.username.value;
     const email = state.email.value;
     const password = state.password.value;
     const role = 'BASEUSER';
+    var username_password_re = new RegExp("Username and email in use$");
+    var username_re = new RegExp("Username in use$");
+    var email_re = new RegExp("Email in use$");
 
     if (this.formIsValid()) {
       try {
         const result = await this.props.signupMutation({
           variables: {
-            name,
+            username,
             email,
             password,
             role,
@@ -49,9 +51,27 @@ class Signup extends React.Component {
         this.saveUserData(token);
         this.props.history.push(`/dashboard`);
       } catch (Error) {
-        state.summary = Error.message.replace('GraphQL error: ', '');
-        this.resetValidationStates();
-        this.setState(state);
+        if (username_password_re.test(Error.message)) {
+          state.email.isValid = false;
+          state.email.message = 'Email is already in use';
+          state.email.validState = "error";
+          state.username.isValid = false;
+          state.username.message = 'Username is already in use';
+          state.username.validState = "error";
+          this.setState(state);
+        } else if (username_re.test(Error.message)) {
+          state.username.isValid = false;
+          state.username.message = 'Username is already in use';
+          state.username.validState = "error";
+          this.setState(state);
+        } else if (email_re.test(Error.message)) {
+          state.email.isValid = false;
+          state.email.message = 'Email is already in use';
+          state.email.validState = "error";
+          this.setState(state);
+        } else {
+          throw Error;
+        }
       }
     }
   }
@@ -78,10 +98,10 @@ class Signup extends React.Component {
       isFormValid = false;
     }
 
-    if (state.name.value === '') {
-      state.name.isValid = false;
-      state.name.message = 'Please enter your name';
-      state.name.validState = "error";
+    if (state.username.value === '') {
+      state.username.isValid = false;
+      state.username.message = 'Please enter a username';
+      state.username.validState = "error";
 
       this.setState(state);
       isFormValid = false;
@@ -135,23 +155,22 @@ class Signup extends React.Component {
   }
 
   render() {
-    var {name, email, password, confirmPassword, summary} = this.state;
+    var {username, email, password, confirmPassword} = this.state;
     return (
       <div className="Signup">
         <form onSubmit={this.onSubmit}>
           <h2 className="form-signin-heading">Create Account</h2>
-          {summary !== '' && <p className="errormessage">{summary}</p>}
-          <FormGroup controlId="name" bsSize="large" validationState={name.validState}>
-            <ControlLabel>Name</ControlLabel>
+          <FormGroup controlId="username" bsSize="large" validationState={username.validState}>
+            <ControlLabel>Username</ControlLabel>
             <FormControl
               autoFocus
               type="text"
-              placeholder="Enter your name"
-              value={name.value}
+              placeholder="Enter a username"
+              value={username.value}
               onChange={this.handleChange}
             />
             <FormControl.Feedback />
-            <HelpBlock className="signuperrormessage">{name.message}</HelpBlock>
+            <HelpBlock className="signuperrormessage">{username.message}</HelpBlock>
           </FormGroup>
           <FormGroup controlId="email" bsSize="large" validationState={email.validState}>
             <ControlLabel>Email</ControlLabel>
@@ -203,8 +222,8 @@ class Signup extends React.Component {
 }
 
 const SIGNUP_MUTATION = gql`
-  mutation SignupMutation($email: String!, $password: String!, $name: String!, $role: Role!) {
-    signup(email: $email, password: $password, name: $name, role: $role) {
+  mutation SignupMutation($email: String!, $password: String!, $username: String!, $role: Role!) {
+    signup(email: $email, password: $password, username: $username, role: $role) {
       token
     }
   }

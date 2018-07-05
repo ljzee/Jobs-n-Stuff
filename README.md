@@ -6,5 +6,5 @@ Instructions:
 3. Navigate to `localhost:3000`
 
 Database has been seeded with admin user:<br/>
-Email - admin@email.com<br/>
+Username - admin<br/>
 Password - admin_password

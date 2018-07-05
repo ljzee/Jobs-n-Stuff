@@ -1,16 +1,15 @@
 import React from 'react';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
-import { AUTH_TOKEN } from '../constants';
+import { AUTH_TOKEN, INVALID_USERNAME_OR_PASSWORD } from '../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import validator from 'validator';
 import '../styles/Login.css';
 
 class Login extends React.Component {
 
   state = {
-    email: {value: '', isValid: true, message: '', validState: null},
+    username: {value: '', isValid: true, message: '', validState: null},
     password: {value: '', isValid: true, message: '', validState: null},
     summary: ''
   }
@@ -26,14 +25,15 @@ class Login extends React.Component {
     e.preventDefault();
     this.resetValidationStates();
     var state = this.state;
-    const email = state.email.value;
+    const username = state.username.value;
     const password = state.password.value;
+    var invalid_re = new RegExp("Invalid username or password$");
 
     if (this.formIsValid()) {
       try {
         const result = await this.props.loginMutation({
           variables: {
-            email,
+            username,
             password,
           },
         });
@@ -41,9 +41,13 @@ class Login extends React.Component {
         this.saveUserData(token);
         this.props.history.push(`/dashboard`);
       } catch (Error) {
-        state.summary = Error.message.replace('GraphQL error: ', '');
-        this.resetValidationStates();
-        this.setState(state);
+        if (invalid_re.test(Error.message)) {
+          state.summary = 'Incorrect email or password';
+          this.resetValidationStates();
+          this.setState(state);
+        } else {
+          throw Error;
+        }
       }
     }
   }
@@ -52,19 +56,10 @@ class Login extends React.Component {
     var state = this.state;
     var isFormValid = true;
 
-    if (state.email.value === '') {
-      state.email.isValid = false;
-      state.email.message = 'Please enter an email address';
-      state.email.validState = "error";
-
-      this.setState(state);
-      isFormValid = false;
-    }
-
-    if (state.email.isValid && !validator.isEmail(state.email.value)) {
-      state.email.isValid = false;
-      state.email.message = 'Not a valid email address';
-      state.email.validState = "error";
+    if (state.username.value === '') {
+      state.username.isValid = false;
+      state.username.message = 'Please enter your username';
+      state.username.validState = "error";
 
       this.setState(state);
       isFormValid = false;
@@ -72,7 +67,7 @@ class Login extends React.Component {
 
     if (state.password.value === '') {
       state.password.isValid = false;
-      state.password.message = 'Please enter a password';
+      state.password.message = 'Please enter your password';
       state.password.validState = "error"
 
       this.setState(state);
@@ -100,23 +95,23 @@ class Login extends React.Component {
   }
 
   render() {
-    var {email, password, summary} = this.state;
+    var {username, password, summary} = this.state;
     return (
       <div className="Login">
         <form onSubmit={this.onSubmit}>
           <h2 className="form-signin-heading">Login</h2>
           {summary !== '' && <p className="errormessage">{summary}</p>}
-          <FormGroup controlId="email" bsSize="large" validationState={email.validState}>
-            <ControlLabel>Email</ControlLabel>
+          <FormGroup controlId="username" bsSize="large" validationState={username.validState}>
+            <ControlLabel>Username</ControlLabel>
             <FormControl
               autoFocus
               type="text"
-              placeholder="Enter your email"
-              value={email.value}
+              placeholder="Enter your username"
+              value={username.value}
               onChange={this.handleChange}
             />
             <FormControl.Feedback />
-            <HelpBlock>{email.message}</HelpBlock>
+            <HelpBlock>{username.message}</HelpBlock>
           </FormGroup>
           <FormGroup controlId="password" bsSize="large" validationState={password.validState}>
             <ControlLabel>Password</ControlLabel>
@@ -146,8 +141,8 @@ class Login extends React.Component {
 }
 
 const LOGIN_MUTATION = gql`
-  mutation LoginMutation($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation LoginMutation($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
       token
     }
   }

@@ -1,11 +1,14 @@
 const jwt = require('jsonwebtoken');
-const APP_SECRET = 'cmpt470-group1-app-secret';
+
+require('dotenv').config();
+
+const app_secret = process.env.APP_SECRET;
 
 function getUserId(context) {
   const Authorization = context.request.get('Authorization');
   if (Authorization) {
     const token = Authorization.replace('Bearer ', '');
-    const { userId } = jwt.verify(token, APP_SECRET);
+    const { userId } = jwt.verify(token, app_secret);
     return userId;
   }
 
@@ -13,6 +16,6 @@ function getUserId(context) {
 }
 
 module.exports = {
-  APP_SECRET,
+  app_secret,
   getUserId,
 }
