@@ -1,7 +1,7 @@
 import React from 'react';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
-import { AUTH_TOKEN, INVALID_USERNAME_OR_PASSWORD } from '../constants';
+import { AUTH_TOKEN } from '../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import '../styles/Login.css';

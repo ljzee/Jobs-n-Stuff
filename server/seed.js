@@ -1,4 +1,5 @@
 const { Prisma } = require('prisma-binding');
+const bcrypt = require('bcryptjs');
 
 require('dotenv').config();
 
@@ -23,15 +24,19 @@ async function deleteExistingUser(email) {
   }
 }
 
-async function createNewUser(username, email, password, role) {
+async function createNewUser(username, email, password, role, deleteUser=false) {
+  if (deleteUser) {
+    await deleteExistingUser(email);
+  }
+  const hashed_pass = await bcrypt.hash(password, 10);
   let user1 = await prisma.query.user({ where: { email: email } }, `{ id }`);
   let user2 = await prisma.query.user({ where: { username: username } }, `{ id }`);
   if (user1 === null && user2 === null) {
     await prisma.mutation.createUser({
       data: {
-        username: username ,
+        username: username,
         email: email,
-        password: password,
+        password: hashed_pass,
         role: role
       } },
       "{ id }"
@@ -50,6 +55,13 @@ async function createNewUser(username, email, password, role) {
 // Create admin user
 const admin_username = 'admin';
 const admin_email = 'admin@email.com';
-const admin_password = '$2a$10$FkZHDHH779ZCxdFYjdMWPuLvUNbJm9vRHg/po6q4J7g2sH6uC29V6' // Password: 'admin_password'
-const admin_role = 'ADMIN'
+const admin_password = 'admin_password';
+const admin_role = 'ADMIN';
 createNewUser(admin_username, admin_email, admin_password, admin_role);
+
+// Create business user
+const business_username = 'business';
+const business_email = 'business@email.com';
+const business_password = 'business_password';
+const business_role = 'BUSINESS';
+createNewUser(business_username, business_email, business_password, business_role);
