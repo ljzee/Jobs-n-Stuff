@@ -6,7 +6,6 @@ require('dotenv').config();
 const app_secret = process.env.APP_SECRET;
 
 async function signup(parent, args, context, info) {
-  console.log('App secret: ' + app_secret);
   let token = null;
   let user1 = await context.db.query.user({ where: { username: args.username } }, `{ id }`);
   let user2 = await context.db.query.user({ where: { email: args.email } }, `{ id }`);

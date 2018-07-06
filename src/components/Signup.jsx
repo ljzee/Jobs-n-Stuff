@@ -33,11 +33,13 @@ class Signup extends React.Component {
     const email = state.email.value;
     const password = state.password.value;
     const role = 'BASEUSER';
-    var username_password_re = new RegExp("Username and email in use$");
-    var username_re = new RegExp("Username in use$");
-    var email_re = new RegExp("Email in use$");
+    const username_password_re = new RegExp("Username and email in use$");
+    const username_re = new RegExp("Username in use$");
+    const email_re = new RegExp("Email in use$");
 
-    if (this.formIsValid()) {
+    this.setFormErrorStates();
+
+    if (state.email.isValid && state.username.isValid) {
       try {
         const result = await this.props.signupMutation({
           variables: {
@@ -47,9 +49,11 @@ class Signup extends React.Component {
             role,
           },
         });
-        const { token } = result.data.signup;
-        this.saveUserData(token);
-        this.props.history.push(`/dashboard`);
+        if (this.formIsValid()) {
+          const { token } = result.data.signup;
+          this.saveUserData(token);
+          this.props.history.push(`/dashboard`);
+        }
       } catch (Error) {
         if (username_password_re.test(Error.message)) {
           state.email.isValid = false;
@@ -76,65 +80,62 @@ class Signup extends React.Component {
     }
   }
 
-  formIsValid = () => {
+  setFormErrorStates= () => {
     var state = this.state;
-    var isFormValid = true;
 
-    if (state.email.value === '') {
+    if (state.email.isValid && state.email.value === '') {
       state.email.isValid = false;
       state.email.message = 'Please enter an email address';
       state.email.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
     }
 
     if (state.email.isValid && !validator.isEmail(state.email.value)) {
       state.email.isValid = false;
       state.email.message = 'Not a valid email address';
       state.email.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
     }
 
-    if (state.username.value === '') {
+    if (state.username.isValid && state.username.value === '') {
       state.username.isValid = false;
       state.username.message = 'Please enter a username';
       state.username.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
     }
 
     if (state.password.value === '') {
       state.password.isValid = false;
       state.password.message = 'Please enter a password';
       state.password.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
     }
 
     if (state.password.isValid && state.password.value.trim().length < 8) {
       state.password.isValid = false;
       state.password.message = 'Password must be at least 8 characters';
       state.password.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
     }
 
-    if (state.password.isValid && state.password.value !== state.confirmPassword.value) {
+    if (state.confirmPassword.value !== state.password.value) {
       state.confirmPassword.isValid = false;
       state.confirmPassword.message = 'Passwords don\'t match';
       state.confirmPassword.validState = "error";
-
       this.setState(state);
-      isFormValid = false;
+    }
+  }
+
+  formIsValid = () => {
+    var state = this.state;
+
+    for (var key in state) {
+      if (!state[key].isValid) {
+        return false;
+      }
     }
 
-    return isFormValid;
+    return true;
   }
 
   resetValidationStates = () => {

@@ -53,7 +53,7 @@ execute 'npm configuration' do
 end
 
 execute 'global packages' do
-  command 'npm i -g prisma graphql-cli create-react-app'
+  command 'npm i -g prisma graphql-cli create-react-app dotenv'
 end
 
 execute 'resolve global ajv dependency' do
