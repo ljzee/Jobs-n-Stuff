@@ -1,4 +1,5 @@
 import React from 'react';
+import { Redirect } from 'react-router-dom';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 import { AUTH_TOKEN } from '../constants';
@@ -95,6 +96,14 @@ class Login extends React.Component {
   }
 
   render() {
+    const authToken = localStorage.getItem(AUTH_TOKEN)
+
+    if(authToken) {
+      return (
+        <Redirect to='dashboard'/>
+      )
+    }
+
     var {username, password, summary} = this.state;
     return (
       <div className="Login">
