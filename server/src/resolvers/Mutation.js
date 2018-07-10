@@ -105,7 +105,7 @@ async function updateuser(parent, args, ctx, info) {
         firstname: args.firstname,
         lastname: args.lastname,
         preferredname: args.preferredname,
-        phonenumber: args.phone
+        phonenumber: args.phonenumber
       },
       where: {id: user.userprofile.id}
     }, info);
