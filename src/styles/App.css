@@ -1,5 +1,5 @@
-.App {
-  text-align: center;
+.App-intro {
+  justify-content: left;
 }
 
 .App-header {
@@ -24,4 +24,14 @@
 
 .errormessage {
   color: #a94442;
+}
+
+.App form label.required::after {
+  color: #a94442;
+  content: " *";
+}
+
+.App form span.help-block.requiredhelptext::before {
+  color: #a94442;
+  content: "* ";
 }

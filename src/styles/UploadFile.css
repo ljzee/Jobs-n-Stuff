@@ -1,0 +1,20 @@
+@media all and (min-width: 480px) {
+  .UploadFile {
+    padding: 60px 0;
+  }
+
+  .UploadFile form {
+    margin: 0 auto;
+    max-width: 320px;
+  }
+
+  .UploadFile form span.help-block {
+    font-size: 14px;
+    padding-bottom: 10px;
+    color: #999;
+  }
+
+  .UploadFile form span.help-block.uploaderrormessage {
+    color: #a94442;
+  }
+}

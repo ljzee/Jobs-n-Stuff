@@ -1,21 +1,22 @@
 import React, { Component } from 'react';
 import { Nav, Navbar, NavItem } from 'react-bootstrap';
 import { withRouter } from 'react-router';
-import { AUTH_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../constants';
 
 class Header extends Component {
   render() {
-    const authToken = localStorage.getItem(AUTH_TOKEN)
+    const authToken = localStorage.getItem(AUTH_TOKEN);
+    const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
     return (
       <header>
-          {authToken
-            ? this.loggedInNavBar()
+          {(authToken && userToken)
+            ? this.loggedInNavBar(userToken)
             : this.newUserNavBar()}
       </header>
     );
   }
 
-  loggedInNavBar() {
+  loggedInNavBar(userToken) {
     return (
       <Navbar inverse staticTop>
         <Navbar.Header>
@@ -24,12 +25,14 @@ class Header extends Component {
           </Navbar.Brand>
         </Navbar.Header>
         <Nav pullRight>
-          <NavItem eventKey={1} href="/profile">Profile</NavItem>
+          <NavItem eventKey={1} href={"/profile/" + userToken.id}>Profile</NavItem>
           <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
-          <NavItem eventKey={3} href="/"
+          <NavItem eventKey={3} href="/upload-file">Upload File</NavItem>
+          <NavItem eventKey={4} href="/"
             onClick={() => {
-              localStorage.removeItem(AUTH_TOKEN)
-              this.props.history.push(`/`)
+              localStorage.removeItem(AUTH_TOKEN);
+              localStorage.removeItem(USER_TOKEN);
+              this.props.history.push(`/`);
             }}
           >
             Logout
@@ -54,7 +57,6 @@ class Header extends Component {
       </Navbar>
     );
   }
-
 }
 
 export default withRouter(Header);

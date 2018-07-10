@@ -4,10 +4,53 @@ type User {
   email: String! @unique
   password: String!
   role: Role!
+  activated: Boolean!
+  userprofile: UserProfile @relation(name: "UserProfileDetails" onDelete: CASCADE)
+  businessprofile: BusinessProfile @relation(name: "BusinessProfileDetails" onDelete: CASCADE)
+  files: [File!]! @relation(name: "UserFiles" onDelete: CASCADE)
+}
+
+type File {
+  id: ID! @unique
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  filename: String!
+  mimetype: String!
+  url: String! @unique
+  key: String! @unique
+  name: String
+  filetype: Filetype!
+  user: User! @unique @relation(name: "UserFiles")
+}
+
+type UserProfile {
+  id: ID! @unique
+  firstname: String
+  lastname: String
+  preferredname: String
+  phonenumber: String
+  user: User! @unique @relation(name: "UserProfileDetails" onDelete: CASCADE)
+}
+
+type BusinessProfile {
+  id: ID! @unique
+  name: String
+  description: String
+  phonenumber: String
+  address: String
+  website: String
+  user: User! @unique @relation(name: "BusinessProfileDetails" onDelete: CASCADE)
 }
 
 enum Role {
   ADMIN
   BASEUSER
   BUSINESS
+}
+
+enum Filetype {
+  RESUME
+  COVERLETTER
+  PROFILEIMAGE
+  OTHER
 }

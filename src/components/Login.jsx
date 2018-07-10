@@ -2,8 +2,9 @@ import React from 'react';
 import { Redirect } from 'react-router-dom';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
-import { AUTH_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
+import { withApollo } from 'react-apollo';
 import { Link } from 'react-router-dom';
 import '../styles/Login.css';
 
@@ -18,6 +19,8 @@ class Login extends React.Component {
   handleChange = (e) => {
     var state = this.state;
     state[e.target.id].value = e.target.value;
+    state[e.target.id].message = '';
+    state[e.target.id].validState = null;
 
     this.setState(state);
   }
@@ -31,25 +34,25 @@ class Login extends React.Component {
     var invalid_re = new RegExp("Invalid username or password$");
 
     if (this.formIsValid()) {
-      try {
-        const result = await this.props.loginMutation({
-          variables: {
-            username,
-            password,
-          },
-        });
-        const { token } = result.data.login;
-        this.saveUserData(token);
-        this.props.history.push(`/dashboard`);
-      } catch (Error) {
-        if (invalid_re.test(Error.message)) {
+      await this.props.loginMutation({
+        variables: {
+          username,
+          password,
+        },
+      })
+      .then((result) => {
+        const { token, user } = result.data.login;
+        this.saveUserData(token, user);
+      })
+      .catch((e) => {
+        if (invalid_re.test(e.graphQLErrors[0].message)) {
           state.summary = 'Incorrect email or password';
           this.resetValidationStates();
           this.setState(state);
         } else {
-          throw Error;
+          throw e;
         }
-      }
+      });
     }
   }
 
@@ -88,11 +91,16 @@ class Login extends React.Component {
         state[key].validState = null;
       }
     });
+
     this.setState(state);
   }
 
-  saveUserData = token => {
+  saveUserData = (token, user) => {
     localStorage.setItem(AUTH_TOKEN, token);
+    localStorage.setItem(USER_TOKEN, JSON.stringify(user));
+    this.props.client.resetStore().then( () => {
+      this.props.history.push(`/dashboard`);
+    });
   }
 
   render() {
@@ -120,7 +128,7 @@ class Login extends React.Component {
               onChange={this.handleChange}
             />
             <FormControl.Feedback />
-            <HelpBlock>{username.message}</HelpBlock>
+            <HelpBlock className="errormessage">{username.message}</HelpBlock>
           </FormGroup>
           <FormGroup controlId="password" bsSize="large" validationState={password.validState}>
             <ControlLabel>Password</ControlLabel>
@@ -131,7 +139,7 @@ class Login extends React.Component {
               onChange={this.handleChange}
             />
             <FormControl.Feedback />
-            <HelpBlock>{password.message}</HelpBlock>
+            <HelpBlock className="errormessage">{password.message}</HelpBlock>
           </FormGroup>
           <Button
             block
@@ -153,10 +161,14 @@ const LOGIN_MUTATION = gql`
   mutation LoginMutation($username: String!, $password: String!) {
     login(username: $username, password: $password) {
       token
+      user {
+        id
+      }
     }
   }
 `
 
 export default compose(
-  graphql(LOGIN_MUTATION, { name: 'loginMutation' }),
+  withApollo,
+  graphql(LOGIN_MUTATION, { name: 'loginMutation' })
 )(Login);

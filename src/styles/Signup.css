@@ -1,20 +1,30 @@
 @media all and (min-width: 480px) {
   .Signup {
+    text-align: center;
     padding: 60px 0;
   }
 
   .Signup form {
     margin: 0 auto;
-    max-width: 320px;
+    max-width: 400px;
+  }
+
+  .Signup form span.help-block {
+    font-size: 14px;
+    padding-bottom: 10px;
+    color: #999;
+  }
+
+  .Signup form span.help-block.radioHelp {
+    font-size: 14px;
+    padding-bottom: 10px;
+    color: #999;
+    text-align: left;
+    padding-top: 10px;
+  }
+
+  .Signup form span.help-block.errormessage {
+    color: #a94442;
   }
 }
 
-.Signup form span.help-block {
-  font-size: 14px;
-  padding-bottom: 10px;
-  color: #999;
-}
-
-.Signup form span.help-block.signuperrormessage {
-  color: #a94442;
-}
