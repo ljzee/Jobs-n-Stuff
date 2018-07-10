@@ -1,5 +1,11 @@
-function user(root, args, context, info) {
-  return context.db.query.user({ where: { id: root.user.id } }, info);
+function user(root, args, ctx, info) {
+  return ctx.db.query.user({ where: { id: root.user.id } }, info);
 }
 
-module.exports = { user }
+const AuthPayload = {
+  user
+}
+
+module.exports = {
+  AuthPayload
+}

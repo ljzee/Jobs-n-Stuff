@@ -1,0 +1,29 @@
+@media all and (min-width: 480px) {
+  .Profile {
+    text-align: left;
+  }
+
+  .EditProfile {
+    text-align: center
+  }
+
+  .EditProfile form {
+    margin: 0 auto;
+    max-width: 400px;
+    text-align: left;
+  }
+
+  .EditProfile button {
+    width: 150px !important;
+  }
+
+  .EditProfile form span.help-block {
+    font-size: 14px;
+    padding-bottom: 10px;
+    color: #999;
+  }
+
+  .EditProfile form span.help-block.errormessage {
+    color: #a94442;
+  }
+}

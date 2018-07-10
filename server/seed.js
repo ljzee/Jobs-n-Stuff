@@ -24,7 +24,7 @@ async function deleteExistingUser(email) {
   }
 }
 
-async function createNewUser(username, email, password, role, deleteUser=false) {
+async function createNewUser(username, email, password, role, activated, deleteUser=false) {
   if (deleteUser) {
     await deleteExistingUser(email);
   }
@@ -37,7 +37,8 @@ async function createNewUser(username, email, password, role, deleteUser=false) 
         username: username,
         email: email,
         password: hashed_pass,
-        role: role
+        role: role,
+        activated: activated,
       } },
       "{ id }"
     );
@@ -57,11 +58,13 @@ const admin_username = 'admin';
 const admin_email = 'admin@email.com';
 const admin_password = 'admin_password';
 const admin_role = 'ADMIN';
-createNewUser(admin_username, admin_email, admin_password, admin_role);
+const admin_activated = true;
+createNewUser(admin_username, admin_email, admin_password, admin_role, admin_activated);
 
 // Create business user
 const business_username = 'business';
 const business_email = 'business@email.com';
 const business_password = 'business_password';
 const business_role = 'BUSINESS';
-createNewUser(business_username, business_email, business_password, business_role);
+const business_activated = true;
+createNewUser(business_username, business_email, business_password, business_role, business_activated);

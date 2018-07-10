@@ -1,13 +1,17 @@
-# import Role from "./generated/prisma.graphql"
+# import Query.user, Mutation.updateUserProfile from "./generated/prisma.graphql"
+# import Role, ID, File, Filetype, UserProfile, BusinessProfile from "./generated/prisma.graphql"
+
+scalar Upload
 
 type Query {
-  users: [User!]!
-  user(id: ID!): User
+  me: User
 }
 
 type Mutation {
-  signup(email: String!, password: String!, username: String!, role: Role!): AuthPayload
-  login(username: String!, password: String!): AuthPayload
+  signup(email: String!, password: String!, username: String!, role: Role!, activated: Boolean!): AuthPayload!
+  login(username: String!, password: String!): AuthPayload!
+  updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): User
+  uploadFile (file: Upload!, name: String!, filetype: Filetype! ): File!
 }
 
 type AuthPayload {
@@ -19,4 +23,8 @@ type User {
   id: ID!
   username: String!
   email: String!
+  role: Role!
+  userprofile: UserProfile
+  businessprofile: BusinessProfile
+  files: [File]
 }
