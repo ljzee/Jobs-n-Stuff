@@ -17,11 +17,6 @@
   font-size: large;
 }
 
-#logo {
-  width: 20%;
-  height: 20%;
-}
-
 .errormessage {
   color: #a94442;
 }
@@ -31,7 +26,7 @@
   content: " *";
 }
 
-.App form span.help-block.requiredhelptext::before {
+.App form p.requiredhelptext::before {
   color: #a94442;
   content: "* ";
 }

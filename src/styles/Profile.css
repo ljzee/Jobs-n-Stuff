@@ -1,29 +1,49 @@
-@media all and (min-width: 480px) {
-  .Profile {
-    text-align: left;
-  }
-
-  .EditProfile {
-    text-align: center
-  }
-
-  .EditProfile form {
-    margin: 0 auto;
-    max-width: 400px;
-    text-align: left;
-  }
-
-  .EditProfile button {
-    width: 150px !important;
-  }
-
-  .EditProfile form span.help-block {
-    font-size: 14px;
-    padding-bottom: 10px;
-    color: #999;
-  }
-
-  .EditProfile form span.help-block.errormessage {
-    color: #a94442;
-  }
+.Profile {
+  text-align: left;
 }
+
+.EditProfile form {
+  padding-top: 20px;
+}
+
+.EditProfile form input {
+  width: 400px !important;
+}
+
+.EditProfile form .control-label {
+  font-size: 14px;
+}
+
+.EditProfile button {
+  width: 150px !important;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.EditProfile form span.help-block {
+  font-size: 14px;
+  padding-bottom: 10px;
+  color: #999;
+}
+
+.EditProfile form span.help-block.errormessage {
+  color: #a94442;
+}
+
+.UserDetails p {
+  width: 500px;
+}
+
+.UserDetails img {
+  position: relative;
+  display: inline;
+}
+
+.EditProfile form p.requiredhelptext {
+  margin-left: 475px;
+}
+
+.EditProfile form .avatarUpload {
+  margin-left: 200px;
+}
+

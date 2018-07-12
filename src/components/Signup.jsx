@@ -257,7 +257,7 @@ class Signup extends React.Component {
             type="submit"
             block
             bsSize="large"
-            primary="true"
+            bsStyle="primary"
           >
             Create Account
           </Button>

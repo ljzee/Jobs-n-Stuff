@@ -1,55 +1,71 @@
-
-const uuid = require('uuid/v1');
-const aws = require('aws-sdk');
 const { getUserId } = require('../utils')
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const Jimp = require('jimp');
+const shell = require('shelljs');
+
+const uploadDir = './uploads';
 
 require('dotenv').config();
 
-const s3 = new aws.S3({
-  accessKeyId: process.env.S3_KEY,
-  secretAccessKey: process.env.S3_SECRET,
-  params: {
-    Bucket: process.env.S3_BUCKET
-  }
-});
+const storeFS = ({ stream, path }) => {
+  if (fs.existsSync(path)) fs.unlinkSync(path);
+
+  return new Promise((resolve, reject) =>
+    stream
+      .on('error', error => {
+        if (stream.truncated) fs.unlinkSync(path);
+        reject(error)
+      })
+      .pipe(fs.createWriteStream(path))
+      .on('error', error => reject(error))
+      .on('finish', () => resolve(path))
+  );
+}
+
+const resizeImage = async (path, filename, userId) => {
+  var userDir = `${uploadDir}/${userId}`;
+  const tempPath = `${userDir}/temp-${filename}`;
+
+  fs.renameSync(path, tempPath);
+
+  Jimp.read(tempPath)
+    .then(function (lenna) {
+      lenna.resize(150, 150)
+        .quality(75)
+        .write(path);
+      fs.unlinkSync(tempPath);
+    })
+    .catch((e) => {
+        throw e;
+    });
+}
 
 const processUpload = async ( upload, ctx ) => {
   if (!upload) {
     throw new Error('File is required for upload');
   }
 
-  const { stream, filename, mimetype, encoding } = await upload;
+  const { stream, filename, mimetype } = await upload;
+  var mimereg = new RegExp('^image/')
+
   const userId = getUserId(ctx);
-  const key = uuid() + '-' + filename;
 
-  const response = await s3
-    .upload({
-      Key: key,
-      ACL: 'public-read',
-      Body: stream
-    }).promise();
+  var userDir = `${uploadDir}/${userId}`;
+  mkdirp.sync(userDir);
+  const path = `${userDir}/${filename}`;
 
-  const url = response.Location;
+  await storeFS({ stream, path });
 
-  const data = {
-    filename,
-    mimetype,
-    key,
-    url,
-    user: { connect: { id: userId } },
+  if (mimereg.test(mimetype)) {
+    await resizeImage(path, filename, userId);
   }
-
-  const { id } = await ctx.db.mutation.createFile({ data }, ` { id } `);
 
   const file = {
-    id,
     filename,
     mimetype,
-    url,
+    path
   }
-
-  console.log('saved prisma file:');
-  console.log(file);
 
   return file;
 }

@@ -32,7 +32,7 @@ async function createNewUser(username, email, password, role, activated, deleteU
   let user1 = await prisma.query.user({ where: { email: email } }, `{ id }`);
   let user2 = await prisma.query.user({ where: { username: username } }, `{ id }`);
   if (user1 === null && user2 === null) {
-    await prisma.mutation.createUser({
+    const user = await prisma.mutation.createUser({
       data: {
         username: username,
         email: email,
@@ -42,6 +42,29 @@ async function createNewUser(username, email, password, role, activated, deleteU
       } },
       "{ id }"
     );
+    if (role === 'BASEUSER') {
+      await prisma.mutation.createUserProfile({
+        data: {
+          firstname: '',
+          lastname: '',
+          preferredname: '',
+          phonenumber: '',
+          user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+    }
+    if (role === 'BUSINESS') {
+      await prisma.mutation.createBusinessProfile({
+        data: {
+          name: '',
+          description: '',
+          phonenumber: '',
+          address: '',
+          website: '',
+          user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+    }
     process.stdout.write('New user with username \'' + username + '\' and email \'' + email + '\' created.\n');
   } else if (user1 !== null && user2 === null) {
     process.stdout.write('User with email \'' + email + '\' already exists.\n');
