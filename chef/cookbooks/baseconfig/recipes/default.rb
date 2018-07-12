@@ -48,6 +48,10 @@ execute 'install docker' do
   command 'apt-get install -y docker-ce docker-compose'
 end
 
+execute 'install imagemagick' do
+  command 'apt-get -y install imagemagick'
+end
+
 execute 'npm configuration' do
   command 'npm config set unsafe-perm true'
 end
@@ -58,7 +62,7 @@ end
 
 execute 'resolve global ajv dependency' do
   command 'npx install-peerdeps ajv-keywords'
-  cwd '/usr/lib/node_modules/prisma/node_modules/table'
+  cwd '/usr/lib/node_modules'
 end
 
 execute 'server npm packages' do

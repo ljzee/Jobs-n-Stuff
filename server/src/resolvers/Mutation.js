@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { processUpload } = require('../modules/fileApi');
-const { getUserId } = require('../utils')
+const { processUpload } = require('../files/fileApi');
+const { getUserId } = require('../utils');
 
 require('dotenv').config();
 
@@ -33,28 +33,33 @@ async function signup(parent, args, ctx, info) {
 
   if (valid) {
     const password = await bcrypt.hash(args.password, 10);
-    user = await ctx.db.mutation.createUser({
+    const user = await ctx.db.mutation.createUser({
       data: { ...args, password },
     }, `{ id }`);
-    await ctx.db.mutation.createUserProfile({
-      data: {
-        firstname: '',
-        lastname: '',
-        preferredname: '',
-        phonenumber: '',
-        user: { connect: { id: user.id } }
-      },
-    }, `{ id }`);
-    await ctx.db.mutation.createBusinessProfile({
-      data: {
-        name: '',
-        description: '',
-        phonenumber: '',
-        address: '',
-        website: '',
-        user: { connect: { id: user.id } }
-      },
-    }, `{ id }`);
+
+    if (args.role === 'BASEUSER') {
+      await ctx.db.mutation.createUserProfile({
+        data: {
+          firstname: '',
+          lastname: '',
+          preferredname: '',
+          phonenumber: '',
+          user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+    }
+    if (args.role === 'BUSINESS') {
+      await ctx.db.mutation.createBusinessProfile({
+        data: {
+          name: '',
+          description: '',
+          phonenumber: '',
+          address: '',
+          website: '',
+          user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+    }
     token = jwt.sign({ userId: user.id }, app_secret);
     return { token, user }
   } else {
@@ -88,8 +93,6 @@ async function updateuser(parent, args, ctx, info) {
   let valid = true;
   let err = '';
 
-  console.log(user)
-
   if (!sameUser(user, user1) && user1 !== null && args.username === user1.username) {
     valid = false;
     err = err + 'Username in use.';
@@ -122,8 +125,39 @@ async function updateuser(parent, args, ctx, info) {
 }
 
 async function uploadFile(parent, { file, name, filetype }, ctx, info) {
-  let upload =  await processUpload(await file, ctx);
-  return await ctx.db.mutation.updateFile({ data: { name, filetype }, where: { id: upload.id } }, info);
+  const userId = getUserId(ctx);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id files { id  path } }`);
+
+  const newFile = await processUpload(await file, ctx);
+
+  const path = `/uploads/${userId}/${newFile.filename}`;
+
+  for (var i = 0; i < user.files.length; i++) {
+    const existingFile = user.files[i];
+    if (existingFile.path === path) {
+      return await ctx.db.mutation.updateFile({
+        data: {
+          name,
+          filetype,
+          filename: newFile.filename,
+          path,
+          mimetype: newFile.mimetype
+        },
+        where: {id: file.id}
+      }, info);
+    }
+  }
+
+  return await ctx.db.mutation.createFile({
+    data: {
+      name,
+      filetype,
+      filename: newFile.filename,
+      path,
+      mimetype: newFile.mimetype,
+      user: { connect: { id: userId } }
+    }
+  }, info);
 }
 
 // async function deleteFile(parent, { id }, ctx, info) {

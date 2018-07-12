@@ -145,7 +145,7 @@ class Login extends React.Component {
             block
             bsSize="large"
             type="submit"
-            primary="true"
+            bsStyle="primary"
           >
             Login
           </Button>

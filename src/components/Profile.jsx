@@ -70,6 +70,7 @@ const USER_QUERY = gql`
       files {
         id
         filename
+        path
         name
         filetype
       }

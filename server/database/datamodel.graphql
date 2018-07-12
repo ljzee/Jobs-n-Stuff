@@ -16,8 +16,7 @@ type File {
   updatedAt: DateTime!
   filename: String!
   mimetype: String!
-  url: String! @unique
-  key: String! @unique
+  path: String! @unique
   name: String
   filetype: Filetype!
   user: User! @unique @relation(name: "UserFiles")

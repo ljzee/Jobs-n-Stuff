@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel } from 'react-bootstrap';
+import { Thumbnail, Col, Form, Image, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel } from 'react-bootstrap';
 import { USER_TOKEN } from '../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
@@ -17,9 +17,11 @@ class UserPageForm extends React.Component {
     lastname: {value: '', isValid: true, message: '', validState: null},
     phonenumber: {value: '', isValid: true, message: '', validState: null},
     preferredname: {value: ''},
-    userProfileID: '',
+    selectedFile: null,
+    avatarPath: '/avatar.png',
     isNewUser: true,
-    isEditMode: false
+    isEditMode: false,
+    fileType: ''
   }
 
   componentDidMount() {
@@ -27,12 +29,15 @@ class UserPageForm extends React.Component {
     state.email.value = this.props.user.email;
     state.username.value = this.props.user.username;
 
+    for (var i = 0; i < this.props.user.files.length; i++) {
+      state.avatarPath = this.props.user.files[i].path;
+    }
+
     if (this.props.user.userprofile !== null && this.props.user.userprofile.firstname !== '') {
       state.firstname.value = this.props.user.userprofile.firstname;
       state.lastname.value = this.props.user.userprofile.lastname;
       state.preferredname.value = this.props.user.userprofile.preferredname;
       state.phonenumber.value = this.props.user.userprofile.phonenumber;
-      state.userProfileID = this.props.user.userprofile.id;
       state.isNewUser = false;
     }
 
@@ -41,9 +46,18 @@ class UserPageForm extends React.Component {
 
   handleChange = (e) => {
     var state = this.state;
-    state[e.target.id].value = e.target.value;
-    if (state[e.target.id].hasOwnProperty('message')) state[e.target.id].message = '';
-    if (state[e.target.id].hasOwnProperty('validState')) state[e.target.id].validState = null;
+
+    switch (e.target.id) {
+      case 'avatarImage':
+        state.avatarPath = URL.createObjectURL(e.target.files[0]);
+        state.selectedFile = e.target.files[0];
+        state.fileType = 'PROFILEIMAGE';
+        break;
+      default:
+        state[e.target.id].value = e.target.value;
+        if (state[e.target.id].hasOwnProperty('message')) state[e.target.id].message = '';
+        if (state[e.target.id].hasOwnProperty('validState')) state[e.target.id].validState = null;
+    }
 
     this.setState(state);
   }
@@ -69,6 +83,16 @@ class UserPageForm extends React.Component {
     })
     .then(async (result) => {
       if (this.formIsValid()) {
+        var file = null;
+        if (this.state.selectedFile !== null) {
+          file = await this.props.uploadMutation({
+            variables: {
+              file: this.state.selectedFile,
+              filetype: this.state.fileType
+            },
+          });
+        }
+        state.avatarPath = (file !== null) ? file.data.uploadFile.path : '/avatar.png';
         state.isNewUser = false;
         state.isEditMode = false;
         this.setState(state);
@@ -181,7 +205,7 @@ class UserPageForm extends React.Component {
     var state = this.state;
 
     for (var key in state) {
-      if (state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
+      if (state[key] !== null && state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
     }
 
     return true;
@@ -237,86 +261,130 @@ class UserPageForm extends React.Component {
             ? 'Create Profile'
             : 'Edit Profile'}
         </h2>
-        <form onSubmit={this.onSubmit}>
+        <Panel>
+          <Panel.Heading>
+            <Panel.Title componentClass="h3">Profile</Panel.Title>
+          </Panel.Heading>
+          <Form horizontal>
             {!this.state.isNewUser &&
               <div>
-                <FormGroup controlId="username" bsSize="large" validationState={this.state.username.validState}>
-                  <ControlLabel className="required">Username</ControlLabel>
-                  <FormControl
-                    autoFocus
-                    type="text"
-                    placeholder="Username"
-                    value={this.state.username.value}
-                    onChange={this.handleChange}
-                  />
-                  <FormControl.Feedback />
-                  <HelpBlock className="errormessage">{this.state.username.message}</HelpBlock>
+                <FormGroup controlId="username" validationState={this.state.username.validState}>
+                  <Col componentClass={ControlLabel} sm={2} className="required">
+                    Username:
+                  </Col>
+                  <Col sm={10}>
+                    <FormControl
+                      type="text"
+                      placeholder="Username"
+                      value={this.state.username.value}
+                      onChange={this.handleChange}
+                    />
+                    <FormControl.Feedback />
+                    <HelpBlock className="errormessage">{this.state.username.message}</HelpBlock>
+                  </Col>
                 </FormGroup>
-                <FormGroup controlId="email" bsSize="large" validationState={this.state.email.validState}>
-                  <ControlLabel className="required">Email</ControlLabel>
-                  <FormControl
-                    type="text"
-                    placeholder="Email"
-                    value={this.state.email.value}
-                    onChange={this.handleChange}
-                  />
-                  <FormControl.Feedback />
-                  <HelpBlock className="errormessage">{this.state.email.message}</HelpBlock>
+                <FormGroup controlId="email" validationState={this.state.email.validState}>
+                  <Col componentClass={ControlLabel} sm={2} className="required">
+                    Email:
+                  </Col>
+                  <Col sm={10}>
+                    <FormControl
+                      type="text"
+                      placeholder="Email"
+                      value={this.state.email.value}
+                      onChange={this.handleChange}
+                    />
+                    <FormControl.Feedback />
+                    <HelpBlock className="errormessage">{this.state.email.message}</HelpBlock>
+                  </Col>
                 </FormGroup>
               </div>
             }
-          <FormGroup controlId="firstname" bsSize="large" validationState={this.state.firstname.validState}>
-            <ControlLabel className="required">First Name</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="First name"
-              value={this.state.firstname.value}
-              onChange={this.handleChange}
-            />
-            <FormControl.Feedback />
-            <HelpBlock className="errormessage">{this.state.firstname.message}</HelpBlock>
-          </FormGroup>
-          <FormGroup controlId="preferredname" bsSize="large">
-            <ControlLabel>Preferred Name</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Preferred name"
-              value={this.state.preferredname.value}
-              onChange={this.handleChange}
-            />
-          </FormGroup>
-          <FormGroup controlId="lastname" bsSize="large" validationState={this.state.lastname.validState}>
-            <ControlLabel className="required">Last Name</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Last name"
-              value={this.state.lastname.value}
-              onChange={this.handleChange}
-            />
-            <FormControl.Feedback />
-            <HelpBlock className="errormessage">{this.state.lastname.message}</HelpBlock>
-          </FormGroup>
-          <FormGroup controlId="phonenumber" bsSize="large" validationState={this.state.phonenumber.validState}>
-            <ControlLabel className="required">Phone Number</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Phone number"
-              value={this.state.phonenumber.value}
-              onChange={this.handleChange}
-            />
-            <FormControl.Feedback />
-            <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
-          </FormGroup>
-          <HelpBlock className="requiredhelptext">Required field</HelpBlock>
-          <Button
-            type="submit"
-            bsSize="large"
-            primary="true"
-            className="pull-right"
-          >
-            Save
-          </Button>
-        </form>
+            <FormGroup controlId="firstname" validationState={this.state.firstname.validState}>
+              <Col componentClass={ControlLabel} sm={2} className="required">
+                First Name:
+              </Col>
+              <Col sm={10}>
+                <FormControl
+                  autoFocus
+                  type="text"
+                  placeholder="First name"
+                  value={this.state.firstname.value}
+                  onChange={this.handleChange}
+                />
+                <FormControl.Feedback />
+                <HelpBlock className="errormessage">{this.state.firstname.message}</HelpBlock>
+              </Col>
+            </FormGroup>
+            <FormGroup controlId="preferredname" validationState={null}>
+              <Col componentClass={ControlLabel} sm={2}>
+                Preferred Name:
+              </Col>
+              <Col sm={10}>
+                <FormControl
+                  type="text"
+                  placeholder="Preferred name"
+                  value={this.state.preferredname.value}
+                  onChange={this.handleChange}
+                />
+                <FormControl.Feedback />
+                <HelpBlock className="errormessage">{''}</HelpBlock>
+              </Col>
+            </FormGroup>
+            <FormGroup controlId="lastname" validationState={this.state.lastname.validState}>
+              <Col componentClass={ControlLabel} sm={2} className="required">
+                Last Name:
+              </Col>
+              <Col sm={10}>
+                <FormControl
+                  type="text"
+                  placeholder="Last name"
+                  value={this.state.lastname.value}
+                  onChange={this.handleChange}
+                />
+                <FormControl.Feedback />
+                <HelpBlock className="errormessage">{this.state.lastname.message}</HelpBlock>
+              </Col>
+            </FormGroup>
+            <FormGroup controlId="phonenumber" validationState={this.state.phonenumber.validState}>
+              <Col componentClass={ControlLabel} sm={2} className="required">
+                Phone number:
+              </Col>
+              <Col sm={10}>
+                <FormControl
+                  type="text"
+                  placeholder="Phone number"
+                  value={this.state.phonenumber.value}
+                  onChange={this.handleChange}
+                />
+                <FormControl.Feedback />
+                <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
+              </Col>
+            </FormGroup>
+            <p className="requiredhelptext">Required field</p><br />
+            <FormGroup controlId="avatarImage" className="avatarUpload">
+              <Col xs={6} md={4}>
+                <Thumbnail src={this.state.avatarPath} alt="150x150">
+                  <h3>Profile Picture</h3>
+                  <FormControl
+                    type="file"
+                    accept='image/*'
+                    onChange={this.handleChange}
+                  />
+                </Thumbnail>
+              </Col>
+            </FormGroup>
+          </Form>
+        </Panel>
+        <Button
+          type="submit"
+          bsSize="large"
+          bsStyle="primary"
+          className="pull-right"
+          onClick={this.onSubmit}
+        >
+          Save
+        </Button>
       </div>
     );
   }
@@ -333,15 +401,24 @@ class UserPageForm extends React.Component {
             <Panel.Title componentClass="h3">Profile</Panel.Title>
           </Panel.Heading>
           <Panel.Body>
-            {'Email: ' + this.state.email.value}<br />
-            {'Phone number: ' + this.state.phonenumber.value}
+            {this.state.avatarPath !== '' &&
+              <Image
+                alt="150x150"
+                src={this.state.avatarPath}
+                rounded
+                className="pull-right"
+                responsive
+              />
+            }
+            <p>{'Email: ' + this.state.email.value}</p>
+            <p>{'Phone number: ' + this.state.phonenumber.value}</p>
           </Panel.Body>
         </Panel>
         {this.isUserMyself &&
           <Button
             type="submit"
             bsSize="large"
-            primary="true"
+            bsStyle="primary"
             className="pull-right"
             onClick={ () => this.setState({ isEditMode: !this.state.isEditMode })}
           >
@@ -361,9 +438,21 @@ const UPDATE_USER_MUTATION = gql`
   }
 `
 
+const UPLOAD_MUTATION = gql`
+  mutation uploadFile($file: Upload!, $name: String, $filetype: Filetype!) {
+    uploadFile(file: $file, name: $name, filetype: $filetype) {
+      id
+      path
+    }
+  }
+`
+
 export default compose(
   graphql(UPDATE_USER_MUTATION, {
     name: 'updateUser',
+  }),
+  graphql(UPLOAD_MUTATION, {
+    name: 'uploadMutation'
   }),
   withRouter,
   withApollo
