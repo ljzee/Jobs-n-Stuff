@@ -2,17 +2,53 @@ import React, { Component } from 'react';
 import { Nav, Navbar, NavItem } from 'react-bootstrap';
 import { withRouter } from 'react-router';
 import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import LogoutModal from './LogoutModal';
 
 class Header extends Component {
+  constructor() {
+    super()
+    this.state = {
+      showSignout: false,
+    }
+
+    this.openLogout = this.openLogout.bind(this);
+    this.closeLogout = this.closeLogout.bind(this);
+    this.logout = this.logout.bind(this);
+  }
+
+  openLogout() {
+    this.setState({ showSignout: true });
+  }
+
+  closeLogout() {
+    this.setState({ showSignout: false });
+  }
+
+  logout() {
+    localStorage.removeItem(AUTH_TOKEN);
+    localStorage.removeItem(USER_TOKEN);
+    this.setState({ showSignout: false });
+    this.props.history.push(`/`);
+  }
+
   render() {
     const authToken = localStorage.getItem(AUTH_TOKEN);
     const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
     return (
-      <header>
-          {(authToken && userToken)
-            ? this.loggedInNavBar(userToken)
-            : this.newUserNavBar()}
-      </header>
+      <React.Fragment>
+        <header>
+            {(authToken && userToken)
+              ? this.loggedInNavBar(userToken)
+              : this.newUserNavBar()}
+        </header>
+
+        <LogoutModal
+          show={this.state.showSignout}
+          open={this.openLogout}
+          close={this.closeLogout}
+          logout={this.logout}
+        />
+      </React.Fragment>
     );
   }
 
@@ -28,13 +64,7 @@ class Header extends Component {
           <NavItem eventKey={1} href={"/profile/" + userToken.id}>Profile</NavItem>
           <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
           <NavItem eventKey={3} href="/upload-file">Upload File</NavItem>
-          <NavItem eventKey={4} href="/"
-            onClick={() => {
-              localStorage.removeItem(AUTH_TOKEN);
-              localStorage.removeItem(USER_TOKEN);
-              this.props.history.push(`/`);
-            }}
-          >
+          <NavItem eventKey={4} onClick={this.openLogout}>
             Logout
           </NavItem>
         </Nav>
