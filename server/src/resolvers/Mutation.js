@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { processUpload, deleteFile } = require('../files/fileApi');
+const { processUpload } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 
 require('dotenv').config();
