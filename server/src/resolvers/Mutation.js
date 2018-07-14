@@ -349,7 +349,6 @@ async function uploadFile(parent, { file, name, filetype, size, filename, overwr
             .on('error', error => {
               reject(error)
             })
-            .then(null, error => { console.log('caught', error.message); })
             .on('finish', () => resolve())
           );
       }
