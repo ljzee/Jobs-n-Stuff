@@ -23,7 +23,7 @@ class App extends Component {
               <Route exact path='/login' component={Login} />
               <Route exact path='/signup' component={Signup} />
               <Route exact path='/dashboard' component={Dashboard} />
-              <Route exact path='/profile/:id' component={Profile} />
+              <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
               <Route exact path='/upload-file' component={UploadFile} />
             </Switch>

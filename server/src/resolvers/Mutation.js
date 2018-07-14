@@ -1,11 +1,19 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 const { processUpload } = require('../files/fileApi');
 const { getUserId } = require('../utils');
+const validator = require('validator');
 
 require('dotenv').config();
 
 const app_secret = process.env.APP_SECRET;
+const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+const usernameRegEx = /^[a-z0-9]+$/i;
+const maxImageSize = 500000; // 5 KB
+const maxDocSize = 5000000; // 5 MB
+const isImageRegEx = new RegExp('^image/.+$');
+const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -16,25 +24,80 @@ function sameUser(user1, user2) {
 }
 
 async function signup(parent, args, ctx, info) {
-  let token = null;
-  let user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
-  let user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
-  let valid = true;
-  let err = '';
+  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  var valid = true;
+  var usernameValid = true;
+  var emailValid = true;
 
-  if (user1 !== null && args.username === user1.username) {
-    valid = false;
-    err = err + 'Username in use.';
+  var payload = {
+    token: null,
+    user: null,
+    errors: {
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
   }
-  if (user2 !== null && args.email === user2.email) {
+
+  if (args.username === '' || args.username.trim().length > 32) {
     valid = false;
-    err = err + 'Email in use.';
+    usernameValid = false;
+    payload.errors.username = 'Username must be between 1 and 32 characters';
+  }
+
+  if (usernameValid && !usernameRegEx.test(args.username)) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Invalid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  }
+
+  if (usernameValid && user1 !== null && args.username === user1.username) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username already in use';
+  }
+
+  if (args.email === '') {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Please enter an email';
+  }
+
+  if (emailValid && !validator.isEmail(args.email)) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Invalid email';
+  }
+
+  if (emailValid && user2 !== null && args.email === user2.email) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Email already in use';
+  }
+
+  if (args.password.trim().length < 8 || args.password.trim().length > 32) {
+    valid = false;
+    passwordValid = false;
+    payload.errors.password = 'Password must be between 8 and 32 characters';
+  }
+
+  if (args.password !== args.confirmPassword) {
+    valid = false;
+    payload.errors.confirmPassword = 'Passwords do not match';
   }
 
   if (valid) {
     const password = await bcrypt.hash(args.password, 10);
     const user = await ctx.db.mutation.createUser({
-      data: { ...args, password },
+      data: {
+        username: args.username,
+        email: args.email,
+        password: password,
+        role: args.role,
+        activated: args.activated
+      },
     }, `{ id }`);
 
     if (args.role === 'BASEUSER') {
@@ -60,46 +123,124 @@ async function signup(parent, args, ctx, info) {
         },
       }, `{ id }`);
     }
-    token = jwt.sign({ userId: user.id }, app_secret);
-    return { token, user }
-  } else {
-    throw new Error(err)
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+    payload.user = user;
   }
+
+  return payload;
 }
 
 async function login(parent, args, ctx, info) {
   const user = await ctx.db.query.user({ where: { username: args.username } }, `{ id password }`);
+  var validLogin = true;
+
+  var payload = {
+    token: null,
+    user: null,
+    errors: {
+      login: ''
+    }
+  }
 
   if (!user) {
-    throw new Error('Invalid username or password');
+    validLogin = false;
+    payload.errors.login = 'Invalid username or password';
   }
 
   const valid = await bcrypt.compare(args.password, user.password);
   if (!valid) {
-    throw new Error('Invalid username or password');
+    validLogin = false;
+    payload.errors.login = 'Invalid username or password';
   }
 
-  return {
-    token: jwt.sign({ userId: user.id }, app_secret),
-    user,
+  if (validLogin) {
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+    payload.user = user;
   }
+
+  return payload;
 }
 
 async function updateuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  let user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
-  let user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
-  let user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
-  let valid = true;
-  let err = '';
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
+  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  var valid = true;
+  var usernameValid = true;
+  var emailValid = true;
+  var phonenumberValid = true;
 
-  if (!sameUser(user, user1) && user1 !== null && args.username === user1.username) {
-    valid = false;
-    err = err + 'Username in use.';
+  var payload = {
+    user: null,
+    errors: {
+      username: '',
+      email: '',
+      firstname: '',
+      lastname: '',
+      phonenumber: ''
+    }
   }
-  if (!sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+
+  if (args.username === '' || args.username.trim().length > 32) {
     valid = false;
-    err = err + 'Email in use.';
+    usernameValid = false;
+    payload.errors.username = 'Username must be between 1 and 32 characters';
+  }
+
+  if (usernameValid && !usernameRegEx.test(args.username)) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  }
+
+  if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username already in use';
+  }
+
+  if (args.email === '') {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Please enter an email';
+  }
+
+  if (emailValid && !validator.isEmail(args.email)) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Not a valid email address';
+  }
+
+  if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Email already in use';
+  }
+
+  if (args.firstname === '' || args.firstname.trim().length > 32) {
+    valid = false;
+    payload.errors.firstname = 'First name must be between 1 and 32 characters';
+  }
+
+  if (args.lastname === '' || args.lastname.trim().length > 32) {
+    valid = false;
+    payload.errors.lastname = 'Please enter your last name';
+  }
+
+  if (args.phonenumber === '') {
+    valid = false;
+    phonenumberValid = false;
+    payload.errors.phonenumber = 'Please enter your phone number';
+  }
+
+  var formattedPhone = '';
+  if(phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+    var unformattedPhone = args.phonenumber;
+    formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+  } else {
+    valid = false;
+    payload.errors.phonenumber = 'Not a valid phone number';
   }
 
   if (valid) {
@@ -108,61 +249,154 @@ async function updateuser(parent, args, ctx, info) {
         firstname: args.firstname,
         lastname: args.lastname,
         preferredname: args.preferredname,
-        phonenumber: args.phonenumber
+        phonenumber: formattedPhone
       },
       where: {id: user.userprofile.id}
-    }, info);
-    return await ctx.db.mutation.updateUser({
+    }, `{ id }`);
+    payload.user =  await ctx.db.mutation.updateUser({
       data: {
         username: args.username,
         email: args.email
       },
       where: {id: userId}
-    }, info);
-  } else {
-    throw new Error(err);
+    }, `{ id username }`);
   }
+
+  return payload;
 }
 
-async function uploadFile(parent, { file, name, filetype }, ctx, info) {
+async function uploadFile(parent, { file, name, filetype, size, filename, overwrite }, ctx, info) {
   const userId = getUserId(ctx);
-  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id files { id  path } }`);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id  path filename storedName } }`);
+  var fileExists = false;
+  var updateFileId = '';
+  var valid = true;
 
-  const newFile = await processUpload(await file, ctx);
-
-  const path = `/uploads/${userId}/${newFile.filename}`;
-
-  for (var i = 0; i < user.files.length; i++) {
-    const existingFile = user.files[i];
-    if (existingFile.path === path) {
-      return await ctx.db.mutation.updateFile({
-        data: {
-          name,
-          filetype,
-          filename: newFile.filename,
-          path,
-          mimetype: newFile.mimetype
-        },
-        where: {id: file.id}
-      }, info);
+  var payload = {
+    file: null,
+    errors: {
+      fileexists: '',
+      filetype: '',
+      filesize: ''
     }
   }
 
-  return await ctx.db.mutation.createFile({
-    data: {
-      name,
-      filetype,
-      filename: newFile.filename,
-      path,
-      mimetype: newFile.mimetype,
-      user: { connect: { id: userId } }
-    }
-  }, info);
-}
+  if (!file) {
+    valid = false;
+    payload.errors.fileexists = 'File is required for upload';
+  }
 
-// async function deleteFile(parent, { id }, ctx, info) {
-//   return await ctx.db.mutation.deleteFile({ where: { id } }, info)
-// }
+  var { stream, uploadname, mimetype } = await file;
+
+  const isImage = isImageRegEx.test(mimetype);
+  const isValidImage = isValidImageRegEx.test(mimetype);
+
+  if (filetype === 'PROFILEIMAGE' && size > maxImageSize) {
+    valid = false;
+    payload.errors.filesize = 'Image size cannot exceed 500 KB';
+    var cleanup = new Promise((resolve, reject) =>
+      stream
+        .destroy()
+        .on('error', error => {
+          reject(error)
+        })
+        .on('finish', () => resolve())
+      );
+  }
+
+  if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
+    valid = false;
+    payload.errors.filesize = 'Document size cannot exceed 5 MB';
+    var cleanup = new Promise((resolve, reject) =>
+      stream
+        .destroy()
+        .on('error', error => {
+          reject(error)
+        })
+        .on('finish', () => resolve())
+      );
+  }
+
+  if (isImage && !isValidImage) {
+    valid = false;
+    payload.errors.filetype = 'Image type must be jpg, jpeg, or png';
+    var cleanup = new Promise((resolve, reject) =>
+      stream
+        .destroy()
+        .on('error', error => {
+          reject(error)
+        })
+        .on('finish', () => resolve())
+      );
+  }
+
+  if (valid) {
+    for (var i = 0; i < user.files.length; i++) {
+      const existingFile = user.files[i];
+      if ((filetype === 'PROFILEIMAGE' && existingFile.filename === 'avatar.png')
+          || (overwrite && existingFile.filename === filename)) {
+        fileExists = true;
+        updateFileId = existingFile.id;
+        var deletePath = `../public/uploads/${user.username}/${existingFile.storedName}`
+        if (fs.existsSync(deletePath)) fs.unlinkSync(deletePath);
+      }
+      if (!overwrite && existingFile.filename === filename) {
+        valid = false;
+        payload.errors.fileexists = `Document ${filename} already exists. Do you want to replace it?`;
+        var cleanup = new Promise((resolve, reject) =>
+          stream
+            .destroy()
+            .on('error', error => {
+              reject(error)
+            })
+            .then(null, error => { console.log('caught', error.message); })
+            .on('finish', () => resolve())
+          );
+      }
+    }
+    if (valid) {
+      var uploadResult = await processUpload(stream, uploadname, mimetype, user.username);
+      if (uploadResult.file !== null) {
+        if (filetype === 'PROFILEIMAGE') filename = 'avatar.png';
+        var path = `/uploads/${user.username}/${uploadResult.file.filename}`
+        if (fileExists) {
+          payload.file =  await ctx.db.mutation.updateFile({
+            data: {
+              name,
+              filetype,
+              filename,
+              path,
+              storedName: uploadResult.file.filename,
+              mimetype: uploadResult.file.mimetype
+            },
+            where: {id: updateFileId}
+          }, `{ id }`);
+        } else {
+          payload.file = await ctx.db.mutation.createFile({
+            data: {
+              name,
+              filetype,
+              filename,
+              path,
+              storedName: uploadResult.file.filename,
+              mimetype: uploadResult.file.mimetype,
+              user: { connect: { id: userId } }
+            }
+          }, `{ id }`);
+        }
+      } else {
+        if (uploadResult.errors.fileexists !== '') {
+          payload.errors.fileexists = uploadResult.errors.fileexists;
+        }
+        if (uploadResult.errors.filetype !== '') {
+          payload.errors.filetype = uploadResult.errors.filetype;
+        }
+      }
+    }
+  }
+
+  return payload;
+}
 
 const Mutation = {
   signup,

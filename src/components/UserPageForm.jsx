@@ -5,8 +5,14 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import validator from 'validator';
+import Loading from './Loading';
+import { Redirect } from 'react-router';
 import '../styles/Profile.css';
+
+const validationFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber', 'avatar'];
+const requiredFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber'];
+const fileErrors = ['fileexists', 'filetype', 'filesize'];
+const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 
 class UserPageForm extends React.Component {
 
@@ -17,11 +23,10 @@ class UserPageForm extends React.Component {
     lastname: {value: '', isValid: true, message: '', validState: null},
     phonenumber: {value: '', isValid: true, message: '', validState: null},
     preferredname: {value: ''},
-    selectedFile: null,
-    avatarPath: '/avatar.png',
+    avatar: {selectedFile: null, size: 0.0, filename: '', path: '/avatar.png', isValid: true, message: '', validState: null},
     isNewUser: true,
     isEditMode: false,
-    fileType: ''
+    userIsMe: false
   }
 
   componentDidMount() {
@@ -30,7 +35,7 @@ class UserPageForm extends React.Component {
     state.username.value = this.props.user.username;
 
     for (var i = 0; i < this.props.user.files.length; i++) {
-      state.avatarPath = this.props.user.files[i].path;
+      if (this.props.user.files[i].filetype === 'PROFILEIMAGE') state.avatar.path = this.props.user.files[i].path;
     }
 
     if (this.props.user.userprofile !== null && this.props.user.userprofile.firstname !== '') {
@@ -48,30 +53,35 @@ class UserPageForm extends React.Component {
     var state = this.state;
 
     switch (e.target.id) {
-      case 'avatarImage':
-        state.avatarPath = URL.createObjectURL(e.target.files[0]);
-        state.selectedFile = e.target.files[0];
-        state.fileType = 'PROFILEIMAGE';
+      case 'avatar':
+        state.avatar.size = e.target.files[0].size;
+        state.avatar.path = URL.createObjectURL(e.target.files[0]);
+        state.avatar.selectedFile = e.target.files[0];
+        state.avatar.filename = e.target.files[0].name;
         break;
       default:
         state[e.target.id].value = e.target.value;
-        if (state[e.target.id].hasOwnProperty('message')) state[e.target.id].message = '';
-        if (state[e.target.id].hasOwnProperty('validState')) state[e.target.id].validState = null;
     }
+
+    if (state[e.target.id].hasOwnProperty('isValid')) state[e.target.id].isValid = true;
+    if (state[e.target.id].hasOwnProperty('message')) state[e.target.id].message = '';
+    if (state[e.target.id].hasOwnProperty('validState')) state[e.target.id].validState = null;
 
     this.setState(state);
   }
 
-  isUserMyself = () => {
-    return JSON.parse(localStorage.getItem(USER_TOKEN)).id === this.props.user.id;
-  }
-
-  updateUser = async (username, email, firstname, lastname, preferredname, phonenumber) => {
+  onSubmit = async (e) => {
+    e.preventDefault();
+    this.resetValidationStates();
     var state = this.state;
-    const username_password_re = new RegExp("Username in use.Email in use.$");
-    const username_re = new RegExp("Username in use.$");
-    const email_re = new RegExp("Email in use.$");
-    await this.props.updateUser({
+    const username = state.username.value;
+    const email = state.email.value;
+    const firstname = state.firstname.value;
+    const lastname = state.lastname.value;
+    const preferredname = state.preferredname.value;
+    const phonenumber = state.phonenumber.value;
+
+    const updateResult = await this.props.updateUserMutation({
       variables: {
         username,
         email,
@@ -80,132 +90,64 @@ class UserPageForm extends React.Component {
         preferredname,
         phonenumber
       }
-    })
-    .then(async (result) => {
-      if (this.formIsValid()) {
-        var file = null;
-        if (this.state.selectedFile !== null) {
-          file = await this.props.uploadMutation({
-            variables: {
-              file: this.state.selectedFile,
-              filetype: this.state.fileType
-            },
-          });
+    });
+
+    const { user, errors } = updateResult.data.updateuser;
+
+    if (user === null) {
+      for (var key in errors) {
+        if (state.hasOwnProperty(key) && errors[key] !== '') {
+          state[key].isValid = false;
+          state[key].message = errors[key];
+          state[key].validState = "error";
         }
-        state.avatarPath = (file !== null) ? file.data.uploadFile.path : '/avatar.png';
+      }
+      this.setState(state);
+    } else {
+      var unformattedPhone = state.phonenumber.value;
+      var formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+      state.phonenumber.value = formattedPhone;
+      if (state.avatar.selectedFile !== null) {
+        const uploadResult = await this.props.uploadMutation({
+          variables: {
+            file: this.state.avatar.selectedFile,
+            size: this.state.avatar.size,
+            filetype: 'PROFILEIMAGE',
+            filename: this.state.avatar.filename,
+            overwrite: true
+          },
+        });
+        if (uploadResult.data.uploadFile.file !== null) {
+          state.avatar.path = uploadResult.data.uploadFile.file.path;
+          state.isNewUser = false;
+          state.isEditMode = false;
+          this.setState(state);
+        } else {
+          state.avatar.isValid = false;
+          state.avatar.validState = "error";
+          for (var i = 0; i < fileErrors.length; i++) {
+            var key = fileErrors[i];
+            if (uploadResult.data.uploadFile.errors[key] !== '') {
+              state.avatar.message = uploadResult.data.uploadFile.errors[key];
+            }
+          }
+          this.setState(state);
+        }
+      } else {
         state.isNewUser = false;
         state.isEditMode = false;
         this.setState(state);
       }
-    })
-    .catch((Error) => {
-      const msg = Error.message;
-      if (username_password_re.test(msg)) {
-        state.email.isValid = false;
-        state.email.message = 'Email is already in use';
-        state.email.validState = "error";
-        state.username.isValid = false;
-        state.username.message = 'Username is already in use';
-        state.username.validState = "error";
-        this.setState(state);
-      } else if (username_re.test(msg)) {
-        state.username.isValid = false;
-        state.username.message = 'Username is already in use';
-        state.username.validState = "error";
-        this.setState(state);
-      } else if (email_re.test(msg)) {
-        state.email.isValid = false;
-        state.email.message = 'Email is already in use';
-        state.email.validState = "error";
-        this.setState(state);
-      } else {
-        throw Error;
-      }
-    });
-  }
 
-  onSubmit = async (e) => {
-    e.preventDefault();
-    this.resetValidationStates();
-    var state = this.state;
-
-    this.setFormErrorStates();
-
-    if (state.email.isValid
-          && state.username.isValid
-          && state.firstname.isValid
-          && state.lastname.isValid
-          && state.phonenumber.isValid) {
-      this.updateUser(
-        state.username.value,
-        state.email.value,
-        state.firstname.value,
-        state.lastname.value,
-        state.preferredname.value,
-        state.phonenumber.value
-      );
-    }
-  }
-
-  setFormErrorStates = () => {
-    var state = this.state;
-    var phoneReg = new RegExp("([0-9]{3})-([0-9]{3})-([0-9]{4})");
-
-    if (state.email.isValid && state.email.value === '') {
-      state.email.isValid = false;
-      state.email.message = 'Please enter an email address';
-      state.email.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.email.isValid && !validator.isEmail(state.email.value)) {
-      state.email.isValid = false;
-      state.email.message = 'Not a valid email address';
-      state.email.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.username.isValid && state.username.value === '') {
-      state.username.isValid = false;
-      state.username.message = 'Please enter a username';
-      state.username.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.firstname.value === '') {
-      state.firstname.isValid = false;
-      state.firstname.message = 'Please enter your first name';
-      state.firstname.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.lastname.value === '') {
-      state.lastname.isValid = false;
-      state.lastname.message = 'Please enter your last name';
-      state.lastname.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.phonenumber.value === '') {
-      state.phonenumber.isValid = false;
-      state.phonenumber.message = 'Please enter your phone number';
-      state.phonenumber.validState = "error";
-      this.setState(state);
-    }
-
-    if(state.phonenumber.isValid && !phoneReg.test(state.phonenumber.value)) {
-      state.phonenumber.isValid = false;
-      state.phonenumber.message = 'Please enter phone number in XXX-XXX-XXXX format';
-      state.phonenumber.validState = "error";
-      this.setState(state);
     }
   }
 
   formIsValid = () => {
     var state = this.state;
 
-    for (var key in state) {
-      if (state[key] !== null && state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
+    for (var i = 0; i < validationFields.length; i++) {
+      var key = validationFields[i];
+      if (!state[key].isValid) return false;
     }
 
     return true;
@@ -214,30 +156,43 @@ class UserPageForm extends React.Component {
   resetValidationStates = () => {
     var state = this.state;
 
-    state.username.isValid = true;
-    state.username.message = '';
-    state.username.validState = null;
-
-    state.email.isValid = true;
-    state.email.message = '';
-    state.email.validState = null;
-
-    state.firstname.isValid = true;
-    state.firstname.message = '';
-    state.firstname.validState = null;
-
-    state.lastname.isValid = true;
-    state.lastname.message = '';
-    state.lastname.validState = null;
-
-    state.phonenumber.isValid = true;
-    state.phonenumber.message = '';
-    state.phonenumber.validState = null;
+    for (var i = 0; i < validationFields.length; i++) {
+      var key = validationFields[i];
+      state[key].isValid = true;
+      state[key].message = '';
+      state[key].validState = null;
+    }
 
     this.setState(state);
   }
 
+  requiredFieldsSet = () => {
+    var state = this.state;
+
+    for (var i = 0; i < requiredFields.length; i++) {
+      var key = requiredFields[i];
+      if (state[key].value === '') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  buttonDisabled = () => {
+    return (this.requiredFieldsSet() && this.formIsValid()) ? false : true;
+  }
+
   render() {
+
+    if (this.props.userQuery.loading) {
+      return <Loading />;
+    }
+
+    if (this.props.userQuery.error) {
+      return <Redirect to='/login'/>;
+    }
+
     return (
       <div className="Profile">
         {this.state.isNewUser
@@ -362,15 +317,17 @@ class UserPageForm extends React.Component {
               </Col>
             </FormGroup>
             <p className="requiredhelptext">Required field</p><br />
-            <FormGroup controlId="avatarImage" className="avatarUpload">
+            <FormGroup controlId="avatar" className="avatarUpload"  validationState={this.state.avatar.validState}>
               <Col xs={6} md={4}>
-                <Thumbnail src={this.state.avatarPath} alt="150x150">
+                <Thumbnail src={this.state.avatar.path} alt="avatar">
                   <h3>Profile Picture</h3>
                   <FormControl
                     type="file"
                     accept='image/*'
                     onChange={this.handleChange}
                   />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.avatar.message}</HelpBlock>
                 </Thumbnail>
               </Col>
             </FormGroup>
@@ -379,9 +336,21 @@ class UserPageForm extends React.Component {
         <Button
           type="submit"
           bsSize="large"
+          className="pull-right cancelbutton"
+          onClick={ () => {
+            this.resetValidationStates();
+            this.setState({ isEditMode: !this.state.isEditMode })
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          bsSize="large"
           bsStyle="primary"
-          className="pull-right"
+          className="pull-right savebutton"
           onClick={this.onSubmit}
+          disabled={this.buttonDisabled()}
         >
           Save
         </Button>
@@ -401,10 +370,10 @@ class UserPageForm extends React.Component {
             <Panel.Title componentClass="h3">Profile</Panel.Title>
           </Panel.Heading>
           <Panel.Body>
-            {this.state.avatarPath !== '' &&
+            {this.state.avatar.path !== '' &&
               <Image
-                alt="150x150"
-                src={this.state.avatarPath}
+                alt="avatar"
+                src={this.state.avatar.path}
                 rounded
                 className="pull-right"
                 responsive
@@ -414,7 +383,7 @@ class UserPageForm extends React.Component {
             <p>{'Phone number: ' + this.state.phonenumber.value}</p>
           </Panel.Body>
         </Panel>
-        {this.isUserMyself &&
+        {this.props.userQuery.user !== null &&
           <Button
             type="submit"
             bsSize="large"
@@ -430,26 +399,60 @@ class UserPageForm extends React.Component {
   }
 }
 
+const USER_QUERY = gql`
+  query UserQuery($where: UserWhereUniqueInput!) {
+    user(where: $where) {
+      id
+    }
+  }
+`
+
 const UPDATE_USER_MUTATION = gql`
   mutation UpdateUserMutation($email: String!, $username: String!, $firstname: String!, $lastname: String!, $preferredname: String, $phonenumber: String!) {
     updateuser(email: $email, username: $username, firstname: $firstname, lastname: $lastname, preferredname: $preferredname, phonenumber: $phonenumber) {
-      id
+      user {
+        username
+      }
+      errors {
+        username
+        email
+        firstname
+        lastname
+        phonenumber
+      }
     }
   }
 `
 
 const UPLOAD_MUTATION = gql`
-  mutation uploadFile($file: Upload!, $name: String, $filetype: Filetype!) {
-    uploadFile(file: $file, name: $name, filetype: $filetype) {
-      id
-      path
+  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $overwrite: Boolean!) {
+    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, overwrite: $overwrite) {
+      file {
+        path
+      }
+      errors {
+        fileexists
+        filetype
+        filesize
+      }
     }
   }
 `
 
 export default compose(
+  graphql(USER_QUERY, {
+    name: 'userQuery',
+    options: props => ({
+      variables: {
+          where: {
+            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id,
+            username: props.user.username
+          }
+        },
+    }),
+  }),
   graphql(UPDATE_USER_MUTATION, {
-    name: 'updateUser',
+    name: 'updateUserMutation'
   }),
   graphql(UPLOAD_MUTATION, {
     name: 'uploadMutation'
