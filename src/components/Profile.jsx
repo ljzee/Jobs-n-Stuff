@@ -46,7 +46,6 @@ class Profile extends Component {
     return (
       <UserPageForm
         user = {this.props.userQuery.user}
-        userQuery = {this.props.userQuery}
       />
     );
   }
@@ -63,19 +62,16 @@ class Profile extends Component {
 const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
-      id
       role
       email
       username
       files {
-        id
         filename
         path
         name
         filetype
       }
       userprofile {
-        id
         firstname
         lastname
         preferredname
@@ -98,7 +94,7 @@ export default compose(
     options: props => ({
       variables: {
           where: {
-            id: props.match.params.id,
+            username: props.match.params.username
           }
         },
     }),

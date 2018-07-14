@@ -8,15 +8,48 @@ type Query {
 }
 
 type Mutation {
-  signup(email: String!, password: String!, username: String!, role: Role!, activated: Boolean!): AuthPayload!
+  signup(email: String!, password: String!, username: String!, role: Role!, activated: Boolean!, confirmPassword: String!): AuthPayload!
   login(username: String!, password: String!): AuthPayload!
-  updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): User
-  uploadFile (file: Upload!, name: String, filetype: Filetype!): File!
+  updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
+  uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, overwrite: Boolean!): UploadPayload!
+}
+
+type AuthErrors {
+  username: String
+  email: String
+  password: String
+  confirmPassword: String
+  login: String
 }
 
 type AuthPayload {
   token: String
   user: User
+  errors: AuthErrors
+}
+
+type UploadErrors {
+  fileexists: String
+  filetype: String
+  filesize: String
+}
+
+type UploadPayload {
+  file: File
+  errors: UploadErrors
+}
+
+type UserErrors {
+  username: String
+  email: String
+  firstname: String
+  lastname: String
+  phonenumber: String
+}
+
+type UserPayload {
+  user: User
+  errors: UserErrors
 }
 
 type User {

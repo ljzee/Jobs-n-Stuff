@@ -5,7 +5,6 @@ import gql from 'graphql-tag';
 import { AUTH_TOKEN, USER_TOKEN } from '../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock, Radio } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import validator from 'validator';
 import { withApollo } from 'react-apollo';
 import '../styles/Signup.css'
 
@@ -41,99 +40,33 @@ class Signup extends React.Component {
     const username = state.username.value;
     const email = state.email.value;
     const password = state.password.value;
+    const confirmPassword = state.confirmPassword.value;
     const role = (state.selectedOption === 'personal') ? 'BASEUSER' : 'BUSINESS';
     const activated = (state.selectedOption === 'personal') ? true : false;
-    const username_password_re = new RegExp("Username in use.Email in use.$");
-    const username_re = new RegExp("Username in use.$");
-    const email_re = new RegExp("Email in use.$");
 
-    this.setFormErrorStates();
+    const result = await this.props.signupMutation({
+      variables: {
+        username,
+        email,
+        password,
+        confirmPassword,
+        activated,
+        role
+      },
+    });
 
-    if (state.email.isValid && state.username.isValid) {
-      await this.props.signupMutation({
-        variables: {
-          username,
-          email,
-          password,
-          activated,
-          role,
-        },
-      })
-      .then((result) => {
-        if (this.formIsValid()) {
-          const { token, user } = result.data.signup
-          this.saveUserData(token, user)
+    const { token, user, errors } = result.data.signup;
+
+    if (token !== null && user !== null) {
+      this.saveUserData(token, user);
+    } else {
+      for (var key in errors) {
+        if (state.hasOwnProperty(key) && errors[key] !== '') {
+          state[key].isValid = false;
+          state[key].message = errors[key];
+          state[key].validState = "error";
         }
-      })
-      .catch((e) => {
-        const msg = e.graphQLErrors[0].message;
-        if (username_password_re.test(msg)) {
-          state.email.isValid = false;
-          state.email.message = 'Email is already in use';
-          state.email.validState = "error";
-          state.username.isValid = false;
-          state.username.message = 'Username is already in use';
-          state.username.validState = "error";
-          this.setState(state);
-        } else if (username_re.test(msg)) {
-          state.username.isValid = false;
-          state.username.message = 'Username is already in use';
-          state.username.validState = "error";
-          this.setState(state);
-        } else if (email_re.test(msg)) {
-          state.email.isValid = false;
-          state.email.message = 'Email is already in use';
-          state.email.validState = "error";
-          this.setState(state);
-        } else {
-          throw e;
-        }
-      });
-    }
-  }
-
-  setFormErrorStates = () => {
-    var state = this.state;
-
-    if (state.email.isValid && state.email.value === '') {
-      state.email.isValid = false;
-      state.email.message = 'Please enter an email address';
-      state.email.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.email.isValid && !validator.isEmail(state.email.value)) {
-      state.email.isValid = false;
-      state.email.message = 'Not a valid email address';
-      state.email.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.username.isValid && state.username.value === '') {
-      state.username.isValid = false;
-      state.username.message = 'Please enter a username';
-      state.username.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.password.value === '') {
-      state.password.isValid = false;
-      state.password.message = 'Please enter a password';
-      state.password.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.password.isValid && state.password.value.trim().length < 8) {
-      state.password.isValid = false;
-      state.password.message = 'Password must be at least 8 characters';
-      state.password.validState = "error";
-      this.setState(state);
-    }
-
-    if (state.confirmPassword.value !== state.password.value) {
-      state.confirmPassword.isValid = false;
-      state.confirmPassword.message = 'Passwords don\'t match';
-      state.confirmPassword.validState = "error";
+      }
       this.setState(state);
     }
   }
@@ -167,7 +100,7 @@ class Signup extends React.Component {
     localStorage.setItem(USER_TOKEN, JSON.stringify(user));
     this.props.client.resetStore().then(() => {
       const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
-      this.props.history.push(`/profile/` + userToken.id);
+      this.props.history.push(`/profile/` + userToken.username);
     });
   }
 
@@ -270,11 +203,18 @@ class Signup extends React.Component {
 }
 
 const SIGNUP_MUTATION = gql`
-  mutation SignupMutation($email: String!, $password: String!, $username: String!, $role: Role!, $activated: Boolean!) {
-    signup(email: $email, password: $password, username: $username, role: $role, activated: $activated) {
+  mutation SignupMutation($email: String!, $password: String!, $username: String!, $role: Role!, $activated: Boolean!, $confirmPassword: String!) {
+    signup(email: $email, password: $password, username: $username, role: $role, activated: $activated, confirmPassword: $confirmPassword) {
       token
       user {
         id
+        username
+      }
+      errors {
+        username
+        email
+        password
+        confirmPassword
       }
     }
   }

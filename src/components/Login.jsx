@@ -31,54 +31,33 @@ class Login extends React.Component {
     var state = this.state;
     const username = state.username.value;
     const password = state.password.value;
-    var invalid_re = new RegExp("Invalid username or password$");
 
-    if (this.formIsValid()) {
-      await this.props.loginMutation({
-        variables: {
-          username,
-          password,
-        },
-      })
-      .then((result) => {
-        const { token, user } = result.data.login;
-        this.saveUserData(token, user);
-      })
-      .catch((e) => {
-        if (invalid_re.test(e.graphQLErrors[0].message)) {
-          state.summary = 'Incorrect email or password';
-          this.resetValidationStates();
-          this.setState(state);
-        } else {
-          throw e;
-        }
-      });
+    const result = await this.props.loginMutation({
+      variables: {
+        username,
+        password,
+      },
+    });
+
+    const { token, user, errors } = result.data.login;
+
+    if (token !== null && user !== null) {
+      this.saveUserData(token, user);
+    } else {
+      state.summary = errors.login;
+      this.resetValidationStates();
+      this.setState(state);
     }
   }
 
   formIsValid = () => {
     var state = this.state;
-    var isFormValid = true;
 
-    if (state.username.value === '') {
-      state.username.isValid = false;
-      state.username.message = 'Please enter your username';
-      state.username.validState = "error";
-
-      this.setState(state);
-      isFormValid = false;
+    for (var key in state) {
+      if (state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
     }
 
-    if (state.password.value === '') {
-      state.password.isValid = false;
-      state.password.message = 'Please enter your password';
-      state.password.validState = "error"
-
-      this.setState(state);
-      isFormValid = false;
-    }
-
-    return isFormValid;
+    return true;
   }
 
   resetValidationStates = () => {
@@ -163,6 +142,10 @@ const LOGIN_MUTATION = gql`
       token
       user {
         id
+        username
+      }
+      errors {
+        login
       }
     }
   }

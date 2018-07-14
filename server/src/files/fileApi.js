@@ -1,13 +1,30 @@
 const { getUserId } = require('../utils')
 const fs = require('fs');
 const mkdirp = require('mkdirp');
+const shortid = require('shortid');
 const gm = require('gm').subClass({imageMagick: true});
-
-const uploadDir = '../public/uploads';
 
 require('dotenv').config();
 
-const storeFS = ({ stream, filePath }) => {
+const uploadDir = '../public/uploads';
+const isImageRegEx = new RegExp('^image/.+$');
+
+const storeDocument = ({ stream, filePath }) => {
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+  return new Promise((resolve, reject) =>
+    stream
+      .on('error', error => {
+        if (stream.truncated) fs.unlinkSync(filePath);
+        reject(error)
+      })
+      .pipe(fs.createWriteStream(filePath))
+      .on('error', error => reject(error))
+      .on('finish', () => resolve(filePath))
+  );
+}
+
+const storeImage = ({ stream, filePath }) => {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
   return new Promise((resolve, reject) =>
@@ -23,7 +40,6 @@ const storeFS = ({ stream, filePath }) => {
 }
 
 const formatImage = async (filePath, newPath) => {
-  console.log('In format image function')
   gm(filePath)
     .resize('200', '200', '^')
     .gravity('Center')
@@ -37,37 +53,38 @@ const formatImage = async (filePath, newPath) => {
     });
 }
 
-const processUpload = async ( upload, ctx ) => {
-  if (!upload) throw new Error('File is required for upload');
+const processUpload = async ( stream, filename, mimetype, username ) => {
+  const fileId = shortid.generate();
+  const isImage = isImageRegEx.test(mimetype);
 
-  var { stream, filename, mimetype } = await upload;
-  const isImage = new RegExp('^image/.+$').test(mimetype);
-  const isValidImage = new RegExp('^image/(png|jpg|jpeg)$').test(mimetype);
-
-  if (isImage && !isValidImage) throw new Error('Image type must be jpg, jpeg, or png');
-
-  const userId = getUserId(ctx);
-  const userDir = `${uploadDir}/${userId}`;
-  mkdirp.sync(userDir);
-
-  var filePath = `${userDir}/${filename}`;
-  await storeFS({ stream, filePath });
+  var payload = {
+    file: null,
+    errors: {
+      fileexists: '',
+      filetype:'',
+      filesize: ''
+    }
+  }
 
   if (isImage) {
-    console.log('upload is an image')
-    const newPath = `${userDir}/avatar.png`
+    const userDir = `${uploadDir}/${username}`
+    mkdirp.sync(userDir);
+
+    var filePath = `${userDir}/${fileId}-${filename}`;
+    await storeImage({ stream, filePath });
+
+    const newPath = `${userDir}/${fileId}-avatar.png`
     await formatImage(filePath, newPath);
-    filePath = newPath;
-    filename = 'avatar.png';
+    filename = `${fileId}-avatar.png`
+
+    payload.file = {
+      filename,
+      mimetype,
+      path: filePath
+    }
   }
 
-  const file = {
-    filename,
-    mimetype,
-    path: filePath
-  }
-
-  return file;
+  return payload;
 }
 
 module.exports = {
