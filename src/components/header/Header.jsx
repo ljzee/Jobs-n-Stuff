@@ -3,16 +3,11 @@ import { withRouter } from 'react-router';
 
 import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import LogoutModal from '../LogoutModal';
-import LoggedInNavBar from './LoggedInNavBar/LoggedInNavBar';
-import NewUserNavBar from './NewUserNavBar/NewUserNavBar';
+import LoggedInNavBar from './LoggedInNavBar';
+import NewUserNavBar from './NewUserNavBar';
 
 class Header extends Component {
-  constructor() {
-    super()
-    this.state = {
-      showSignout: false,
-    }
-  }
+  state = { showSignout: false };
 
   openLogout = () => {
     this.setState({ showSignout: true });
@@ -25,6 +20,7 @@ class Header extends Component {
   logout = () => {
     localStorage.removeItem(AUTH_TOKEN);
     localStorage.removeItem(USER_TOKEN);
+
     this.setState({ showSignout: false });
     this.props.history.push(`/`);
   }
@@ -32,6 +28,7 @@ class Header extends Component {
   render() {
     const authToken = localStorage.getItem(AUTH_TOKEN);
     const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
+
     return (
       <React.Fragment>
         <header>

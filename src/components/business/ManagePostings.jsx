@@ -10,7 +10,7 @@ class ManagePostings extends Component {
           Need to add component for displaying existing components...
         </div>
       </React.Fragment>
-    );  
+    );
   }
 }
 

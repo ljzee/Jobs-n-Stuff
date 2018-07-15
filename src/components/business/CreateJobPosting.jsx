@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, FormGroup, FormControl, ControlLabel, HelpBlock, Radio } from 'react-bootstrap';
+import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
 
 class CreateJobPosting extends Component {
 
@@ -18,7 +18,7 @@ class CreateJobPosting extends Component {
       contactname: '',
       salary: '',
       deadline: '',
-    },
+    }
   }
 
   onSubmit = (event) => {
