@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
-import Header from './components/Header';
+import AuthenticatedRoute from './components/Util/AuthenticatedRoute';
+
+import Header from './components/Header/Header';
 import WelcomePage from './components/WelcomePage.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Profile from './components/Profile.jsx';
@@ -22,7 +24,7 @@ class App extends Component {
               <Route exact path='/' component={WelcomePage} />
               <Route exact path='/login' component={Login} />
               <Route exact path='/signup' component={Signup} />
-              <Route exact path='/dashboard' component={Dashboard} />
+              <AuthenticatedRoute exact path='/dashboard' component={Dashboard} />
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
               <Route exact path='/upload-file' component={UploadFile} />
