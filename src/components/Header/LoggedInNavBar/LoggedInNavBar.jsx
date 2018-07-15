@@ -11,8 +11,7 @@ const LoggedInNavBar = ({ username, onClick }) => (
     <Nav pullRight>
       <NavItem eventKey={1} href={`/profile/${username}`}>Profile</NavItem>
       <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
-      <NavItem eventKey={3} href="/upload-file">Upload File</NavItem>
-      <NavItem eventKey={4} onClick={onClick}>
+      <NavItem eventKey={3} onClick={onClick}>
         Logout
       </NavItem>
     </Nav>
