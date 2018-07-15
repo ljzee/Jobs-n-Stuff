@@ -11,7 +11,7 @@ class UploadFile extends React.Component {
   }
 
   handleChange = (e) => {
-    var state = this.state;
+    let state = this.state;
     switch (e.target.id) {
       case 'selectedFile':
         state.selectedFile = e.target.files[0];
@@ -27,7 +27,7 @@ class UploadFile extends React.Component {
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
-    var state = this.state;
+    let state = this.state;
     const file = state.selectedFile;
     const name = state.filename.value;
     const filetype = 'RESUME';
@@ -47,9 +47,9 @@ class UploadFile extends React.Component {
   }
 
   resetValidationStates = () => {
-    var state = this.state;
+    let state = this.state;
 
-    Object.keys(state).map(key => {
+    Object.keys(state).forEach(key => {
       if (state[key].hasOwnProperty('isValid')) {
         state[key].isValid = true;
         state[key].message = '';

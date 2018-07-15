@@ -17,7 +17,7 @@ class Login extends React.Component {
   }
 
   handleChange = (e) => {
-    var state = this.state;
+    let state = this.state;
     state[e.target.id].value = e.target.value;
     state[e.target.id].message = '';
     state[e.target.id].validState = null;
@@ -28,7 +28,7 @@ class Login extends React.Component {
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
-    var state = this.state;
+    let state = this.state;
     const username = state.username.value;
     const password = state.password.value;
 
@@ -51,9 +51,9 @@ class Login extends React.Component {
   }
 
   formIsValid = () => {
-    var state = this.state;
+    let state = this.state;
 
-    for (var key in state) {
+    for (let key in state) {
       if (state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
     }
 
@@ -61,9 +61,9 @@ class Login extends React.Component {
   }
 
   resetValidationStates = () => {
-    var state = this.state;
+    let state = this.state;
 
-    Object.keys(state).map(key => {
+    Object.keys(state).forEach(key => {
       if (state[key].hasOwnProperty('isValid')) {
         state[key].isValid = true;
         state[key].message = '';
@@ -91,7 +91,7 @@ class Login extends React.Component {
       )
     }
 
-    var {username, password, summary} = this.state;
+    let {username, password, summary} = this.state;
     return (
       <div className="Login">
         <form onSubmit={this.onSubmit}>

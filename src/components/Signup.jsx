@@ -19,7 +19,7 @@ class Signup extends React.Component {
   }
 
   handleChange = (e) => {
-    var state = this.state;
+    let state = this.state;
     state[e.target.id].value = e.target.value;
     state[e.target.id].message = '';
     state[e.target.id].validState = null;
@@ -36,7 +36,7 @@ class Signup extends React.Component {
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
-    var state = this.state;
+    let state = this.state;
     const username = state.username.value;
     const email = state.email.value;
     const password = state.password.value;
@@ -60,7 +60,7 @@ class Signup extends React.Component {
     if (token !== null && user !== null) {
       this.saveUserData(token, user);
     } else {
-      for (var key in errors) {
+      for (let key in errors) {
         if (state.hasOwnProperty(key) && errors[key] !== '') {
           state[key].isValid = false;
           state[key].message = errors[key];
@@ -72,9 +72,9 @@ class Signup extends React.Component {
   }
 
   formIsValid = () => {
-    var state = this.state;
+    let state = this.state;
 
-    for (var key in state) {
+    for (let key in state) {
       if (state[key].hasOwnProperty('isValid') && !state[key].isValid) return false;
     }
 
@@ -82,9 +82,9 @@ class Signup extends React.Component {
   }
 
   resetValidationStates = () => {
-    var state = this.state;
+    let state = this.state;
 
-    Object.keys(state).map(key => {
+    Object.keys(state).forEach(key => {
       if (state[key].hasOwnProperty('isValid')) {
         state[key].isValid = true;
         state[key].message = '';
@@ -98,6 +98,7 @@ class Signup extends React.Component {
   saveUserData = (token, user) => {
     localStorage.setItem(AUTH_TOKEN, token);
     localStorage.setItem(USER_TOKEN, JSON.stringify(user));
+
     this.props.client.resetStore().then(() => {
       const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
       this.props.history.push(`/profile/` + userToken.username);
@@ -114,7 +115,7 @@ class Signup extends React.Component {
       )
     }
 
-    var {username, email, password, confirmPassword, selectedOption} = this.state;
+    let {username, email, password, confirmPassword, selectedOption} = this.state;
 
     return (
       <div className="Signup">

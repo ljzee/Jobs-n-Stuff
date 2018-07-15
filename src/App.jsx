@@ -3,16 +3,16 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
 import AuthenticatedRoute from './components/Util/AuthenticatedRoute';
 
-import Header from './components/Header/Header';
-import WelcomePage from './components/WelcomePage.jsx';
-import Dashboard from './components/Dashboard.jsx';
-import Profile from './components/Profile.jsx';
-import CreateEvent from './components/CreateEvent.jsx';
+import Header from './components/header/Header';
+import WelcomePage from './components/WelcomePage';
+import Dashboard from './components/Dashboard';
+import Profile from './components/Profile';
+import CreateEvent from './components/CreateEvent';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import UploadFile from './components/UploadFile';
-import ManagePostings from './components/Business/JobPosting/ManagePostings/ManagePostings';
-import CreateJobPosting from './components/Business/JobPosting/CreateJobPosting/CreateJobPosting';
+import ManagePostings from './components/business/ManagePostings';
+import CreateJobPosting from './components/business/CreateJobPosting';
 import './styles/App.css';
 
 class App extends Component {

@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
 import { Nav, Navbar, NavItem } from 'react-bootstrap';
 
-import USER_ROLE from '../../../queries/user_role';
+import USER_ROLE from '../../queries/user_role';
 
 
 class LoggedInNavBar extends Component {
 
   renderBusinessNavigationItems = () => {
-    if (!this.props.userRole.loading && this.props.userRole.user.role == 'BUSINESS') {
+    if (!this.props.userRole.loading && this.props.userRole.user.role === 'BUSINESS') {
       return <NavItem eventKey={5} href={`/manage-postings`}>Manage Postings</NavItem>
     }
     return null;
