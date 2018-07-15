@@ -11,6 +11,8 @@ import CreateEvent from './components/CreateEvent.jsx';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import UploadFile from './components/UploadFile';
+import ManagePostings from './components/Business/JobPosting/ManagePostings/ManagePostings';
+import CreateJobPosting from './components/Business/JobPosting/CreateJobPosting/CreateJobPosting';
 import './styles/App.css';
 
 class App extends Component {
@@ -25,6 +27,8 @@ class App extends Component {
               <Route exact path='/login' component={Login} />
               <Route exact path='/signup' component={Signup} />
               <AuthenticatedRoute exact path='/dashboard' component={Dashboard} />
+              <AuthenticatedRoute exact path='/manage-postings' component={ManagePostings} />
+              <AuthenticatedRoute exact path='/create-posting' component={CreateJobPosting} />
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
               <Route exact path='/upload-file' component={UploadFile} />

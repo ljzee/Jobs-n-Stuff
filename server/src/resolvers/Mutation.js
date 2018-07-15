@@ -397,11 +397,20 @@ async function uploadFile(parent, { file, name, filetype, size, filename, overwr
   return payload;
 }
 
+const createOrUpdateJobPosting = async (parent, args, ctx, info) => {
+  let payload = {
+    jobposting: null,
+    errors: null
+  }
+  return payload;
+}
+
 const Mutation = {
   signup,
   login,
   updateuser,
-  uploadFile
+  uploadFile,
+  createOrUpdateJobPosting
 }
 
 module.exports = {
