@@ -115,8 +115,8 @@ class ChangePassword extends React.Component {
       return <Redirect to='/login'/>;
     }
 
-    if (this.props.userQuery.user === null) {
-      return <Redirect to='/login'/>;
+    if (this.props.userQuery.user.username !== this.props.match.params.username) {
+      return <Redirect to={`/profile/${this.props.match.params.username}`}/>;
     }
 
     var {oldpassword, newpassword, newpassword2} = this.state;
@@ -188,6 +188,7 @@ const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
       id
+      username
     }
   }
 `
@@ -211,8 +212,7 @@ export default compose(
     options: props => ({
       variables: {
           where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id,
-            username: props.match.params.username
+            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
           }
         },
     }),
