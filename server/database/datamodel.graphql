@@ -59,9 +59,9 @@ type Location {
   id: ID! @unique
   streetaddress: String!
   city: String!
-  province: String
+  province: String!
   country: String!
-  postalcode: String
+  postalcode: String!
 }
 
 type JobPosting {

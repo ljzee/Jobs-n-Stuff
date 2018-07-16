@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
-import AuthenticatedRoute from './components/Util/AuthenticatedRoute';
+import AuthenticatedRoute from './components/util/AuthenticatedRoute';
 
 import Header from './components/header/Header';
 import WelcomePage from './components/WelcomePage';

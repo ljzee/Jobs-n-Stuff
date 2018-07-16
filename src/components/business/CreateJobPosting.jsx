@@ -5,19 +5,19 @@ class CreateJobPosting extends Component {
 
   state = {
     fields: {
-      title: '',
-      type: '',
-      duration: '',
-      streetaddress: '',
-      city: '',
-      province: '',
-      country: '',
-      postalcode: '',
-      openings: '',
-      description: '',
-      contactname: '',
-      salary: '',
-      deadline: '',
+      title: {value: '', isValid: true, message: '', validState: null},
+      type: {value: '', isValid: true, message: '', validState: null},
+      duration: {value: '', isValid: true, message: '', validState: null},
+      streetaddress: {value: '', isValid: true, message: '', validState: null},
+      city: {value: '', isValid: true, message: '', validState: null},
+      province: {value: '', isValid: true, message: '', validState: null},
+      country: {value: '', isValid: true, message: '', validState: null},
+      postalcode: {value: '', isValid: true, message: '', validState: null},
+      openings: {value: '', isValid: true, message: '', validState: null},
+      description: {value: '', isValid: true, message: '', validState: null},
+      contactname: {value: '', isValid: true, message: '', validState: null},
+      salary: {value: '', isValid: true, message: '', validState: null},
+      deadline: {value: '', isValid: true, message: '', validState: null},
     }
   }
 
@@ -25,9 +25,11 @@ class CreateJobPosting extends Component {
     event.preventDefault();
   }
 
-  onChange = (event, field) => {
+  onChange = (event) => {
     let _fields = { ...this.state.fields };
-    _fields[field] = event.target.value;
+    let updatedField = { ..._fields[event.target.id] };
+    updatedField.value = event.target.value;
+    _fields[event.target.id] = updatedField;
     this.setState({ fields: _fields });
   }
 
@@ -41,8 +43,8 @@ class CreateJobPosting extends Component {
             autoFocus
             type="text"
             placeholder="Job Title"
-            value={this.state.fields.title}
-            onChange={(event) => this.onChange(event, 'title')}
+            value={this.state.fields.title.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -53,8 +55,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Type"
-            value={this.state.fields.type}
-            onChange={(event) => this.onChange(event, 'type')}
+            value={this.state.fields.type.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -65,8 +67,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Duration"
-            value={this.state.fields.duration}
-            onChange={(event) => this.onChange(event, 'duration')}
+            value={this.state.fields.duration.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -77,8 +79,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Number of openings"
-            value={this.state.fields.openings}
-            onChange={(event) => this.onChange(event, 'openings')}
+            value={this.state.fields.openings.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -89,8 +91,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Description"
-            value={this.state.fields.description}
-            onChange={(event) => this.onChange(event, 'description')}
+            value={this.state.fields.description.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -101,8 +103,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Contact Name"
-            value={this.state.fields.contactname}
-            onChange={(event) => this.onChange(event, 'contactname')}
+            value={this.state.fields.contactname.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -113,8 +115,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Salary"
-            value={this.state.fields.salary}
-            onChange={(event) => this.onChange(event, 'salary')}
+            value={this.state.fields.salary.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -125,8 +127,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Deadline"
-            value={this.state.fields.deadline}
-            onChange={(event) => this.onChange(event, 'deadline')}
+            value={this.state.fields.deadline.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -137,8 +139,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Steet Address"
-            value={this.state.fields.streetaddress}
-            onChange={(event) => this.onChange(event, 'streetaddress')}
+            value={this.state.fields.streetaddress.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -149,8 +151,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="City"
-            value={this.state.fields.city}
-            onChange={(event) => this.onChange(event, 'city')}
+            value={this.state.fields.city.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -161,8 +163,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Province"
-            value={this.state.fields.province}
-            onChange={(event) => this.onChange(event, 'province')}
+            value={this.state.fields.province.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -173,8 +175,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Country"
-            value={this.state.fields.country}
-            onChange={(event) => this.onChange(event, 'country')}
+            value={this.state.fields.country.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>
@@ -185,8 +187,8 @@ class CreateJobPosting extends Component {
           <FormControl
             type="text"
             placeholder="Postal Code"
-            value={this.state.fields.postalcode}
-            onChange={(event) => this.onChange(event, 'postalcode')}
+            value={this.state.fields.postalcode.value}
+            onChange={this.onChange}
           />
           <FormControl.Feedback />
           <HelpBlock className="errormessage">Some Error!</HelpBlock>

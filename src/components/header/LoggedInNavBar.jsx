@@ -9,7 +9,11 @@ class LoggedInNavBar extends Component {
 
   renderBusinessNavigationItems = () => {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'BUSINESS') {
-      return <NavItem eventKey={5} href={`/manage-postings`}>Manage Postings</NavItem>
+      return (
+        <React.Fragment>
+          <NavItem eventKey={4} href={`/manage-postings`}>Manage Postings</NavItem>
+          <NavItem eventKey={5} href="/create-event">Create Event</NavItem>
+        </React.Fragment>)
     }
     return null;
   }
@@ -25,9 +29,8 @@ class LoggedInNavBar extends Component {
         <Nav pullRight>
           {this.renderBusinessNavigationItems()}
           <NavItem eventKey={1} href={`/profile/${this.props.username}`}>Profile</NavItem>
-          <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
-          <NavItem eventKey={3} href="/upload-file">Upload File</NavItem>
-          <NavItem eventKey={4} onClick={this.props.onClick}>
+          <NavItem eventKey={2} href="/upload-file">Upload File</NavItem>
+          <NavItem eventKey={3} onClick={this.props.onClick}>
             Logout
           </NavItem>
         </Nav>
@@ -41,7 +44,7 @@ export default graphql(USER_ROLE, {
   options: props => ({
     variables: {
         where: {
-          id: props.userid
+          username: props.username
         }
       },
   }),

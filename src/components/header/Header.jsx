@@ -33,7 +33,7 @@ class Header extends Component {
       <React.Fragment>
         <header>
             {(authToken && userToken)
-              ? <LoggedInNavBar userid={userToken.id} username={userToken.username} onClick={this.openLogout} />
+              ? <LoggedInNavBar username={userToken.username} onClick={this.openLogout} />
               : <NewUserNavBar />}
         </header>
 

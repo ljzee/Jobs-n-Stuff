@@ -94,12 +94,12 @@ execute 'prisma deploy' do
   cwd '/home/vagrant/project/server'
 end
 
-execute 'graphql server' do
-  command 'npm start > /dev/null &'
-  cwd '/home/vagrant/project/server'
-end
+# execute 'graphql server' do
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project/server'
+# end
 
-execute 'apollo server' do
-  command 'npm start > /dev/null &'
-  cwd '/home/vagrant/project'
-end
+# execute 'apollo server' do
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project'
+# end
