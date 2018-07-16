@@ -60,7 +60,9 @@ class ChangePassword extends React.Component {
       }
       this.setState(state);
     } else {
-      this.props.history.push(`/profile/${this.props.match.params.username}`);
+      this.props.client.resetStore().then(() => {
+        this.props.history.push(`/profile/${this.props.match.params.username}`);
+      });
     }
   }
 
