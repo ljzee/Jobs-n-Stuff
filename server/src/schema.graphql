@@ -44,7 +44,7 @@ type JobPostingErrors {
   city: String
   province: String
   country: String
-  postalcoed: String
+  postalcode: String
   opening: String
   description: String
   contactname: String
