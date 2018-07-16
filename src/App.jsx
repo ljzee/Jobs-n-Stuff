@@ -4,13 +4,13 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import AuthenticatedRoute from './components/Util/AuthenticatedRoute';
 
 import Header from './components/Header/Header';
-import WelcomePage from './components/WelcomePage.jsx';
-import Dashboard from './components/Dashboard.jsx';
-import Profile from './components/Profile.jsx';
-import CreateEvent from './components/CreateEvent.jsx';
+import WelcomePage from './components/WelcomePage';
+import Dashboard from './components/Dashboard';
+import Profile from './components/Profile';
+import CreateEvent from './components/CreateEvent';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import UploadFile from './components/UploadFile';
+import ChangePassword from './components/ChangePassword'
 import './styles/App.css';
 
 class App extends Component {
@@ -27,7 +27,7 @@ class App extends Component {
               <AuthenticatedRoute exact path='/dashboard' component={Dashboard} />
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
-              <Route exact path='/upload-file' component={UploadFile} />
+              <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
             </Switch>
           </div>
         </div>
