@@ -13,6 +13,7 @@ type Mutation {
   updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, overwrite: Boolean!): UploadPayload!
   createOrUpdateJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
+  updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
 }
 
 type AuthErrors {
@@ -44,7 +45,7 @@ type JobPostingErrors {
   city: String
   province: String
   country: String
-  postalcoed: String
+  postalcode: String
   opening: String
   description: String
   contactname: String
@@ -74,6 +75,17 @@ type UserErrors {
 type UserPayload {
   user: User
   errors: UserErrors
+}
+
+type UpdatePasswordErrors {
+  oldpassword: String
+  newpassword: String
+  newpassword2: String
+}
+
+type UpdatePasswordPayload {
+  success: Boolean
+  errors: UpdatePasswordErrors
 }
 
 type User {

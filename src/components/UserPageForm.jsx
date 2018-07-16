@@ -4,7 +4,7 @@ import { USER_TOKEN } from '../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
 import Loading from './Loading';
 import { Redirect } from 'react-router';
 import '../styles/Profile.css';
@@ -389,9 +389,12 @@ class UserPageForm extends React.Component {
             }
             <p>{'Email: ' + this.state.email.value}</p>
             <p>{'Phone number: ' + this.state.phonenumber.value}</p>
+            {this.props.userQuery.user.username === this.props.match.params.username &&
+              <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
+            }
           </Panel.Body>
         </Panel>
-        {this.props.userQuery.user !== null &&
+        {this.props.userQuery.user.username === this.props.match.params.username &&
           <Button
             type="submit"
             bsSize="large"
@@ -411,6 +414,7 @@ const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
       id
+      username
     }
   }
 `
@@ -453,8 +457,7 @@ export default compose(
     options: props => ({
       variables: {
           where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id,
-            username: props.user.username
+            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
           }
         },
     }),

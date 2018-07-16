@@ -10,9 +10,9 @@ import Profile from './components/Profile';
 import CreateEvent from './components/CreateEvent';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import UploadFile from './components/UploadFile';
 import ManagePostings from './components/business/ManagePostings';
 import CreateJobPosting from './components/business/CreateJobPosting';
+import ChangePassword from './components/ChangePassword'
 import './styles/App.css';
 
 class App extends Component {
@@ -31,7 +31,7 @@ class App extends Component {
               <AuthenticatedRoute exact path='/create-posting' component={CreateJobPosting} />
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
-              <Route exact path='/upload-file' component={UploadFile} />
+              <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
             </Switch>
           </div>
         </div>

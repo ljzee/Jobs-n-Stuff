@@ -161,6 +161,58 @@ async function login(parent, args, ctx, info) {
   return payload;
 }
 
+async function updatePassword(parent, args, ctx, info) {
+  const user = await ctx.db.query.user({ where: { username: args.username } }, `{ id password }`);
+  var valid = true;
+  var newPasswordValid = true;
+
+  var payload = {
+    success: false,
+    errors: {
+      oldpassword: '',
+      newpassword: '',
+      newpassword2: ''
+    }
+  }
+
+  const validPassword = await bcrypt.compare(args.oldpassword, user.password);
+  if (!validPassword) {
+    valid = false;
+    payload.errors.oldpassword = 'Password is incorrect';
+  }
+
+  if (valid) {
+    if (args.oldpassword === args.newpassword) {
+      valid = false;
+      newPasswordValid = false;
+      payload.errors.newpassword = 'New password cannot match old password';
+    }
+
+    if (newPasswordValid && (args.newpassword.trim().length < 8 || args.newpassword.trim().length > 32)) {
+      valid = false;
+      payload.errors.newpassword = 'Password must be between 8 and 32 characters';
+    }
+
+    if (newPasswordValid && args.newpassword !== args.newpassword2) {
+      valid = false;
+      payload.errors.newpassword2 = 'Passwords do not match';
+    }
+  }
+
+  if (valid) {
+    const password = await bcrypt.hash(args.newpassword, 10);
+    await ctx.db.mutation.updateUser({
+      data: {
+        password
+      },
+      where: {username: args.username}
+    }, `{ id }`);
+    payload.success = true;
+  }
+
+  return payload;
+}
+
 async function updateuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
@@ -410,7 +462,8 @@ const Mutation = {
   login,
   updateuser,
   uploadFile,
-  createOrUpdateJobPosting
+  createOrUpdateJobPosting,
+  updatePassword
 }
 
 module.exports = {
