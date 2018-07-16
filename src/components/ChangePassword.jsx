@@ -176,7 +176,11 @@ class ChangePassword extends React.Component {
           <Button
             block
             bsSize="large"
-            onClick={() => this.props.history.push(`/profile/${this.props.match.params.username}`)}
+            onClick={() => {
+              this.props.client.resetStore().then(() => {
+                this.props.history.push(`/profile/${this.props.match.params.username}`);
+              });
+            }}
           >
             Cancel
           </Button>
