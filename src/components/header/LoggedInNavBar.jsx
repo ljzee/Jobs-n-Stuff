@@ -29,8 +29,7 @@ class LoggedInNavBar extends Component {
         <Nav pullRight>
           {this.renderBusinessNavigationItems()}
           <NavItem eventKey={1} href={`/profile/${this.props.username}`}>Profile</NavItem>
-          <NavItem eventKey={2} href="/upload-file">Upload File</NavItem>
-          <NavItem eventKey={3} onClick={this.props.onClick}>
+          <NavItem eventKey={2} onClick={this.props.onClick}>
             Logout
           </NavItem>
         </Nav>
