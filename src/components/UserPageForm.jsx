@@ -30,11 +30,11 @@ class UserPageForm extends React.Component {
   }
 
   componentDidMount() {
-    var state = this.state;
+    let state = this.state;
     state.email.value = this.props.user.email;
     state.username.value = this.props.user.username;
 
-    for (var i = 0; i < this.props.user.files.length; i++) {
+    for (let i = 0; i < this.props.user.files.length; i++) {
       if (this.props.user.files[i].filetype === 'PROFILEIMAGE') state.avatar.path = this.props.user.files[i].path;
     }
 
@@ -50,7 +50,7 @@ class UserPageForm extends React.Component {
   }
 
   handleChange = (e) => {
-    var state = this.state;
+    let state = this.state;
 
     switch (e.target.id) {
       case 'avatar':
@@ -73,7 +73,7 @@ class UserPageForm extends React.Component {
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
-    var state = this.state;
+    let state = this.state;
     const username = state.username.value;
     const email = state.email.value;
     const firstname = state.firstname.value;
@@ -95,7 +95,7 @@ class UserPageForm extends React.Component {
     const { user, errors } = updateResult.data.updateuser;
 
     if (user === null) {
-      for (var key in errors) {
+      for (let key in errors) {
         if (state.hasOwnProperty(key) && errors[key] !== '') {
           state[key].isValid = false;
           state[key].message = errors[key];
@@ -103,10 +103,13 @@ class UserPageForm extends React.Component {
         }
       }
       this.setState(state);
+
     } else {
-      var unformattedPhone = state.phonenumber.value;
-      var formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+      let unformattedPhone = state.phonenumber.value;
+      let formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+
       state.phonenumber.value = formattedPhone;
+
       if (state.avatar.selectedFile !== null) {
         const uploadResult = await this.props.uploadMutation({
           variables: {
@@ -117,25 +120,32 @@ class UserPageForm extends React.Component {
             overwrite: true
           },
         });
+
         if (uploadResult.data.uploadFile.file !== null) {
           state.avatar.path = uploadResult.data.uploadFile.file.path;
           state.isNewUser = false;
           state.isEditMode = false;
+
           this.setState(state);
+
         } else {
           state.avatar.isValid = false;
           state.avatar.validState = "error";
-          for (var i = 0; i < fileErrors.length; i++) {
-            var key = fileErrors[i];
+
+          for (let i = 0; i < fileErrors.length; i++) {
+            let key = fileErrors[i];
+
             if (uploadResult.data.uploadFile.errors[key] !== '') {
               state.avatar.message = uploadResult.data.uploadFile.errors[key];
             }
           }
+
           this.setState(state);
         }
       } else {
         state.isNewUser = false;
         state.isEditMode = false;
+
         this.setState(state);
       }
 
@@ -143,10 +153,10 @@ class UserPageForm extends React.Component {
   }
 
   formIsValid = () => {
-    var state = this.state;
+    let state = this.state;
 
-    for (var i = 0; i < validationFields.length; i++) {
-      var key = validationFields[i];
+    for (let i = 0; i < validationFields.length; i++) {
+      let key = validationFields[i];
       if (!state[key].isValid) return false;
     }
 
@@ -154,10 +164,11 @@ class UserPageForm extends React.Component {
   }
 
   resetValidationStates = () => {
-    var state = this.state;
+    let state = this.state;
 
-    for (var i = 0; i < validationFields.length; i++) {
-      var key = validationFields[i];
+    for (let i = 0; i < validationFields.length; i++) {
+      let key = validationFields[i];
+
       state[key].isValid = true;
       state[key].message = '';
       state[key].validState = null;
@@ -167,10 +178,11 @@ class UserPageForm extends React.Component {
   }
 
   requiredFieldsSet = () => {
-    var state = this.state;
+    let state = this.state;
 
-    for (var i = 0; i < requiredFields.length; i++) {
-      var key = requiredFields[i];
+    for (let i = 0; i < requiredFields.length; i++) {
+      let key = requiredFields[i];
+
       if (state[key].value === '') {
         return false;
       }
@@ -184,7 +196,6 @@ class UserPageForm extends React.Component {
   }
 
   render() {
-
     if (this.props.userQuery.loading) {
       return <Loading />;
     }
@@ -197,12 +208,9 @@ class UserPageForm extends React.Component {
       <div className="Profile">
         {this.state.isNewUser
           ? this.editUserForm()
-          : <div>
-              {this.state.isEditMode
-                ? this.editUserForm()
-                : this.userDetails()
-              }
-            </div>
+          : this.state.isEditMode
+            ? this.editUserForm()
+            : this.userDetails()
         }
       </div>
     );
