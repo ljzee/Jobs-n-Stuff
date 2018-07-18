@@ -1,0 +1,31 @@
+.Job {
+  text-align: left;
+}
+
+.predescription {
+  color: gray;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: 5px;
+
+}
+
+#deadline {
+  float: right;
+  margin-right: 5px;
+}
+
+.contactdetailspanel {
+  width: 50%; 
+}
+
+.Job button{
+  margin-left: 10px;
+  width: 120px;
+}
+
+.Job footer{
+  float: right;
+  color: gray;
+  margin-right: 5px;
+}
