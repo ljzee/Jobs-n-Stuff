@@ -13,6 +13,7 @@ import Signup from './components/Signup';
 import ManagePostings from './components/business/ManagePostings';
 import CreateJobPosting from './components/business/CreateJobPosting';
 import ChangePassword from './components/ChangePassword'
+import Job from './components/Job';
 import './styles/App.css';
 
 class App extends Component {
@@ -32,6 +33,7 @@ class App extends Component {
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />
               <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
+              <AuthenticatedRoute exact path='/job/:jobid' component={Job} />
             </Switch>
           </div>
         </div>
