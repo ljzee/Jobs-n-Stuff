@@ -54,3 +54,27 @@ enum Filetype {
   PROFILEIMAGE
   OTHER
 }
+
+type Location {
+  id: ID! @unique
+  streetaddress: String!
+  city: String!
+  province: String!
+  country: String!
+  postalcode: String!
+}
+
+type JobPosting {
+  id: ID! @unique
+  title: String!
+  type: String
+  duration: String!
+  dateadded: DateTime!
+  datemodified: DateTime!
+  location: Location
+  openings: String
+  description: String
+  contactname: String
+  salary: String
+  deadline: DateTime
+}
