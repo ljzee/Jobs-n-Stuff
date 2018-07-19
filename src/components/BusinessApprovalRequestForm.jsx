@@ -5,7 +5,7 @@ class BusinessApprovalRequestForm extends Component {
 
   constructor(props){
     super(props);
-    this.state = {name: '', description: '', website: ''};
+    this.state = {name: '', description: '', phonenumber: '', address:'', website: ''};
   }
 
   render () {
@@ -36,6 +36,34 @@ class BusinessApprovalRequestForm extends Component {
                 placeholder="Business Description"
                 value={this.state.description}
                 onChange={e=>this.setState({description: e.target.value})}
+              />
+            </Col>
+          </FormGroup>
+
+          <FormGroup controlId="formHorizontalWebsite">
+            <Col componentClass={ControlLabel} sm={2}>
+              Phone Number
+            </Col>
+            <Col sm={10}>
+              <FormControl
+                type="text"
+                placeholder="Phone Number"
+                value={this.state.website}
+                onChange={e=>this.setState({phonenumber: e.target.value})}
+              />
+            </Col>
+          </FormGroup>
+
+          <FormGroup controlId="formHorizontalWebsite">
+            <Col componentClass={ControlLabel} sm={2}>
+              Address
+            </Col>
+            <Col sm={10}>
+              <FormControl
+                type="text"
+                placeholder="Address"
+                value={this.state.website}
+                onChange={e=>this.setState({address: e.target.value})}
               />
             </Col>
           </FormGroup>
