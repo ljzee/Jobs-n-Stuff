@@ -66,7 +66,7 @@ class BusinessApprovalRequestForm extends Component {
           <FormGroup>
             <Button type="submit">Request Approval</Button>
           </FormGroup>
-        </Form>;
+        </Form>
       </div>
     );
   }
