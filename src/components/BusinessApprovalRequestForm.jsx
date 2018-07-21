@@ -12,7 +12,7 @@ class BusinessApprovalRequestForm extends Component {
     phonenumber: '',
     address:'',
     website: ''
-  };
+  }
 
   render () {
     return (
