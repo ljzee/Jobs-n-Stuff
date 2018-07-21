@@ -4,16 +4,21 @@ import '../styles/BusinessApprovalRequestForm.css'
 
 class BusinessApprovalRequestForm extends Component {
 
-  constructor(props){
-    super(props);
-    this.state = {name: '', description: '', phonenumber: '', address:'', website: ''};
-  }
+
+  {/* TODO: Update state to the current convention of utilizing value, isValid, message, validState */}
+  state = {
+    name: '',
+    description: '',
+    phonenumber: '',
+    address:'',
+    website: ''
+  };
 
   render () {
     return (
       <div className="BusinessApprovalRequest">
         <Form horizontal>
-          <FormGroup controlId="formHorizontalName">
+          <FormGroup controlId="name">
             <ControlLabel> Business Name </ControlLabel>
             <FormControl
               type="text"
@@ -23,7 +28,7 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
-          <FormGroup controlId="formHorizontalDescription">
+          <FormGroup controlId="description">
             <ControlLabel> Business Description </ControlLabel>
             <FormControl
               type="text"
@@ -33,7 +38,7 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
-          <FormGroup controlId="formHorizontalWebsite">
+          <FormGroup controlId="phonenumber">
             <ControlLabel> Phone Number </ControlLabel>
             <FormControl
               type="text"
@@ -43,7 +48,7 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
-          <FormGroup controlId="formHorizontalWebsite">
+          <FormGroup controlId="address">
             <ControlLabel> Address </ControlLabel>
             <FormControl
               type="text"
@@ -53,7 +58,7 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
-          <FormGroup controlId="formHorizontalWebsite">
+          <FormGroup controlId="website">
             <ControlLabel> Website </ControlLabel>
             <FormControl
               type="text"
@@ -63,13 +68,13 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
-          <FormGroup>
             <Button type="submit">Request Approval</Button>
-          </FormGroup>
         </Form>
       </div>
     );
   }
 }
+
+{/* TODO: Add graphql mutation for updating the business information*/}
 
 export default BusinessApprovalRequestForm;
