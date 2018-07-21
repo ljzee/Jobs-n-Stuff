@@ -4,8 +4,7 @@ import '../styles/BusinessApprovalRequestForm.css'
 
 class BusinessApprovalRequestForm extends Component {
 
-
-  {/* TODO: Update state to the current convention of utilizing value, isValid, message, validState */}
+  /* TODO: Update state to the current convention of utilizing value, isValid, message, validState */
   state = {
     name: '',
     description: '',
