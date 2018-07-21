@@ -69,8 +69,8 @@ type JobPosting {
   title: String!
   type: String
   duration: String!
-  dateadded: DateTime!
-  datemodified: DateTime!
+  createdAt: DateTime!
+  updatedAt: DateTime!
   location: Location
   openings: String
   description: String

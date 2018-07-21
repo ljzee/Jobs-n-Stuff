@@ -1,4 +1,4 @@
-# import Query.user, Mutation.updateUserProfile from "./generated/prisma.graphql"
+# import Query.user, Query.jobPosting, Mutation.updateUserProfile from "./generated/prisma.graphql"
 # import Role, ID, File, Filetype, UserProfile, BusinessProfile, Location, JobPosting from "./generated/prisma.graphql"
 
 scalar Upload
@@ -12,7 +12,7 @@ type Mutation {
   login(username: String!, password: String!): AuthPayload!
   updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, overwrite: Boolean!): UploadPayload!
-  createOrUpdateJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
+  createJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
 }
 
@@ -39,8 +39,8 @@ type JobPostingErrors {
   title: String
   type: String
   duration: String
-  dateadded: String
-  datemodified: String
+  createdAt: String
+  updatedAt: String
   streetaddress: String
   city: String
   province: String

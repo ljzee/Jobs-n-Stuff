@@ -11,6 +11,9 @@ const Query = {
   me,
   user: (parent, args, ctx, info) => {
     return forwardTo('db')(parent, args, ctx, info);
+  },
+  jobPosting: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
   }
 }
 

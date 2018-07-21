@@ -2,13 +2,34 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Job.css';
 import {Panel, Button} from 'react-bootstrap';
+import gql from 'graphql-tag';
+import Loading from './Loading';
+import { graphql, compose } from 'react-apollo';
+import { withApollo } from 'react-apollo';
+import { withRouter } from 'react-router-dom';
+
 
 class Job extends Component{
 
   render(){
+
+
+    if (this.props.jobQuery.loading) {
+      return <Loading />;
+    }
+
+    if (this.props.jobQuery.error) {
+      //console.log(this.props.jobQuery.error.message);
+      return <div>Error</div>;
+    }
+
+    if (this.props.jobQuery.jobPosting === null){
+      return <h1>Sorry, this job doesn't exist.</h1>
+    }
+
     return(
       <div className="Job">
-        <h1>Graphic Designer</h1>
+        <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <Button
           type="submit"
           bsSize="large"
@@ -31,11 +52,12 @@ class Job extends Component{
         </Button>
         <div className="predescription">
           <p>123 Company Street, Burnaby, BC, Canada</p>
-          <p>Part Time</p>
+          <p>{this.props.jobQuery.jobPosting.type}</p>
           <Link to="Google.ca">Website</Link>
           <div id="deadline">
             <p>
-              <strong>Deadline: </strong>July 18, 2018 (in 1 day)
+              <strong>Deadline: </strong>{this.props.jobQuery.jobPosting.deadline === null
+                                          ?'N/A':this.props.jobQuery.jobPosting.deadline.slice(0,10)}
             </p>
           </div>
         </div>
@@ -49,22 +71,25 @@ class Job extends Component{
                 <strong>Company: </strong>
               </p>
               <p>
-                <strong>Description: </strong>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                <strong>Description: </strong>{this.props.jobQuery.jobPosting.description === null
+                                              ?'N/A':this.props.jobQuery.jobPosting.description}
               </p>
               <p>
-                <strong>Duration: </strong> 5 months
+                <strong>Duration: </strong>{this.props.jobQuery.jobPosting.duration}
               </p>
               <p>
-                <strong>Openings: </strong> 10
+                <strong>Openings: </strong>{this.props.jobQuery.jobPosting.openings === null
+                                           ?'N/A':this.props.jobQuery.jobPosting.openings}
               </p>
               <p>
-                <strong>Salary: </strong> $15/Hr
+                <strong>Salary: </strong> {this.props.jobQuery.jobPosting.salary === null
+                                          ?'N/A':'$' + this.props.jobQuery.jobPosting.salary + '/Hr'}
               </p>
             </Panel.Body>
           </Panel>
           </div>
           <footer>
-            <p>Added: July 17, 2018</p>
+            <p><strong>Added: </strong>{this.props.jobQuery.jobPosting.createdAt.slice(0,10)}</p>
           </footer>
         <div className="contactdetailspanel">
         <Panel>
@@ -73,7 +98,8 @@ class Job extends Component{
             </Panel.Heading>
             <Panel.Body>
              <p>
-               <strong>Contact Person: </strong>
+               <strong>Contact Person: </strong>{this.props.jobQuery.jobPosting.contactname === null
+                                                ?'N/A':this.props.jobQuery.jobPosting.contactname}
              </p>
              <p>Google maps api go here</p>
             </Panel.Body>
@@ -87,4 +113,37 @@ class Job extends Component{
 
 
 
-export default Job;
+
+const JOB_QUERY = gql`
+  query JobQuery($where: JobPostingWhereUniqueInput!) {
+    jobPosting(where: $where) {
+      id
+      title
+      type
+      duration
+      createdAt
+      updatedAt
+      openings
+      description
+      contactname
+      salary
+      deadline
+    }
+  }
+`
+
+
+export default compose(
+  graphql(JOB_QUERY, {
+    name: 'jobQuery',
+    options: props => ({
+      variables: {
+          where: {
+            id: "cjjuxw0e900bd0808lozfu11o" //change the job id here, this will be passed from the previous page
+          }
+        },
+    }),
+  }),
+  withRouter,
+  withApollo
+)(Job)

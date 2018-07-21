@@ -449,9 +449,32 @@ async function uploadFile(parent, { file, name, filetype, size, filename, overwr
   return payload;
 }
 
-const createOrUpdateJobPosting = async (parent, args, ctx, info) => {
+//TODO: perform error checking
+const createJobPosting = async (parent, args, ctx, info) => {
+
+  var currentdate = new Date();
+  var dd = currentdate.getDate();
+  var mm = currentdate.getMonth() + 1;
+  var yyyy = currentdate.getFullYear();
+  currentdate = yyyy + '-' + mm + '-' + dd;
+
+  const posting = await ctx.db.mutation.createJobPosting({
+  data: {
+    title: args.title,
+    type: args.type,
+    duration: args.duration,
+    openings: args.openings,
+    description: args.description,
+    contactname: args.contactname,
+    salary: args.salary,
+    deadline: args.deadline,
+    location: null
+
+  },
+}, `{ id }`);
+
   let payload = {
-    jobposting: null,
+    jobposting: posting,
     errors: null
   }
   return payload;
@@ -462,7 +485,7 @@ const Mutation = {
   login,
   updateuser,
   uploadFile,
-  createOrUpdateJobPosting,
+  createJobPosting,
   updatePassword
 }
 
