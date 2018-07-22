@@ -1,5 +1,5 @@
 # import Query.user, Query.jobPosting, Mutation.updateUserProfile from "./generated/prisma.graphql"
-# import Role, ID, File, Filetype, UserProfile, BusinessProfile, Location, JobPosting from "./generated/prisma.graphql"
+# import Role, ID, File, Filetype, UserProfile, BusinessProfile, Location, JobPosting, Application from "./generated/prisma.graphql"
 
 scalar Upload
 
@@ -14,6 +14,7 @@ type Mutation {
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, overwrite: Boolean!): UploadPayload!
   createJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
+  createApplication (jobpostingid: ID!): ApplicationPayload!
 }
 
 type AuthErrors {
@@ -96,4 +97,8 @@ type User {
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files: [File]
+}
+
+type ApplicationPayload {
+  application: Application
 }

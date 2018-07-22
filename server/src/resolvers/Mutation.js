@@ -450,7 +450,7 @@ async function uploadFile(parent, { file, name, filetype, size, filename, overwr
 }
 
 //TODO: perform error checking
-const createJobPosting = async (parent, args, ctx, info) => {
+async function createJobPosting(parent, args, ctx, info) {
 
   var currentdate = new Date();
   var dd = currentdate.getDate();
@@ -480,13 +480,37 @@ const createJobPosting = async (parent, args, ctx, info) => {
   return payload;
 }
 
+async function createApplication(parent, args, ctx, info) {
+ //get userid
+  const userId = getUserId(ctx);
+  //from userid, query for userprofileid
+  const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile {id}}`);
+
+
+  const newapplication = await ctx.db.mutation.createApplication({
+    data: {
+      status: 'PENDING',
+      //connect to userprofileID
+      user: { connect: { id: userProfileID.userprofile.id } },
+      jobposting: { connect: { id: args.jobpostingid}}
+    }
+  })
+
+  let payload = {
+    application: newapplication
+  }
+
+  return payload;
+}
+
 const Mutation = {
   signup,
   login,
   updateuser,
   uploadFile,
   createJobPosting,
-  updatePassword
+  updatePassword,
+  createApplication
 }
 
 module.exports = {

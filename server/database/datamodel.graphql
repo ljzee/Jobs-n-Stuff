@@ -17,6 +17,7 @@ type UserProfile {
   preferredname: String
   phonenumber: String
   user: User! @unique @relation(name: "UserProfileDetails" onDelete: CASCADE)
+  applications: [Application!]!
 }
 
 type BusinessProfile {
@@ -27,6 +28,7 @@ type BusinessProfile {
   address: String
   website: String
   user: User! @unique @relation(name: "BusinessProfileDetails" onDelete: CASCADE)
+  jobpostings: [JobPosting!]!
 }
 
 type File {
@@ -77,4 +79,18 @@ type JobPosting {
   contactname: String
   salary: String
   deadline: DateTime
+  applications: [Application!]!
+}
+
+enum StatusType {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+type Application {
+  id: ID! @unique
+  status: StatusType!
+  user: UserProfile!
+  jobposting: JobPosting!
 }
