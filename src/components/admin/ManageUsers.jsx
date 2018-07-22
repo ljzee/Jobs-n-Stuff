@@ -21,15 +21,17 @@ class ManageUsers extends React.Component {
     }
 
     return (
-      <div id="manage-users">
+      <div id="manage-users" className="container">
         <h1>Manage Users</h1>
-        <h3>{this.props.meQuery.me.role}</h3>
-        <Table>
-          <tr>
-           <th>Username</th>
-           <th>Email</th>
-           <th>Role</th>
-          </tr>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+             <th>Username</th>
+             <th>Email</th>
+             <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
         { this.props.usersQuery.feed.users.map(user =>
             <tr key={user.id}>
               <td>{user.username}</td>
@@ -38,6 +40,7 @@ class ManageUsers extends React.Component {
             </tr>
           )
         }
+          </tbody>
         </Table>
 
       </div>
