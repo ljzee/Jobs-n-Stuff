@@ -51,6 +51,7 @@ enum Role {
 enum Filetype {
   RESUME
   COVERLETTER
+  TRANSCRIPT
   PROFILEIMAGE
   OTHER
 }

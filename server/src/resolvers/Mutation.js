@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { processUpload } = require('../files/fileApi');
+const { processUpload, multipleUpload, closeStream } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
 
@@ -14,6 +14,7 @@ const maxImageSize = 500000; // 5 KB
 const maxDocSize = 5000000; // 5 MB
 const isImageRegEx = new RegExp('^image/.+$');
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
+const isValidDocRegEx = new RegExp('^application/pdf$');
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -317,135 +318,190 @@ async function updateuser(parent, args, ctx, info) {
   return payload;
 }
 
-async function uploadFile(parent, { file, name, filetype, size, filename, overwrite }, ctx, info) {
+async function uploadFile(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id  path filename storedName } }`);
-  var fileExists = false;
-  var updateFileId = '';
-  var valid = true;
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName } }`);
 
-  var payload = {
+  const dryRunPayload = await uploadFileDryRun(user, args.file, args.filetype, args.size, args.mimetype, args.name);
+
+  let payload = {
     file: null,
-    errors: {
-      fileexists: '',
-      filetype: '',
-      filesize: ''
+    error: {
+      fieldId: '',
+      message: ''
     }
+  }
+
+  const upload = {
+    file: args.file,
+    username: user.username
+  }
+
+  if (dryRunPayload.success) {
+    let fileExists = false;
+    let updateFileId = '';
+    for (let i = 0; i < user.files.length; i++) {
+      const existingFile = user.files[i];
+      if (args.filetype === 'PROFILEIMAGE' && existingFile.filename === 'avatar.png') {
+        fileExists = true;
+        updateFileId = existingFile.id;
+        const deletePath = `../public/uploads/${user.username}/${existingFile.storedName}`
+        if (fs.existsSync(deletePath)) fs.unlinkSync(deletePath);
+      }
+    }
+    const uploadResult = await processSingleUpload(upload);
+
+    let filename = args.filename;
+    if (args.filetype === 'PROFILEIMAGE') {
+      filename = 'avatar.png';
+    }
+
+    const path = `/uploads/${user.username}/${uploadResult.filename}`;
+    if (fileExists) {
+      payload.file = await ctx.db.mutation.updateFile({
+        data: {
+          name: args.name,
+          filetype: args.filetype,
+          filename,
+          path,
+          storedName: uploadResult.filename,
+          mimetype: uploadResult.mimetype
+        },
+        where: {id: updateFileId}
+      }, `{ id }`);
+    } else {
+      payload.file = await ctx.db.mutation.createFile({
+        data: {
+          name: args.name,
+          filetype: args.filetype,
+          filename,
+          path,
+          storedName: uploadResult.filename,
+          mimetype: uploadResult.mimetype,
+          user: { connect: { id: userId } }
+        }
+      }, `{ id }`);
+    }
+  } else {
+    payload.error.fieldId = args.fieldId;
+    payload.error.message = dryRunPayload.error;
+    await closeStream(upload);
+  }
+
+  return payload;
+}
+
+async function uploadFiles(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName name } }`);
+  let allValid = true;
+
+  let payload = {
+    success: false,
+    errors: []
+  }
+
+  let uploads = [];
+
+  for (let i = 0; i < args.files.length; i++) {
+    const document = args.files[i];
+    const dryRunPayload = await uploadFileDryRun(user, document.file, document.filetype, document.size, document.mimetype, document.name);
+    if (!dryRunPayload.success) {
+      allValid = false;
+      let error = {
+        fieldId: document.fieldId,
+        message: dryRunPayload.error
+      }
+      payload.errors.push(error);
+    }
+    let upload = {
+      file: document.file,
+      username: user.username,
+      name: document.name,
+      filetype: document.filetype,
+      mimetype: document.mimetype,
+      filename: document.filename
+    }
+    uploads.push(upload);
+  }
+
+  if (allValid) {
+    const uploadResult = await multipleUpload(uploads);
+    for (let i = 0; i < uploadResult.length; i++) {
+      const file = uploadResult[i];
+      const path = `/uploads/${user.username}/${file.storedName}`;
+      await ctx.db.mutation.createFile({
+        data: {
+          name: file.name,
+          filetype: file.filetype,
+          filename: file.filename,
+          path,
+          storedName: file.storedName,
+          mimetype: file.mimetype,
+          user: { connect: { id: userId } }
+        }
+      }, `{ id }`);
+    }
+    payload.success = true;
+  } else {
+    for (let i = 0; i < uploads.length; i++) {
+      const upload = uploads[i];
+      await closeStream(upload);
+    }
+  }
+
+  return payload;
+}
+
+async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
+  let payload = {
+    success: false,
+    error: null
   }
 
   if (!file) {
-    valid = false;
-    payload.errors.fileexists = 'File is required for upload';
+    payload.error = 'File is required for upload';
+    return payload;
   }
 
-  var { stream, uploadname, mimetype } = await file;
+  if (name === '') {
+    payload.error = 'Please enter a name for the document';
+    return payload;
+  }
 
   const isImage = isImageRegEx.test(mimetype);
   const isValidImage = isValidImageRegEx.test(mimetype);
+  const isValidDoc = isValidDocRegEx.test(mimetype);
 
   if (filetype === 'PROFILEIMAGE' && size > maxImageSize) {
-    valid = false;
-    payload.errors.filesize = 'Image size cannot exceed 500 KB';
-    var cleanup = new Promise((resolve, reject) =>
-      stream
-        .destroy()
-        .on('error', error => {
-          reject(error)
-        })
-        .on('finish', () => resolve())
-      );
+    payload.error = 'Image size cannot exceed 500 KB';
+    return payload;
   }
 
   if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
-    valid = false;
-    payload.errors.filesize = 'Document size cannot exceed 5 MB';
-    var cleanup = new Promise((resolve, reject) =>
-      stream
-        .destroy()
-        .on('error', error => {
-          reject(error)
-        })
-        .on('finish', () => resolve())
-      );
+    payload.error = 'Document size cannot exceed 5 MB';
+    return payload;
   }
 
   if (isImage && !isValidImage) {
-    valid = false;
-    payload.errors.filetype = 'Image type must be jpg, jpeg, or png';
-    var cleanup = new Promise((resolve, reject) =>
-      stream
-        .destroy()
-        .on('error', error => {
-          reject(error)
-        })
-        .on('finish', () => resolve())
-      );
+    payload.error = 'Image type must be jpg, jpeg, or png';
+    return payload;
   }
 
-  if (valid) {
-    for (var i = 0; i < user.files.length; i++) {
-      const existingFile = user.files[i];
-      if ((filetype === 'PROFILEIMAGE' && existingFile.filename === 'avatar.png')
-          || (overwrite && existingFile.filename === filename)) {
-        fileExists = true;
-        updateFileId = existingFile.id;
-        var deletePath = `../public/uploads/${user.username}/${existingFile.storedName}`
-        if (fs.existsSync(deletePath)) fs.unlinkSync(deletePath);
-      }
-      if (!overwrite && existingFile.filename === filename) {
-        valid = false;
-        payload.errors.fileexists = `Document ${filename} already exists. Do you want to replace it?`;
-        var cleanup = new Promise((resolve, reject) =>
-          stream
-            .destroy()
-            .on('error', error => {
-              reject(error)
-            })
-            .on('finish', () => resolve())
-          );
-      }
-    }
-    if (valid) {
-      var uploadResult = await processUpload(stream, uploadname, mimetype, user.username);
-      if (uploadResult.file !== null) {
-        if (filetype === 'PROFILEIMAGE') filename = 'avatar.png';
-        var path = `/uploads/${user.username}/${uploadResult.file.filename}`
-        if (fileExists) {
-          payload.file =  await ctx.db.mutation.updateFile({
-            data: {
-              name,
-              filetype,
-              filename,
-              path,
-              storedName: uploadResult.file.filename,
-              mimetype: uploadResult.file.mimetype
-            },
-            where: {id: updateFileId}
-          }, `{ id }`);
-        } else {
-          payload.file = await ctx.db.mutation.createFile({
-            data: {
-              name,
-              filetype,
-              filename,
-              path,
-              storedName: uploadResult.file.filename,
-              mimetype: uploadResult.file.mimetype,
-              user: { connect: { id: userId } }
-            }
-          }, `{ id }`);
-        }
-      } else {
-        if (uploadResult.errors.fileexists !== '') {
-          payload.errors.fileexists = uploadResult.errors.fileexists;
-        }
-        if (uploadResult.errors.filetype !== '') {
-          payload.errors.filetype = uploadResult.errors.filetype;
-        }
-      }
+  if (!isImage && !isValidDoc) {
+    payload.error = 'Document must be a pdf';
+    return payload;
+  }
+
+  for (let i = 0; i < user.files.length; i++) {
+    const existingFile = user.files[i];
+    if (filetype !== 'PROFILEIMAGE' && existingFile.name === name) {
+      payload.error = 'Document with this name already exists. Please rename the document, or delete the existing document.';
+      return payload;
     }
   }
 
+  payload.success = true;
   return payload;
 }
 
@@ -480,13 +536,24 @@ const createJobPosting = async (parent, args, ctx, info) => {
   return payload;
 }
 
+async function fileDelete(parent, args, ctx, info) {
+  const filePath = `../public${args.path}`
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+  return await ctx.db.mutation.deleteFile({
+    where: { path: args.path }
+  }, `{ id }`);
+}
+
 const Mutation = {
   signup,
   login,
   updateuser,
   uploadFile,
   createJobPosting,
-  updatePassword
+  updatePassword,
+  fileDelete,
+  uploadFiles
 }
 
 module.exports = {

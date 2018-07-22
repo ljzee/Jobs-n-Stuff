@@ -118,7 +118,7 @@ class ChangePassword extends React.Component {
     }
 
     if (this.props.userQuery.user.username !== this.props.match.params.username) {
-      return <Redirect to={`/profile/${this.props.match.params.username}`}/>;
+      return <Redirect to='/dashboard'/>;
     }
 
     var {oldpassword, newpassword, newpassword2} = this.state;

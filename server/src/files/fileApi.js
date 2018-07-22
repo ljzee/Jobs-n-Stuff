@@ -3,6 +3,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const shortid = require('shortid');
 const gm = require('gm').subClass({imageMagick: true});
+const promisesAll = require('promises-all');
 
 require('dotenv').config();
 
@@ -10,21 +11,6 @@ const uploadDir = '../public/uploads';
 const isImageRegEx = new RegExp('^image/.+$');
 
 const storeDocument = ({ stream, filePath }) => {
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-  return new Promise((resolve, reject) =>
-    stream
-      .on('error', error => {
-        if (stream.truncated) fs.unlinkSync(filePath);
-        reject(error)
-      })
-      .pipe(fs.createWriteStream(filePath))
-      .on('error', error => reject(error))
-      .on('finish', () => resolve(filePath))
-  );
-}
-
-const storeImage = ({ stream, filePath }) => {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
   return new Promise((resolve, reject) =>
@@ -53,40 +39,100 @@ const formatImage = async (filePath, newPath) => {
     });
 }
 
-const processUpload = async ( stream, filename, mimetype, username ) => {
+const processUpload = async ( upload ) => {
+  let { stream } = await upload.file;
+  const filePath = upload.filepath
+
+  return storeDocument({ stream, filePath });
+}
+
+const processSingleUpload = async ( upload ) => {
   const fileId = shortid.generate();
+  let file = null;
+
+  let { stream, filename, mimetype } = await upload.file;
+
   const isImage = isImageRegEx.test(mimetype);
 
-  var payload = {
-    file: null,
-    errors: {
-      fileexists: '',
-      filetype:'',
-      filesize: ''
-    }
-  }
+  const userDir = `${uploadDir}/${upload.username}`
+  mkdirp.sync(userDir);
+
+  const filePath = `${userDir}/${fileId}-${filename}`;
+  await storeDocument({ stream, filePath });
 
   if (isImage) {
-    const userDir = `${uploadDir}/${username}`
-    mkdirp.sync(userDir);
-
-    var filePath = `${userDir}/${fileId}-${filename}`;
-    await storeImage({ stream, filePath });
-
     const newPath = `${userDir}/${fileId}-avatar.png`
     await formatImage(filePath, newPath);
     filename = `${fileId}-avatar.png`
-
-    payload.file = {
-      filename,
-      mimetype,
-      path: filePath
-    }
+  } else {
+    filename = `${fileId}-${filename}`;
   }
 
-  return payload;
+  file = {
+    filename,
+    mimetype,
+    path: filePath
+  }
+
+  return file;
+}
+
+const multipleUpload = async (uploads) => {
+  let files = [];
+  let docs = [];
+  const userDir = `${uploadDir}/${uploads[0].username}`;
+  mkdirp.sync(userDir);
+
+  for (let i = 0; i < uploads.length; i++) {
+    const fileId = shortid.generate();
+    const upload = uploads[i];
+
+    const storedName = `${fileId}-${upload.filename}`;
+    const filePath = `${userDir}/${storedName}`;
+
+    const file = {
+      filename: upload.filename,
+      storedName,
+      name: upload.name,
+      filetype: upload.filetype,
+      mimetype: upload.mimetype
+    }
+    files.push(file);
+
+    const doc = {
+      file: upload.file,
+      filepath: filePath
+    }
+    docs.push(doc);
+  }
+
+  const { resolve, reject } = await promisesAll.all(
+    docs.map(processUpload)
+  );
+
+  if (reject.length)
+    reject.forEach(({ name, message }) =>
+      // eslint-disable-next-line no-console
+      console.error(`${name}: ${message}`)
+  )
+
+  return files;
+}
+
+const closeStream = async (upload) => {
+  let { stream } = await upload.file;
+  var cleanup = new Promise((resolve, reject) =>
+      stream
+        .destroy()
+        .on('error', error => {
+          reject(error)
+        })
+        .on('finish', () => resolve())
+      );
 }
 
 module.exports = {
-  processUpload
+  processSingleUpload,
+  multipleUpload,
+  closeStream
 }

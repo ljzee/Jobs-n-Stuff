@@ -18,6 +18,16 @@ class LoggedInNavBar extends Component {
     return null;
   }
 
+  renderUserNavigationItems = () => {
+    if (!this.props.userRole.loading && this.props.userRole.user.role === 'BASEUSER') {
+      return (
+        <React.Fragment>
+          <NavItem eventKey={4} href={`/documents/${this.props.username}`}>Documents</NavItem>
+        </React.Fragment>)
+    }
+    return null;
+  }
+
   render () {
     return (
       <Navbar inverse staticTop>
@@ -28,6 +38,7 @@ class LoggedInNavBar extends Component {
         </Navbar.Header>
         <Nav pullRight>
           {this.renderBusinessNavigationItems()}
+          {this.renderUserNavigationItems()}
           <NavItem eventKey={1} href={`/profile/${this.props.username}`}>Profile</NavItem>
           <NavItem eventKey={2} onClick={this.props.onClick}>
             Logout

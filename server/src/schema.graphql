@@ -8,12 +8,14 @@ type Query {
 }
 
 type Mutation {
-  signup(email: String!, password: String!, username: String!, role: Role!, activated: Boolean!, confirmPassword: String!): AuthPayload!
-  login(username: String!, password: String!): AuthPayload!
-  updateuser(username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
-  uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, overwrite: Boolean!): UploadPayload!
+  signup (email: String!, password: String!, username: String!, role: Role!, activated: Boolean!, confirmPassword: String!): AuthPayload!
+  login (username: String!, password: String!): AuthPayload!
+  updateuser (username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
+  uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, fieldId: String!, mimetype: String!): UploadPayload!
+  uploadFiles (files: [DocumentInput!]!): UploadsPayload!
   createJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
+  fileDelete (path: String!): File!
 }
 
 type AuthErrors {
@@ -53,15 +55,19 @@ type JobPostingErrors {
   deadline: String
 }
 
-type UploadErrors {
-  fileexists: String
-  filetype: String
-  filesize: String
+type UploadError {
+  fieldId: String
+  message: String
 }
 
 type UploadPayload {
   file: File
-  errors: UploadErrors
+  error: UploadError
+}
+
+type UploadsPayload {
+  success: Boolean
+  errors: [UploadError]
 }
 
 type UserErrors {
@@ -96,4 +102,14 @@ type User {
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files: [File]
+}
+
+input DocumentInput {
+  file: Upload!
+  name: String
+  filetype: String!
+  mimetype: String!
+  size: Float!
+  fieldId: String!
+  filename: String!
 }
