@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import '../styles/LogoutModal.css';
+import '../styles/Modal.css';
 
 class LogoutModal extends Component {
   render() {

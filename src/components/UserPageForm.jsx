@@ -11,7 +11,6 @@ import '../styles/Profile.css';
 
 const validationFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber', 'avatar'];
 const requiredFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber'];
-const fileErrors = ['fileexists', 'filetype', 'filesize'];
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 
 class UserPageForm extends React.Component {
@@ -23,7 +22,7 @@ class UserPageForm extends React.Component {
     lastname: {value: '', isValid: true, message: '', validState: null},
     phonenumber: {value: '', isValid: true, message: '', validState: null},
     preferredname: {value: ''},
-    avatar: {selectedFile: null, size: 0.0, filename: '', path: '/avatar.png', isValid: true, message: '', validState: null},
+    avatar: {selectedFile: null, size: 0.0, filename: '', path: '/avatar.png', isValid: true, message: '', validState: null, mimetype: ''},
     isNewUser: true,
     isEditMode: false,
     userIsMe: false
@@ -58,6 +57,7 @@ class UserPageForm extends React.Component {
         state.avatar.path = URL.createObjectURL(e.target.files[0]);
         state.avatar.selectedFile = e.target.files[0];
         state.avatar.filename = e.target.files[0].name;
+        state.avatar.mimetype = e.target.files[0].type;
         break;
       default:
         state[e.target.id].value = e.target.value;
@@ -95,6 +95,7 @@ class UserPageForm extends React.Component {
     const { user, errors } = updateResult.data.updateuser;
 
     if (user === null) {
+
       for (let key in errors) {
         if (state.hasOwnProperty(key) && errors[key] !== '') {
           state[key].isValid = false;
@@ -102,8 +103,8 @@ class UserPageForm extends React.Component {
           state[key].validState = "error";
         }
       }
-      this.setState(state);
 
+      this.setState(state);
     } else {
       let unformattedPhone = state.phonenumber.value;
       let formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
@@ -113,42 +114,30 @@ class UserPageForm extends React.Component {
       if (state.avatar.selectedFile !== null) {
         const uploadResult = await this.props.uploadMutation({
           variables: {
-            file: this.state.avatar.selectedFile,
-            size: this.state.avatar.size,
+            file: state.avatar.selectedFile,
+            size: state.avatar.size,
             filetype: 'PROFILEIMAGE',
-            filename: this.state.avatar.filename,
-            overwrite: true
+            filename: state.avatar.filename,
+            fieldId: 'avatar',
+            mimetype: state.avatar.mimetype
           },
         });
-
         if (uploadResult.data.uploadFile.file !== null) {
           state.avatar.path = uploadResult.data.uploadFile.file.path;
           state.isNewUser = false;
           state.isEditMode = false;
-
           this.setState(state);
-
         } else {
           state.avatar.isValid = false;
+          state.avatar.message = uploadResult.data.uploadFile.error.message;
           state.avatar.validState = "error";
-
-          for (let i = 0; i < fileErrors.length; i++) {
-            let key = fileErrors[i];
-
-            if (uploadResult.data.uploadFile.errors[key] !== '') {
-              state.avatar.message = uploadResult.data.uploadFile.errors[key];
-            }
-          }
-
           this.setState(state);
         }
       } else {
         state.isNewUser = false;
         state.isEditMode = false;
-
         this.setState(state);
       }
-
     }
   }
 
@@ -437,15 +426,14 @@ const UPDATE_USER_MUTATION = gql`
 `
 
 const UPLOAD_MUTATION = gql`
-  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $overwrite: Boolean!) {
-    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, overwrite: $overwrite) {
+  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
+    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
       file {
         path
       }
-      errors {
-        fileexists
-        filetype
-        filesize
+      error {
+        fieldId
+        message
       }
     }
   }
