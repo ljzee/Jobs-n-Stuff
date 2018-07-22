@@ -506,7 +506,7 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
 }
 
 //TODO: perform error checking
-const createJobPosting = async (parent, args, ctx, info) => {
+async function createJobPosting(parent, args, ctx, info) {
 
   var currentdate = new Date();
   var dd = currentdate.getDate();
@@ -536,6 +536,7 @@ const createJobPosting = async (parent, args, ctx, info) => {
   return payload;
 }
 
+
 async function fileDelete(parent, args, ctx, info) {
   const filePath = `../public${args.path}`
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
@@ -543,6 +544,29 @@ async function fileDelete(parent, args, ctx, info) {
   return await ctx.db.mutation.deleteFile({
     where: { path: args.path }
   }, `{ id }`);
+}
+
+async function createApplication(parent, args, ctx, info) {
+  //get userid
+  const userId = getUserId(ctx);
+  //from userid, query for userprofileid
+  const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile {id}}`);
+
+
+  const newapplication = await ctx.db.mutation.createApplication({
+    data: {
+      status: 'PENDING',
+      //connect to userprofileID
+      user: { connect: { id: userProfileID.userprofile.id } },
+      jobposting: { connect: { id: args.jobpostingid}}
+    }
+  })
+
+  let payload = {
+    application: newapplication
+  }
+
+  return payload;
 }
 
 const Mutation = {
@@ -553,7 +577,8 @@ const Mutation = {
   createJobPosting,
   updatePassword,
   fileDelete,
-  uploadFiles
+  uploadFiles,
+  createApplication
 }
 
 module.exports = {

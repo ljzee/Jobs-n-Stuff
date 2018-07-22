@@ -91,3 +91,11 @@ const business_password = 'business_password';
 const business_role = 'BUSINESS';
 const business_activated = true;
 createNewUser(business_username, business_email, business_password, business_role, business_activated);
+
+// Create base user
+const base_username = 'baseuser';
+const base_email = 'baseuser@email.com';
+const base_password = 'base_password';
+const base_role = 'BASEUSER';
+const base_activated = true;
+createNewUser(base_username, base_email, base_password, base_role, base_activated);
