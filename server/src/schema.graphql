@@ -1,10 +1,16 @@
 # import Query.user, Query.jobPosting, Mutation.updateUserProfile from "./generated/prisma.graphql"
-# import Role, ID, File, Filetype, UserProfile, BusinessProfile, Location, JobPosting, Application from "./generated/prisma.graphql"
+# import User, Role, ID, File, Filetype, UserProfile, BusinessProfile, Location, JobPosting, Application, UserOrderByInput from "./generated/prisma.graphql"
 
 scalar Upload
 
 type Query {
   me: User
+  feed(filter: String, skip: Int, first: Int, orderBy: UserOrderByInput): Feed!
+}
+
+type Feed {
+  users: [User!]!
+  count: Int!
 }
 
 type Mutation {
