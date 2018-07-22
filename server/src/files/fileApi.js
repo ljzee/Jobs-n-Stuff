@@ -1,4 +1,3 @@
-const { getUserId } = require('../utils')
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const shortid = require('shortid');
@@ -112,7 +111,6 @@ const multipleUpload = async (uploads) => {
 
   if (reject.length)
     reject.forEach(({ name, message }) =>
-      // eslint-disable-next-line no-console
       console.error(`${name}: ${message}`)
   )
 

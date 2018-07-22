@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { processUpload, multipleUpload, closeStream } = require('../files/fileApi');
+const { processSingleUpload, multipleUpload, closeStream } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
 
