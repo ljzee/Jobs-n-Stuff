@@ -10,11 +10,12 @@ require('dotenv').config();
 const app_secret = process.env.APP_SECRET;
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 const usernameRegEx = /^[a-z0-9]+$/i;
-const maxImageSize = 500000; // 5 KB
+const maxImageSize = 500000; // 500 KB
 const maxDocSize = 5000000; // 5 MB
-const isImageRegEx = new RegExp('^image/.+$');
+const userDocQuota = 50000000; // 50 MB
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 const isValidDocRegEx = new RegExp('^application/pdf$');
+const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$')
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -320,16 +321,16 @@ async function updateuser(parent, args, ctx, info) {
 
 async function uploadFile(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName } }`);
-
-  const dryRunPayload = await uploadFileDryRun(user, args.file, args.filetype, args.size, args.mimetype, args.name);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName size } }`);
+  let validUpload = true;
 
   let payload = {
     file: null,
     error: {
       fieldId: '',
       message: ''
-    }
+    },
+    quotaError: null
   }
 
   const upload = {
@@ -337,7 +338,18 @@ async function uploadFile(parent, args, ctx, info) {
     username: user.username
   }
 
-  if (dryRunPayload.success) {
+  const dryRunPayload = await uploadFileDryRun(user, args.file, args.filetype, args.size, args.mimetype, args.name);
+  validUpload = dryRunPayload.success;
+
+  if (validUpload && (args.size + dryRunPayload.totaldocsize) > userDocQuota) {
+    validUpload = false;
+    payload.quotaError = {
+      uploadSize: args.size,
+      remaining: (userDocQuota - dryRunPayload.totaldocsize)
+    }
+  }
+
+  if (validUpload) {
     let fileExists = false;
     let updateFileId = '';
     for (let i = 0; i < user.files.length; i++) {
@@ -352,8 +364,10 @@ async function uploadFile(parent, args, ctx, info) {
     const uploadResult = await processSingleUpload(upload);
 
     let filename = args.filename;
+    let size = args.size;
     if (args.filetype === 'PROFILEIMAGE') {
       filename = 'avatar.png';
+      size = 0.0;
     }
 
     const path = `/uploads/${user.username}/${uploadResult.filename}`;
@@ -365,10 +379,11 @@ async function uploadFile(parent, args, ctx, info) {
           filename,
           path,
           storedName: uploadResult.filename,
+          size,
           mimetype: uploadResult.mimetype
         },
         where: {id: updateFileId}
-      }, `{ id }`);
+      }, `{ id path }`);
     } else {
       payload.file = await ctx.db.mutation.createFile({
         data: {
@@ -378,14 +393,24 @@ async function uploadFile(parent, args, ctx, info) {
           path,
           storedName: uploadResult.filename,
           mimetype: uploadResult.mimetype,
+          size,
           user: { connect: { id: userId } }
         }
-      }, `{ id }`);
+      }, `{ id path }`);
     }
   } else {
-    payload.error.fieldId = args.fieldId;
-    payload.error.message = dryRunPayload.error;
-    await closeStream(upload);
+    if (dryRunPayload.error !== null) {
+      payload.error.fieldId = args.fieldId;
+      payload.error.message = dryRunPayload.error;
+    }
+    closeStream(upload)
+      .catch(error => {
+        if (streamErrorRegEx.test(error.message)) {
+          console.log('Stream closed as expected');
+        } else {
+          console.error('Caught unexpected error:', error.message);
+        }
+      });
   }
 
   return payload;
@@ -393,36 +418,49 @@ async function uploadFile(parent, args, ctx, info) {
 
 async function uploadFiles(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName name } }`);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName name size } }`);
   let allValid = true;
 
   let payload = {
     success: false,
-    errors: []
+    errors: [],
+    quotaError: null
   }
 
   let uploads = [];
-
+  let totalUploadSize = 0.0;
+  let totalDocSize = 0.0;
   for (let i = 0; i < args.files.length; i++) {
     const document = args.files[i];
     const dryRunPayload = await uploadFileDryRun(user, document.file, document.filetype, document.size, document.mimetype, document.name);
     if (!dryRunPayload.success) {
       allValid = false;
-      let error = {
+      const error = {
         fieldId: document.fieldId,
         message: dryRunPayload.error
       }
       payload.errors.push(error);
     }
-    let upload = {
+    totalDocSize = dryRunPayload.totaldocsize;
+    totalUploadSize += document.size;
+    const upload = {
       file: document.file,
       username: user.username,
       name: document.name,
       filetype: document.filetype,
       mimetype: document.mimetype,
-      filename: document.filename
+      filename: document.filename,
+      size: document.size
     }
     uploads.push(upload);
+  }
+
+  if (allValid && (totalUploadSize + totalDocSize) > userDocQuota) {
+    allValid = false;
+    payload.quotaError = {
+      uploadSize: totalUploadSize,
+      remaining: (userDocQuota - totalDocSize)
+    }
   }
 
   if (allValid) {
@@ -438,6 +476,7 @@ async function uploadFiles(parent, args, ctx, info) {
           path,
           storedName: file.storedName,
           mimetype: file.mimetype,
+          size: file.size,
           user: { connect: { id: userId } }
         }
       }, `{ id }`);
@@ -446,7 +485,14 @@ async function uploadFiles(parent, args, ctx, info) {
   } else {
     for (let i = 0; i < uploads.length; i++) {
       const upload = uploads[i];
-      await closeStream(upload);
+      closeStream(upload)
+        .catch(error => {
+          if (streamErrorRegEx.test(error.message)) {
+            console.log('Stream closed as expected');
+          } else {
+            console.error('Caught unexpected error:', error.message);
+          }
+        });
     }
   }
 
@@ -456,47 +502,49 @@ async function uploadFiles(parent, args, ctx, info) {
 async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   let payload = {
     success: false,
-    error: null
+    error: null,
+    totaldocsize: 0.0
   }
 
   if (!file) {
-    payload.error = 'File is required for upload';
+    payload.error = 'File is required for upload.';
     return payload;
   }
 
   if (name === '') {
-    payload.error = 'Please enter a name for the document';
+    payload.error = 'Please enter a name for the document.';
     return payload;
   }
 
-  const isImage = isImageRegEx.test(mimetype);
   const isValidImage = isValidImageRegEx.test(mimetype);
   const isValidDoc = isValidDocRegEx.test(mimetype);
 
   if (filetype === 'PROFILEIMAGE' && size > maxImageSize) {
-    payload.error = 'Image size cannot exceed 500 KB';
+    payload.error = 'Image size cannot exceed 500 KB.';
     return payload;
   }
 
   if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
-    payload.error = 'Document size cannot exceed 5 MB';
+    payload.error = 'Document size cannot exceed 5 MB.';
     return payload;
   }
 
-  if (isImage && !isValidImage) {
-    payload.error = 'Image type must be jpg, jpeg, or png';
+  if (filetype === 'PROFILEIMAGE' && !isValidImage) {
+    payload.error = 'Image type must be jpg, jpeg, or png.';
     return payload;
   }
 
-  if (!isImage && !isValidDoc) {
-    payload.error = 'Document must be a pdf';
+  if (filetype !== 'PROFILEIMAGE' && !isValidDoc) {
+    payload.error = 'Document must be a pdf.';
     return payload;
   }
 
   for (let i = 0; i < user.files.length; i++) {
     const existingFile = user.files[i];
+    payload.totaldocsize += existingFile.size;
     if (filetype !== 'PROFILEIMAGE' && existingFile.name === name) {
       payload.error = 'Document with this name already exists. Please rename the document, or delete the existing document.';
+      payload.totaldocsize = 0.0;
       return payload;
     }
   }
@@ -546,6 +594,34 @@ async function fileDelete(parent, args, ctx, info) {
   }, `{ id }`);
 }
 
+async function renameFile(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const user = await ctx.db.query.user({ where: { id: userId } }, `{ id files { id name path } }`);
+
+  let payload = {
+    success: false,
+    error: null
+  }
+
+  for (let i = 0; i < user.files.length; i++) {
+    const existingFile = user.files[i];
+    if (existingFile.path !== args.path && existingFile.name === args.name) {
+      payload.error = 'Document with this name already exists.';
+      return payload;
+    }
+  }
+
+  await ctx.db.mutation.updateFile({
+    data: {
+      name: args.name
+    },
+    where: {path: args.path}
+  }, `{ id }`);
+
+  payload.success = true;
+  return payload;
+}
+
 async function createApplication(parent, args, ctx, info) {
   //get userid
   const userId = getUserId(ctx);
@@ -578,7 +654,8 @@ const Mutation = {
   updatePassword,
   fileDelete,
   uploadFiles,
-  createApplication
+  createApplication,
+  renameFile
 }
 
 module.exports = {
