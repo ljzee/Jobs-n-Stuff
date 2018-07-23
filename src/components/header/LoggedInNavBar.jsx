@@ -7,6 +7,19 @@ import USER_ROLE from '../../queries/user_role';
 
 class LoggedInNavBar extends Component {
 
+  renderAdminNavigationItems = () => {
+    if (!this.props.userRole.loading && this.props.userRole.user.role === 'ADMIN') {
+      return (
+        <React.Fragment>
+          <NavItem eventKey={4} href={"/manage-postings"}>Manage Postings</NavItem>
+          <NavItem eventKey={5} href="/manage-users">Manage Users</NavItem>
+        </React.Fragment>)
+    }
+
+    return null;
+  }
+
+
   renderBusinessNavigationItems = () => {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'BUSINESS') {
       return (
@@ -15,6 +28,7 @@ class LoggedInNavBar extends Component {
           <NavItem eventKey={5} href="/create-event">Create Event</NavItem>
         </React.Fragment>)
     }
+
     return null;
   }
 
@@ -37,6 +51,7 @@ class LoggedInNavBar extends Component {
           </Navbar.Brand>
         </Navbar.Header>
         <Nav pullRight>
+          {this.renderAdminNavigationItems()}
           {this.renderBusinessNavigationItems()}
           {this.renderUserNavigationItems()}
           <NavItem eventKey={1} href={`/profile/${this.props.username}`}>Profile</NavItem>

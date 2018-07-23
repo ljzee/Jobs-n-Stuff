@@ -14,6 +14,7 @@ import ManagePostings from './components/business/ManagePostings';
 import CreateJobPosting from './components/business/CreateJobPosting';
 import ChangePassword from './components/ChangePassword'
 import Job from './components/Job';
+import ManageUsers from './components/admin/ManageUsers';
 import Documents from './components/Documents';
 import './styles/App.css';
 
@@ -35,6 +36,7 @@ class App extends Component {
               <Route exact path='/create-event' component={CreateEvent} />
               <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
               <AuthenticatedRoute exact path='/job/:jobid' component={Job} />
+              <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
               <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
             </Switch>
           </div>
