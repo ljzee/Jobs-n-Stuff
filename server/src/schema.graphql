@@ -106,6 +106,7 @@ type User {
   username: String!
   email: String!
   role: Role!
+  activated: Boolean!
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files: [File]
