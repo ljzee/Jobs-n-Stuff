@@ -3,10 +3,22 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { Redirect, withRouter } from 'react-router-dom';
-import { Table } from 'react-bootstrap';
+import ReactTable from 'react-table';
 import Loading from '../Loading';
 
 class ManageUsers extends React.Component {
+  state = { users: [] }
+
+  getUsers = () => {
+    let users = [];
+
+    this.props.usersQuery.feed.users.forEach(user => {
+      users.push(user);
+    })
+
+    return users;
+  }
+
   render() {
     if (this.props.usersQuery.loading || this.props.meQuery.loading) {
       return <Loading />
@@ -20,29 +32,38 @@ class ManageUsers extends React.Component {
       return <h3>Error</h3>
     }
 
-    return (
-      <div id="manage-users" className="container">
-        <h1>Manage Users</h1>
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-             <th>Username</th>
-             <th>Email</th>
-             <th>Role</th>
-            </tr>
-          </thead>
-          <tbody>
-        { this.props.usersQuery.feed.users.map(user =>
-            <tr key={user.id}>
-              <td>{user.username}</td>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-            </tr>
-          )
-        }
-          </tbody>
-        </Table>
+    var users = this.getUsers();
 
+    const columns = [
+      {
+        Header: () => <div><strong>Username</strong></div>,
+        accessor: 'username',
+        width: 200
+      },
+      {
+        Header: () => <div><strong>Email</strong></div>,
+        accessor: 'email',
+        width: 200
+      },
+      {
+        Header: () => <div><strong>Role</strong></div>,
+        accessor: 'role',
+        width: 200
+      }
+    ]
+
+
+    return (
+      <div id="manage-users">
+        <h1>Manage Users</h1>
+          <ReactTable
+            id="users-table"
+            className="-striped"
+            columns={columns}
+            data={users}
+            minRows={5}
+            showPagination={false}
+          />
       </div>
     );
   }
