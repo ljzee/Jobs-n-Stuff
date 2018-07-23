@@ -19,6 +19,7 @@ type Mutation {
   updateuser (username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, fieldId: String!, mimetype: String!): UploadPayload!
   uploadFiles (files: [DocumentInput!]!): UploadsPayload!
+  renameFile (path: String!, name: String!): RenameFilePayload!
   createJobPosting (title: String!, type: String, duration: String!, streetaddress: String!, city: String!, province: String!, country: String!, postalcode: String!, openings: String, description: String, contactname: String, salary: String, deadline: DateTime): JobPostingPayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
@@ -67,14 +68,21 @@ type UploadError {
   message: String
 }
 
+type QuotaError {
+  uploadSize: Float
+  remaining: Float
+}
+
 type UploadPayload {
   file: File
   error: UploadError
+  quotaError: QuotaError
 }
 
 type UploadsPayload {
   success: Boolean
   errors: [UploadError]
+  quotaError: QuotaError
 }
 
 type UserErrors {
@@ -106,6 +114,7 @@ type User {
   username: String!
   email: String!
   role: Role!
+  docsize: Float!
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files: [File]
@@ -123,4 +132,9 @@ input DocumentInput {
 
 type ApplicationPayload {
   application: Application
+}
+
+type RenameFilePayload {
+  success: Boolean
+  error: String
 }

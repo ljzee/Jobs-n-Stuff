@@ -435,6 +435,10 @@ const UPLOAD_MUTATION = gql`
         fieldId
         message
       }
+      quotaError {
+        uploadSize
+        remaining
+      }
     }
   }
 `

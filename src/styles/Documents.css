@@ -66,4 +66,5 @@
 
 .documents p.documents-message {
   margin-left: 20px;
+  margin-bottom: 0px !important;
 }

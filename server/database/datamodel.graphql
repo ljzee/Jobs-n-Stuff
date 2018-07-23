@@ -41,6 +41,7 @@ type File {
   name: String
   filetype: Filetype!
   storedName: String!
+  size: Float!
   user: User! @unique @relation(name: "UserFiles")
 }
 

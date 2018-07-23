@@ -11,6 +11,7 @@
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
     "moment": "^2.22.2",
+    "pretty-bytes": "^5.1.0",
     "react": "^16.4.1",
     "react-apollo": "^2.1.6",
     "react-bootstrap": "^0.32.1",
