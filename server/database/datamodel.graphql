@@ -57,6 +57,7 @@ enum Filetype {
   TRANSCRIPT
   PROFILEIMAGE
   OTHER
+  TEMP
 }
 
 type Location {
