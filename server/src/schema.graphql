@@ -106,9 +106,10 @@ type User {
   username: String!
   email: String!
   role: Role!
+  activated: Boolean!
   userprofile: UserProfile
   businessprofile: BusinessProfile
-  files: [File]
+  files(filetype: Filetype): [File]
 }
 
 input DocumentInput {
