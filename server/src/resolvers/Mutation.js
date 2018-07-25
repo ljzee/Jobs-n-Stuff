@@ -215,7 +215,14 @@ async function updatePassword(parent, args, ctx, info) {
 }
 
 async function updateuser(parent, args, ctx, info) {
-  const userId = getUserId(ctx);
+  let tempId = getUserId(ctx);
+
+  if (args.id) {
+    tempId = args.id;
+  }
+
+  const userId = tempId;
+
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
   var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
   var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
@@ -288,12 +295,17 @@ async function updateuser(parent, args, ctx, info) {
   }
 
   var formattedPhone = '';
-  if(phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+  if (phonenumberValid && phoneRegEx.test(args.phonenumber)) {
     var unformattedPhone = args.phonenumber;
     formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
   } else {
     valid = false;
     payload.errors.phonenumber = 'Not a valid phone number';
+  }
+
+  var activated = user.activated;
+  if (args.activated !== null) {
+    activated = args.activated;
   }
 
   if (valid) {
@@ -302,7 +314,8 @@ async function updateuser(parent, args, ctx, info) {
         firstname: args.firstname,
         lastname: args.lastname,
         preferredname: args.preferredname,
-        phonenumber: formattedPhone
+        phonenumber: formattedPhone,
+        activated: activated
       },
       where: {id: user.userprofile.id}
     }, `{ id }`);

@@ -2,7 +2,7 @@ import React from 'react';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
-import { Redirect, withRouter, Link } from 'react-router-dom';
+import { Redirect, withRouter } from 'react-router-dom';
 import { Button, Image } from 'react-bootstrap';
 import ReactTable from 'react-table';
 import EditBaseUserModal from './EditBaseUserModal';
@@ -10,10 +10,11 @@ import EditBusinessUserModal from './EditBusinessUserModal';
 import Loading from '../Loading';
 
 class ManageUsers extends React.Component {
-  state = { users: [],
-            showEdit: false,
-            selectUser: null
-          }
+  state = {
+    users: [],
+    showEdit: false,
+    selectUser: null
+  }
 
   getUsers = () => {
     let users = [];
@@ -39,10 +40,16 @@ class ManageUsers extends React.Component {
       }
 
       if (result.userprofile) {
-        user.name        = result.userprofile.firstname + " " + result.userprofile.lastname;
-        user.firstname   = result.userprofile.firstname;
-        user.lastname    = result.userprofile.lastname;
-        user.phonenumber = result.userprofile.phonenumber;
+        if (result.userprofile.preferredname) {
+          user.preferredname = result.userprofile.preferredname;
+          user.name = result.userprofile.firstname + " " + result.userprofile.preferredname + " "  + result.userprofile.lastname;
+        } else {
+          user.preferredname = '';
+          user.name = result.userprofile.firstname + " " + result.userprofile.lastname;
+        }
+        user.firstname     = result.userprofile.firstname;
+        user.lastname      = result.userprofile.lastname;
+        user.phonenumber   = result.userprofile.phonenumber;
 
       } else if (result.businessprofile) {
         user.name        = result.businessprofile.name;
@@ -79,7 +86,7 @@ class ManageUsers extends React.Component {
       return <h3>Error</h3>
     }
 
-    var users = this.getUsers();
+    let users = this.getUsers();
 
     const columns = [
       {
@@ -178,6 +185,7 @@ const USERS_QUERY = gql`
         }
         userprofile {
           firstname
+          preferredname
           lastname
           phonenumber
         }

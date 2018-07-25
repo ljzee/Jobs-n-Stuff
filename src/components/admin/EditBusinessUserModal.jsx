@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import gql from 'graphql-tag';
-import { graphql, compose } from 'react-apollo';
 import { Button, Modal } from 'react-bootstrap';
 import '../../styles/Modal.css';
 
@@ -40,34 +38,4 @@ class EditBusinessUserModal extends Component {
   }
 }
 
-const USER_QUERY = gql`
-  query UserQuery($where: UserWhereUniqueInput!) {
-    user(where: $where) {
-      username
-      email
-      role
-      activated
-      userprofile {
-        firstname
-        lastname
-        phonenumber
-      }
-      businessprofile {
-        name
-        phonenumber
-      }
-    }
-  }
-`
-
-export default graphql(USER_QUERY, {
-  name: 'userQuery',
-  options: props => ({
-    variables: {
-        where: {
-          id: props.id
-        }
-      },
-  }),
-}) (EditBusinessUserModal);
-
+export default EditBusinessUserModal;
