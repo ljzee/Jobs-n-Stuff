@@ -5,8 +5,7 @@ import { withApollo } from 'react-apollo';
 import { Redirect, withRouter } from 'react-router-dom';
 import { Button, Image } from 'react-bootstrap';
 import ReactTable from 'react-table';
-import EditBaseUserModal from './EditBaseUserModal';
-import EditBusinessUserModal from './EditBusinessUserModal';
+import EditUserActivatedModal from './EditUserActivatedModal';
 import Loading from '../Loading';
 
 class ManageUsers extends React.Component {
@@ -20,18 +19,13 @@ class ManageUsers extends React.Component {
     let users = [];
 
     this.props.usersQuery.feed.users.forEach(result => {
-      let user      = {};
-      user.id       = result.id;
-      user.username = result.username;
-      user.email    = result.email;
-      user.role     = result.role;
-      user.files    = result.files;
-
-      if (result.activated) {
-        user.activated = "Yes";
-      } else {
-        user.activated = "No";
-      }
+      let user       = {};
+      user.id        = result.id;
+      user.username  = result.username;
+      user.email     = result.email;
+      user.role      = result.role;
+      user.files     = result.files;
+      user.activated = result.activated;
 
       if (result.files[0]) {
         user.avatar = result.files[0].path;
@@ -40,15 +34,7 @@ class ManageUsers extends React.Component {
       }
 
       if (result.userprofile) {
-        if (result.userprofile.preferredname) {
-          user.preferredname = result.userprofile.preferredname;
-          user.name = result.userprofile.firstname + " " + result.userprofile.preferredname + " "  + result.userprofile.lastname;
-        } else {
-          user.preferredname = '';
-          user.name = result.userprofile.firstname + " " + result.userprofile.lastname;
-        }
-        user.firstname     = result.userprofile.firstname;
-        user.lastname      = result.userprofile.lastname;
+        user.name = result.userprofile.firstname + " " + result.userprofile.lastname;
         user.phonenumber   = result.userprofile.phonenumber;
 
       } else if (result.businessprofile) {
@@ -70,7 +56,9 @@ class ManageUsers extends React.Component {
   }
 
   closeEdit = () => {
-    this.setState({ showEdit: false });
+    this.props.client.resetStore().then(() => {
+      this.setState({ showEdit: false });
+    });
   }
 
   render() {
@@ -120,6 +108,13 @@ class ManageUsers extends React.Component {
       {
         Header: () => <div><strong>Activated</strong></div>,
         accessor: 'activated',
+        Cell: props => {
+          if (props.value) {
+            return 'Yes';
+          } else {
+            return 'No';
+          }
+        },
         width: 100
       },
       {
@@ -146,14 +141,8 @@ class ManageUsers extends React.Component {
             minRows={5}
             showPagination={false}
           />
-        { (this.state.showEdit && this.state.selectUser.role === "BASEUSER")
-          ? <EditBaseUserModal
-                show={this.state.showEdit}
-                close={this.closeEdit}
-                user={this.state.selectUser}
-            />
-          : (this.state.showEdit && this.state.selectUser.role === "BUSINESS")
-          ? <EditBusinessUserModal
+        { this.state.showEdit
+          ? <EditUserActivatedModal
                 show={this.state.showEdit}
                 close={this.closeEdit}
                 user={this.state.selectUser}

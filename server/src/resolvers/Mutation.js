@@ -216,13 +216,7 @@ async function updatePassword(parent, args, ctx, info) {
 }
 
 async function updateuser(parent, args, ctx, info) {
-  let tempId = getUserId(ctx);
-
-  if (args.id) {
-    tempId = args.id;
-  }
-
-  const userId = tempId;
+  const userId = getUserId(ctx);
 
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
   var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
@@ -304,11 +298,6 @@ async function updateuser(parent, args, ctx, info) {
     payload.errors.phonenumber = 'Not a valid phone number';
   }
 
-  var activated = user.activated;
-  if (args.activated !== null) {
-    activated = args.activated;
-  }
-
   if (valid) {
     await ctx.db.mutation.updateUserProfile({
       data: {
@@ -316,7 +305,6 @@ async function updateuser(parent, args, ctx, info) {
         lastname: args.lastname,
         preferredname: args.preferredname,
         phonenumber: formattedPhone,
-        activated: activated
       },
       where: {id: user.userprofile.id}
     }, `{ id }`);
@@ -658,6 +646,15 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
+async function toggleUserActive(parent, args, ctx, info) {
+  return await ctx.db.mutation.updateUser({
+    data: {
+      activated: args.activated
+    },
+    where: {id: args.id}
+  }, `{ id }`);
+}
+
 const Mutation = {
   signup,
   login,
@@ -668,7 +665,8 @@ const Mutation = {
   fileDelete,
   uploadFiles,
   createApplication,
-  renameFile
+  renameFile,
+  toggleUserActive
 }
 
 module.exports = {

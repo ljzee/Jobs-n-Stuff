@@ -16,7 +16,7 @@ type Feed {
 type Mutation {
   signup (email: String!, password: String!, username: String!, role: Role!, activated: Boolean!, confirmPassword: String!): AuthPayload!
   login (username: String!, password: String!): AuthPayload!
-  updateuser (id: ID, username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!, activated: Boolean): UserPayload!
+  updateuser (username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, fieldId: String!, mimetype: String!): UploadPayload!
   uploadFiles (files: [DocumentInput!]!): UploadsPayload!
   renameFile (path: String!, name: String!): RenameFilePayload!
@@ -24,6 +24,7 @@ type Mutation {
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
   createApplication (jobpostingid: ID!): ApplicationPayload!
+  toggleUserActive (id: ID!, activated: Boolean!): User!
 }
 
 type AuthErrors {
