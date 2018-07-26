@@ -2,3 +2,12 @@
   font-size: 14pt;
   text-align: center;
 }
+
+.rename-modal-body {
+  font-size: 14pt;
+  text-align: left;
+}
+
+.rename-modal-body .form-control {
+  width: 50% !important;
+}

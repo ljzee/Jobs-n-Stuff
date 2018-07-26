@@ -3,6 +3,7 @@ const mkdirp = require('mkdirp');
 const shortid = require('shortid');
 const gm = require('gm').subClass({imageMagick: true});
 const promisesAll = require('promises-all');
+const Timeout = require('await-timeout');
 
 require('dotenv').config();
 
@@ -94,7 +95,8 @@ const multipleUpload = async (uploads) => {
       storedName,
       name: upload.name,
       filetype: upload.filetype,
-      mimetype: upload.mimetype
+      mimetype: upload.mimetype,
+      size: upload.size
     }
     files.push(file);
 
@@ -109,24 +111,39 @@ const multipleUpload = async (uploads) => {
     docs.map(processUpload)
   );
 
-  if (reject.length)
+  if (reject.length) {
     reject.forEach(({ name, message }) =>
       console.error(`${name}: ${message}`)
-  )
+    )
+  }
 
   return files;
 }
 
 const closeStream = async (upload) => {
-  let { stream } = await upload.file;
-  var cleanup = new Promise((resolve, reject) =>
-      stream
+  const timeout = new Timeout();
+  Promise.race([
+    upload.file,
+    timeout.set(1000, 'Timeout!')
+  ])
+  .then(result => {
+    timeout.clear();
+    return new Promise((resolve, reject) =>
+      result.stream
+        .on('error', error => reject(error))
         .destroy()
-        .on('error', error => {
-          reject(error)
-        })
+        .on('error', error => reject(error))
         .on('finish', () => resolve())
       );
+  })
+  .catch(e => {
+    timeout.clear();
+    if (e.message === 'Request disconnected during file upload stream parsing.') {
+      console.log('Stream closed as expected');
+    } else {
+      console.error('Caught unexpected error:', error.message);
+    }
+  });
 }
 
 module.exports = {
