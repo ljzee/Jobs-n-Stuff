@@ -404,13 +404,13 @@ async function uploadFile(parent, args, ctx, info) {
       payload.error.message = dryRunPayload.error;
     }
     closeStream(upload)
-      .catch(error => {
-        if (streamErrorRegEx.test(error.message)) {
-          console.log('Stream closed as expected');
-        } else {
-          console.error('Caught unexpected error:', error.message);
-        }
-      });
+    .catch(error => {
+      if (streamErrorRegEx.test(error.message)) {
+        console.log('Stream closed as expected');
+      } else {
+        console.error('Caught unexpected error:', error.message);
+      }
+    });
   }
 
   return payload;
@@ -486,13 +486,13 @@ async function uploadFiles(parent, args, ctx, info) {
     for (let i = 0; i < uploads.length; i++) {
       const upload = uploads[i];
       closeStream(upload)
-        .catch(error => {
-          if (streamErrorRegEx.test(error.message)) {
-            console.log('Stream closed as expected');
-          } else {
-            console.error('Caught unexpected error:', error.message);
-          }
-        });
+      .catch(error => {
+        if (streamErrorRegEx.test(error.message)) {
+          console.log('Stream closed as expected');
+        } else {
+          console.error('Caught unexpected error:', error.message);
+        }
+      });
     }
   }
 
@@ -563,19 +563,19 @@ async function createJobPosting(parent, args, ctx, info) {
   currentdate = yyyy + '-' + mm + '-' + dd;
 
   const posting = await ctx.db.mutation.createJobPosting({
-  data: {
-    title: args.title,
-    type: args.type,
-    duration: args.duration,
-    openings: args.openings,
-    description: args.description,
-    contactname: args.contactname,
-    salary: args.salary,
-    deadline: args.deadline,
-    location: null
+    data: {
+      title: args.title,
+      type: args.type,
+      duration: args.duration,
+      openings: args.openings,
+      description: args.description,
+      contactname: args.contactname,
+      salary: args.salary,
+      deadline: args.deadline,
+      location: null
 
-  },
-}, `{ id }`);
+    },
+  }, `{ id }`);
 
   let payload = {
     jobposting: posting,
@@ -645,6 +645,28 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
+async function updatebusinessuser(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id businessprofile { id } }`);
+
+  const updatedBusinessUser = await ctx.db.mutation.updatebusinessuser({
+    data: {
+      name: args.name,
+      description: args.description,
+      phonenumber: args.phonenumber,
+      address: args.address,
+      website: args.website
+    },
+    where: {id: user.businessprofile.id}
+  }, `{ id }`);
+
+  let payload = {
+    user: updatedBusinessUser
+  }
+
+  return payload;
+}
+
 const Mutation = {
   signup,
   login,
@@ -655,7 +677,8 @@ const Mutation = {
   fileDelete,
   uploadFiles,
   createApplication,
-  renameFile
+  renameFile,
+  updatebusinessuser
 }
 
 module.exports = {

@@ -16,6 +16,8 @@ class BusinessPageForm extends Component {
 
   render() {
 
+    console.log(this.props.userQuery.user)
+
     if (this.props.userQuery.loading) {
       return <Loading />;
     }

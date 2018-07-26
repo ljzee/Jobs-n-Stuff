@@ -185,6 +185,7 @@ class UserPageForm extends React.Component {
   }
 
   render() {
+
     if (this.props.userQuery.loading) {
       return <Loading />;
     }

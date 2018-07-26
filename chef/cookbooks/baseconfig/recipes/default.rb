@@ -89,17 +89,17 @@ execute 'sleep before prisma deploy' do
   command 'sleep 10'
 end
 
-execute 'prisma deploy' do
-  command 'prisma deploy --env-file .env'
-  cwd '/home/vagrant/project/server'
-end
+# execute 'prisma deploy' do
+#   command 'prisma deploy --env-file .env'
+#   cwd '/home/vagrant/project/server'
+# end
 
-execute 'graphql server' do
-  command 'npm start > /dev/null &'
-  cwd '/home/vagrant/project/server'
-end
+# execute 'graphql server' do
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project/server'
+# end
 
-execute 'apollo server' do
-  command 'npm start > /dev/null &'
-  cwd '/home/vagrant/project'
-end
+# execute 'apollo server' do
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project'
+# end

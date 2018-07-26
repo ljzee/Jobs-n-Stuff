@@ -24,6 +24,7 @@ type Mutation {
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
   createApplication (jobpostingid: ID!): ApplicationPayload!
+  updatebusinessuser (name: String!, description: String!, phonenumber: String!, address: String!, website: String!): BusinessUserPayload!
 }
 
 type AuthErrors {
@@ -138,4 +139,7 @@ type ApplicationPayload {
 type RenameFilePayload {
   success: Boolean
   error: String
+}
+type BusinessUserPayload {
+  user: User
 }
