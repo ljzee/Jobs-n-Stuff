@@ -8,6 +8,7 @@ import Loading from './Loading';
 import ReactTable from "react-table";
 import moment from 'moment'
 import { Col, Form, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel, Modal } from 'react-bootstrap';
+import prettyBytes from 'pretty-bytes';
 import 'react-table/react-table.css'
 import '../styles/Documents.css';
 
@@ -19,19 +20,26 @@ const fileTypeMap = {
 }
 
 const validationFields = ['resume', 'coverletter', 'transcript', 'other'];
+const maxDocSize = 5000000;
 
 class Documents extends Component {
 
   state = {
-    showModal: false,
+    showDeleteModal: false,
+    showRenameModal: false,
     deleteFilePath: '',
+    renamePath: '',
+    renameName: '',
     uploadMode: false,
     summary: '',
     documents: [],
+    isLoading: false,
+    quotaError: {value: false, remaining: 0.0, upload: 0.0},
     resume: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'RESUME'},
     coverletter: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'COVERLETTER'},
     transcript: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'TRANSCRIPT'},
-    other: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'OTHER'}
+    other: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'OTHER'},
+    rename: {value: '', isValid: true, message: '', validState: null, filepath: ''},
   }
 
   getDocuments = () => {
@@ -53,17 +61,33 @@ class Documents extends Component {
     return docs;
   }
 
-  openModal = (path) => {
+  openDeleteModal = (path) => {
     let state = this.state;
-    state.showModal = true;
+    state.showDeleteModal = true;
     state.deleteFilePath = path;
     this.setState(state);
   }
 
-  closeModal = () => {
+  closeDeleteModal = () => {
     let state = this.state;
-    state.showModal = false;
+    state.showDeleteModal = false;
     state.deleteFilePath = '';
+    this.setState(state);
+  }
+
+  openRenameModal = (path, name) => {
+    let state = this.state;
+    state.showRenameModal = true;
+    state.rename.filepath = path;
+    state.rename.value = name;
+    this.setState(state);
+  }
+
+  closeRenameModal = () => {
+    let state = this.state;
+    state.showRenameModal = false;
+    state.rename.filepath = '';
+    state.rename.value = '';
     this.setState(state);
   }
 
@@ -80,10 +104,43 @@ class Documents extends Component {
 
     this.props.client.resetStore().then(() => {
       this.setState({
-        showModal: false,
+        showDeleteModal: false,
         deleteFilePath: ''
       })
     });
+  }
+
+  renameFile = async (e) => {
+    e.preventDefault();
+    let state = this.state;
+    const path = state.rename.filepath;
+    const name = state.rename.value;
+
+    const renameResult = await this.props.renameMutation({
+      variables: {
+        path,
+        name
+      }
+    });
+
+    const { success, error } = renameResult.data.renameFile;
+
+    if (success) {
+      state.rename.value = '';
+      state.rename.isValid = true;
+      state.rename.message = '';
+      state.rename.validState = null;
+      state.rename.filepath = '';
+      state.showRenameModal = false;
+      this.props.client.resetStore().then(() => {
+        this.setState(state);
+      });
+    } else {
+      state.rename.isValid = false;
+      state.rename.message = error;
+      state.rename.validState = "error";
+      this.setState(state);
+    }
   }
 
   handleChange = (e) => {
@@ -92,15 +149,27 @@ class Documents extends Component {
     switch (e.target.id) {
       case 'resumeFile':
         state.resume.document = e.target.files[0];
+        state.resume.isValid = true;
+        state.resume.message = '';
+        state.resume.validState = null;
         break;
       case 'coverletterFile':
         state.coverletter.document = e.target.files[0];
+        state.coverletter.isValid = true;
+        state.coverletter.message = '';
+        state.coverletter.validState = null;
         break;
       case 'transcriptFile':
         state.transcript.document = e.target.files[0];
+        state.transcript.isValid = true;
+        state.transcript.message = '';
+        state.transcript.validState = null;
         break;
       case 'otherFile':
         state.other.document = e.target.files[0];
+        state.other.isValid = true;
+        state.other.message = '';
+        state.other.validState = null;
         break;
       default:
         state[e.target.id].value = e.target.value;
@@ -108,6 +177,9 @@ class Documents extends Component {
         state[e.target.id].message = '';
         state[e.target.id].validState = null;
     }
+
+    state.summary = '';
+    state.quotaError.value = false;
 
     this.setState(state);
   }
@@ -153,6 +225,7 @@ class Documents extends Component {
 
     state.documents = [];
     state.summary = '';
+    state.quotaError.value = false;
 
     this.setState(state);
   }
@@ -179,6 +252,24 @@ class Documents extends Component {
     this.setState(state);
   }
 
+  checkDocuments = () => {
+    let state = this.state;
+    let valid = true;
+
+    for (let i = 0; i < validationFields.length; i++) {
+      let key = validationFields[i];
+      if (state[key].document !== null && state[key].document.size > maxDocSize) {
+        valid = false;
+        state[key].isValid = false;
+        state[key].message = 'Document size cannot exceed 5 MB.';
+        state[key].validState = "error";
+      }
+    }
+
+    this.setState(state);
+    return valid;
+  }
+
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
@@ -186,28 +277,47 @@ class Documents extends Component {
     let state = this.state;
 
     if (state.documents.length > 0) {
-      const uploadMultipleResult = await this.props.uploadsMutation({
-        variables: {
-          files: state.documents
-        },
-      });
-      if (uploadMultipleResult.data.uploadFiles.success) {
-        state.uploadMode = false;
-        state.documents = [];
-        this.props.client.resetStore().then(() => {
+      const allValid = this.checkDocuments();
+      if (allValid) {
+        this.setState({isLoading: true});
+        this.props.uploadsMutation({
+          variables: {
+            files: state.documents
+          }
+        })
+        .then((result) => {
+          state.isLoading = false;
+          const {success, errors, quotaError } = result.data.uploadFiles;
+          if (success) {
+            state.uploadMode = false;
+            state.documents = [];
+            this.props.client.resetStore().then(() => {
+              this.setState(state);
+            });
+          } else {
+            if (quotaError !== null) {
+              state.quotaError.value = true;
+              state.quotaError.remaining = quotaError.remaining;
+              state.quotaError.upload = quotaError.uploadSize;
+            } else {
+              for (let i = 0; i < errors.length; i++) {
+                const error = errors[i];
+                const key = error.fieldId;
+                const message = error.message;
+                state[key].isValid = false;
+                state[key].message = message;
+                state[key].validState = "error";
+              }
+            }
+            state.documents = [];
+            this.setState(state);
+          }
+        })
+        .catch(() => {
+          state.isLoading = false;
+          state.summary = 'An error was encoutered while attempting to upload document(s).'
           this.setState(state);
         });
-      } else {
-        for (let i = 0; i < uploadMultipleResult.data.uploadFiles.errors.length; i++) {
-          const error = uploadMultipleResult.data.uploadFiles.errors[i];
-          const key = error.fieldId;
-          const message = error.message;
-          state[key].isValid = false;
-          state[key].message = message;
-          state[key].validState = "error";
-        }
-        state.documents = [];
-        this.setState(state);
       }
     } else {
       this.setState({ summary: 'No documents selected' });
@@ -231,8 +341,7 @@ class Documents extends Component {
     const columns = [
       {
         Header: () => <div><strong>Document Name</strong></div>,
-        accessor: 'name',
-        width: 200
+        accessor: 'name'
       },
       {
         Header: () => <div><strong>File Type</strong></div>,
@@ -261,7 +370,14 @@ class Documents extends Component {
           <a
             className="btn btn-info"
             role="button"
-            onClick={ () => this.openModal(props.value) }
+            onClick={ () => this.openRenameModal(props.value, props.original.name) }
+          >
+            Rename
+          </a>
+          <a
+            className="btn btn-info"
+            role="button"
+            onClick={ () => this.openDeleteModal(props.value) }
           >
             Delete
           </a>
@@ -280,7 +396,14 @@ class Documents extends Component {
               <Panel.Title componentClass="h3">Upload Documents</Panel.Title>
             </Panel.Heading>
             <p className="helper-text">Note: All documents must be pdf's</p>
-            {this.state.summary !== '' && <p className="errormessage documents-message">{this.state.summary }</p>}
+            {this.state.summary !== '' && <p className="errormessage documents-message">{this.state.summary}</p>}
+            {this.state.quotaError.value &&
+              <div>
+                <p className="errormessage documents-message">Upload exceeds your allowable quota.</p><br />
+                <p className="errormessage documents-message">{`Upload Size: ${prettyBytes(this.state.quotaError.upload)}`}</p><br />
+                <p className="errormessage documents-message">{`Your remaining space: ${prettyBytes(this.state.quotaError.remaining)}`}</p>
+              </div>
+            }
             <Form horizontal>
               <FormGroup controlId="resume" validationState={this.state.resume.validState}>
                 <Col componentClass={ControlLabel} sm={2}>
@@ -387,6 +510,12 @@ class Documents extends Component {
               padding: "5px",
               textAlign: "center"
             }}
+            defaultSorted={[
+              {
+                id: "updatedAt",
+                desc: true
+              }
+            ]}
           />
         }
         {this.state.uploadMode
@@ -395,6 +524,7 @@ class Documents extends Component {
                 type="submit"
                 bsSize="large"
                 className="pull-right"
+                disabled={this.state.isLoading}
                 onClick={ () =>  {
                   this.resetValidationStates();
                   this.resetFields();
@@ -408,9 +538,10 @@ class Documents extends Component {
                 bsSize="large"
                 bsStyle="primary"
                 className="pull-right savebutton"
+                disabled={this.state.isLoading}
                 onClick={this.onSubmit}
               >
-                Upload
+                {this.state.isLoading ? 'Uploading...' : 'Upload'}
               </Button>
             </div>
           : <Button
@@ -426,8 +557,8 @@ class Documents extends Component {
               Upload Documents
             </Button>
         }
-        {this.state.showModal &&
-          <Modal id="delete-file-modal" show={this.state.showModal} onHide={this.closeModal}>
+        {this.state.showDeleteModal &&
+          <Modal id="delete-file-modal" show={this.state.showDeleteModal} onHide={this.closeDeleteModal}>
             <Modal.Header>
               <Modal.Title>Delete File</Modal.Title>
             </Modal.Header>
@@ -436,7 +567,33 @@ class Documents extends Component {
             </Modal.Body>
             <Modal.Footer>
               <Button bsSize="large" bsStyle="primary" onClick={this.deleteFile}>Yes</Button>
-              <Button bsSize="large" onClick={this.closeModal}>Cancel</Button>
+              <Button bsSize="large" onClick={this.closeDeleteModal}>Cancel</Button>
+            </Modal.Footer>
+          </Modal>
+        }
+        {this.state.showRenameModal &&
+          <Modal id="rename-file-modal" show={this.state.showRenameModal} onHide={this.closeRenameModal}>
+            <Modal.Header>
+              <Modal.Title>Rename File</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="rename-modal-body">
+              Please enter a new name for the file:
+              <Form className="modal-input">
+                <FormGroup controlId="rename" validationState={this.state.rename.validState}>
+                  <FormControl
+                    type="text"
+                    placeholder="Document name"
+                    value={this.state.rename.value}
+                    onChange={this.handleChange}
+                  />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.rename.message}</HelpBlock>
+                </FormGroup>
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button bsSize="large" bsStyle="primary" onClick={this.renameFile}>Save</Button>
+              <Button bsSize="large" onClick={this.closeRenameModal}>Cancel</Button>
             </Modal.Footer>
           </Modal>
         }
@@ -478,6 +635,19 @@ const UPLOADS_MUTATION = gql`
         fieldId
         message
       }
+      quotaError {
+        uploadSize
+        remaining
+      }
+    }
+  }
+`
+
+const RENAME_FILE_MUATATION = gql`
+  mutation RenameFile($path: String!, $name: String!) {
+    renameFile(path: $path, name: $name) {
+      success
+      error
     }
   }
 `
@@ -498,6 +668,9 @@ export default compose(
   }),
   graphql(UPLOADS_MUTATION, {
     name: 'uploadsMutation'
+  }),
+  graphql(RENAME_FILE_MUATATION, {
+    name: 'renameMutation'
   }),
   withRouter,
   withApollo

@@ -38,7 +38,7 @@ async function createNewUser(username, email, password, role, activated, deleteU
         email: email,
         password: hashed_pass,
         role: role,
-        activated: activated,
+        activated: activated
       } },
       "{ id }"
     );
