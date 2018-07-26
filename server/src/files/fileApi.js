@@ -141,7 +141,7 @@ const closeStream = async (upload) => {
     if (e.message === 'Request disconnected during file upload stream parsing.') {
       console.log('Stream closed as expected');
     } else {
-      console.error('Caught unexpected error:', error.message);
+      console.error('Caught unexpected error:', e.message);
     }
   });
 }

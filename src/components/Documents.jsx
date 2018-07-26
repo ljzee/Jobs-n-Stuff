@@ -16,11 +16,12 @@ const fileTypeMap = {
   'RESUME': 'Resume',
   'COVERLETTER': 'Cover Letter',
   'TRANSCRIPT': 'Transcript',
-  'PROFILEIMAGE': 'Profile Image'
+  'PROFILEIMAGE': 'Profile Image',
+  'OTHER': 'Other'
 }
 
 const validationFields = ['resume', 'coverletter', 'transcript', 'other'];
-const maxDocSize = 5000000;
+const maxDocSize = 2000000;
 
 class Documents extends Component {
 
@@ -34,11 +35,13 @@ class Documents extends Component {
     summary: '',
     documents: [],
     isLoading: false,
+    largeFileFlag: true,
     quotaError: {value: false, remaining: 0.0, upload: 0.0},
     resume: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'RESUME'},
     coverletter: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'COVERLETTER'},
     transcript: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'TRANSCRIPT'},
     other: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'OTHER'},
+    temp: {document: null, filetype: 'TEMP'},
     rename: {value: '', isValid: true, message: '', validState: null, filepath: ''},
   }
 
@@ -148,28 +151,52 @@ class Documents extends Component {
 
     switch (e.target.id) {
       case 'resumeFile':
-        state.resume.document = e.target.files[0];
+        state.resume.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+        state.resume.document.name = e.target.files[0].name;
         state.resume.isValid = true;
         state.resume.message = '';
         state.resume.validState = null;
+        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+          state.temp.document.name = 'temp-file.pdf';
+          state.largeFileFlag = false;
+        }
         break;
       case 'coverletterFile':
-        state.coverletter.document = e.target.files[0];
+        state.coverletter.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+        state.coverletter.document.name = e.target.files[0].name;
         state.coverletter.isValid = true;
         state.coverletter.message = '';
         state.coverletter.validState = null;
+        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+          state.temp.document.name = 'temp-file.pdf';
+          state.largeFileFlag = false;
+        }
         break;
       case 'transcriptFile':
-        state.transcript.document = e.target.files[0];
+        state.transcript.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+        state.transcript.document.name = e.target.files[0].name;
         state.transcript.isValid = true;
         state.transcript.message = '';
         state.transcript.validState = null;
+        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+          state.temp.document.name = 'temp-file.pdf';
+          state.largeFileFlag = false;
+        }
         break;
       case 'otherFile':
-        state.other.document = e.target.files[0];
+        state.other.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+        state.other.document.name = e.target.files[0].name;
         state.other.isValid = true;
         state.other.message = '';
         state.other.validState = null;
+        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
+          state.temp.document.name = 'temp-file.pdf';
+          state.largeFileFlag = false;
+        }
         break;
       default:
         state[e.target.id].value = e.target.value;
@@ -249,6 +276,19 @@ class Documents extends Component {
       }
     }
 
+    if (state.temp.document !== null) {
+      let document = {
+        name: 'temp-file',
+        filetype: state.temp.filetype,
+        file: state.temp.document,
+        mimetype: state.temp.document.type,
+        size: state.temp.document.size,
+        fieldId: 'temp',
+        filename: state.temp.document.name
+      }
+      state.documents.push(document);
+    }
+
     this.setState(state);
   }
 
@@ -261,13 +301,59 @@ class Documents extends Component {
       if (state[key].document !== null && state[key].document.size > maxDocSize) {
         valid = false;
         state[key].isValid = false;
-        state[key].message = 'Document size cannot exceed 5 MB.';
+        state[key].message = 'Document size cannot exceed 2 MB.';
         state[key].validState = "error";
       }
     }
 
+    if (!valid) {
+      state.isLoading = false;
+    }
+
     this.setState(state);
     return valid;
+  }
+
+  uploadUserFiles = () => {
+    let state = this.state;
+
+    this.props.uploadsMutation({
+      variables: {
+        files: state.documents
+      }
+    })
+    .then((result) => {
+      state.isLoading = false;
+      const {success, errors, quotaError } = result.data.uploadFiles;
+      if (success) {
+        state.uploadMode = false;
+        state.documents = [];
+        this.props.client.resetStore().then(() => {
+          this.setState(state);
+        });
+      } else {
+        if (quotaError !== null) {
+          state.quotaError.value = true;
+          state.quotaError.remaining = quotaError.remaining;
+          state.quotaError.upload = quotaError.uploadSize;
+        } else {
+          for (let i = 0; i < errors.length; i++) {
+            const error = errors[i];
+            const key = error.fieldId;
+            const message = error.message;
+            state[key].isValid = false;
+            state[key].message = message;
+            state[key].validState = "error";
+          }
+        }
+        state.documents = [];
+        this.setState(state);
+      }
+    })
+    .catch(() => {
+      state.isLoading = false;
+      this.setState(state);
+    });
   }
 
   onSubmit = async (e) => {
@@ -280,44 +366,7 @@ class Documents extends Component {
       const allValid = this.checkDocuments();
       if (allValid) {
         this.setState({isLoading: true});
-        this.props.uploadsMutation({
-          variables: {
-            files: state.documents
-          }
-        })
-        .then((result) => {
-          state.isLoading = false;
-          const {success, errors, quotaError } = result.data.uploadFiles;
-          if (success) {
-            state.uploadMode = false;
-            state.documents = [];
-            this.props.client.resetStore().then(() => {
-              this.setState(state);
-            });
-          } else {
-            if (quotaError !== null) {
-              state.quotaError.value = true;
-              state.quotaError.remaining = quotaError.remaining;
-              state.quotaError.upload = quotaError.uploadSize;
-            } else {
-              for (let i = 0; i < errors.length; i++) {
-                const error = errors[i];
-                const key = error.fieldId;
-                const message = error.message;
-                state[key].isValid = false;
-                state[key].message = message;
-                state[key].validState = "error";
-              }
-            }
-            state.documents = [];
-            this.setState(state);
-          }
-        })
-        .catch(() => {
-          state.isLoading = false;
-          state.summary = 'An error was encoutered while attempting to upload document(s).'
-          this.setState(state);
-        });
+        this.uploadUserFiles();
       }
     } else {
       this.setState({ summary: 'No documents selected' });
@@ -395,7 +444,7 @@ class Documents extends Component {
             <Panel.Heading>
               <Panel.Title componentClass="h3">Upload Documents</Panel.Title>
             </Panel.Heading>
-            <p className="helper-text">Note: All documents must be pdf's</p>
+            <p className="helper-text">Note: All documents must be pdf's. Maximum file size is 2 MB.</p>
             {this.state.summary !== '' && <p className="errormessage documents-message">{this.state.summary}</p>}
             {this.state.quotaError.value &&
               <div>

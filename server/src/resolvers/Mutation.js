@@ -11,7 +11,7 @@ const app_secret = process.env.APP_SECRET;
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 const usernameRegEx = /^[a-z0-9]+$/i;
 const maxImageSize = 500000; // 500 KB
-const maxDocSize = 5000000; // 5 MB
+const maxDocSize = 2005000; // 2005 KB
 const userDocQuota = 50000000; // 50 MB
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 const isValidDocRegEx = new RegExp('^application/pdf$');
@@ -428,6 +428,7 @@ async function uploadFiles(parent, args, ctx, info) {
   }
 
   let uploads = [];
+  let userFiles = [null, null, null, null];
   let totalUploadSize = 0.0;
   let totalDocSize = 0.0;
   for (let i = 0; i < args.files.length; i++) {
@@ -452,6 +453,7 @@ async function uploadFiles(parent, args, ctx, info) {
       filename: document.filename,
       size: document.size
     }
+    userFiles[i] = document.file;
     uploads.push(upload);
   }
 
@@ -468,18 +470,20 @@ async function uploadFiles(parent, args, ctx, info) {
     for (let i = 0; i < uploadResult.length; i++) {
       const file = uploadResult[i];
       const path = `/uploads/${user.username}/${file.storedName}`;
-      await ctx.db.mutation.createFile({
-        data: {
-          name: file.name,
-          filetype: file.filetype,
-          filename: file.filename,
-          path,
-          storedName: file.storedName,
-          mimetype: file.mimetype,
-          size: file.size,
-          user: { connect: { id: userId } }
-        }
-      }, `{ id }`);
+      if (file.filename !== 'temp-file.pdf') {
+        await ctx.db.mutation.createFile({
+          data: {
+            name: file.name,
+            filetype: file.filetype,
+            filename: file.filename,
+            path,
+            storedName: file.storedName,
+            mimetype: file.mimetype,
+            size: file.size,
+            user: { connect: { id: userId } }
+          }
+        }, `{ id }`);
+      }
     }
     payload.success = true;
   } else {
@@ -525,7 +529,7 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   }
 
   if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
-    payload.error = 'Document size cannot exceed 5 MB.';
+    payload.error = 'Document size cannot exceed 2 MB.';
     return payload;
   }
 
