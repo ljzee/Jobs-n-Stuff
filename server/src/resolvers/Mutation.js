@@ -647,9 +647,13 @@ async function createApplication(parent, args, ctx, info) {
 
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id businessprofile { id } }`);
+  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
+  
+  var payload = {
+    user: null,
+  }
 
-  const updatedBusinessUser = await ctx.db.mutation.updatebusinessuser({
+  await ctx.db.mutation.updateBusinessProfile({
     data: {
       name: args.name,
       description: args.description,
@@ -657,12 +661,16 @@ async function updatebusinessuser(parent, args, ctx, info) {
       address: args.address,
       website: args.website
     },
-    where: {id: user.businessprofile.id}
+    where: {id: businessProfileID.businessprofile.id}
   }, `{ id }`);
+  payload.user =  await ctx.db.mutation.updateUser({
+    data: {
+      username: args.username,
+      email: args.email
+    },
+    where: {id: userId}
+  }, `{ id username }`);
 
-  let payload = {
-    user: updatedBusinessUser
-  }
 
   return payload;
 }

@@ -29,37 +29,51 @@ class BusinessApprovalRequestForm extends Component {
   //   this.setState(state);
   // }
 
-  // onSubmit = async (e) => {
-  //   e.preventDefault();
-  //   let state = this.state;
-  //
-  //   const name = state.name.value;
-  //   const description = state.description.value;
-  //   const phonenumber = state.phonenumber.value;
-  //   const address = state.address.value;
-  //   const website = state.website.value;
-  //
-  //   const updateResult = await this.props.updateBusinessUserMutation({
-  //     variables: {
-  //       name,
-  //       description,
-  //       phonenumber,
-  //       address,
-  //       website
-  //     }
-  //   });
-  //
-  //   const user = updateResult.data.updatebusinessuser;
-  //   console.log(user);
-  // }
+  handleChange = (e) => {
+    let state = this.state;
 
-  onClick = async (e) => {
+    state[e.target.id].value = e.target.value;
+
+    if (state[e.target.id].hasOwnProperty('isValid')) state[e.target.id].isValid = true;
+    if (state[e.target.id].hasOwnProperty('message')) state[e.target.id].message = '';
+    if (state[e.target.id].hasOwnProperty('validState')) state[e.target.id].validState = null;
+
+    this.setState(state);
+  }
+
+
+  onSubmit = async (e) => {
     e.preventDefault();
+    let state = this.state;
+  
+    const name = state.name.value;
+    const description = state.description.value;
+    const phonenumber = state.phonenumber.value;
+    const address = state.address.value;
+    const website = state.website.value;
+
+    console.log("this is the name" + name);
+    console.log("this is the des" + description);
+    console.log("this is the phone" + phonenumber);
+    console.log("this is the address" + address);
+    console.log("this is the website" + website);
+  
+    const updateResult = await this.props.updateBusinessUserMutation({
+      variables: {
+        name,
+        description,
+        phonenumber,
+        address,
+        website
+      }
+    });
+  
+    const user = updateResult.data.updatebusinessuser;
+    console.log(user);
   }
 
   render () {
-    const { name, description, phonenumber, address, website } = this.state
-    console.log(this.props.userQuery.user)
+    console.log(this.props.userQuery.user);
     return (
       <div className="BusinessApprovalRequest">
         <Form horizontal>
@@ -69,7 +83,7 @@ class BusinessApprovalRequestForm extends Component {
               type="text"
               placeholder="Business Name"
               value={this.state.name.value}
-              onChange={e=>this.setState({name: e.target.value})}
+              onChange={this.handleChange}
             />
           </FormGroup>
 
@@ -79,7 +93,7 @@ class BusinessApprovalRequestForm extends Component {
               type="text"
               placeholder="Business Description"
               value={this.state.description.value}
-              onChange={e=>this.setState({description: e.target.value})}
+              onChange={this.handleChange}
             />
           </FormGroup>
 
@@ -89,7 +103,7 @@ class BusinessApprovalRequestForm extends Component {
               type="text"
               placeholder="Phone Number"
               value={this.state.phonenumber.value}
-              onChange={e=>this.setState({phonenumber: e.target.value})}
+              onChange={this.handleChange}
             />
           </FormGroup>
 
@@ -99,7 +113,7 @@ class BusinessApprovalRequestForm extends Component {
               type="text"
               placeholder="Address"
               value={this.state.address.value}
-              onChange={e=>this.setState({address: e.target.value})}
+              onChange={this.handleChange}
             />
           </FormGroup>
 
@@ -109,19 +123,15 @@ class BusinessApprovalRequestForm extends Component {
               type="text"
               placeholder="Business Website"
               value={this.state.website.value}
-              onChange={e=>this.setState({website: e.target.value})}
+              onChange={this.handleChange}
             />
           </FormGroup>
 
-          {/* <Button
+          <Button
             type="submit"
             onClick={this.onSubmit}
             >Request Approval
-          </Button> */}
-
-          <Mutation mutation={UPDATE_BUSINESS_USER_MUTATION} variables={{ name, description, phonenumber, address, website }}>
-            {updateBusinessUserMutation => <button onClick={updateBusinessUserMutation}>Request Approval</button>}
-          </Mutation>
+          </Button>
           
         </Form>
       </div>
@@ -168,7 +178,7 @@ export default compose(
     }),
   }),
   graphql(UPDATE_BUSINESS_USER_MUTATION, {
-    name: 'updateBusinessUserMutation'
+    name: 'updateBusinessUserMutation',
   }),
   withRouter,
   withApollo
