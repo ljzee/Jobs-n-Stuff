@@ -32,7 +32,6 @@ const validationFields = [
   'salary'
 ]
 
-
 class ManagePostings extends Component {
 
   state = {
