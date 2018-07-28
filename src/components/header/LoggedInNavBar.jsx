@@ -47,7 +47,7 @@ class LoggedInNavBar extends Component {
       <Navbar inverse staticTop>
         <Navbar.Header>
           <Navbar.Brand>
-            <a href="/dashboard">Dashboard</a>
+            <a id="brand" href="/dashboard">Jobs n' Stuff</a>
           </Navbar.Brand>
         </Navbar.Header>
         <Nav pullRight>

@@ -5,6 +5,7 @@ import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import LogoutModal from '../LogoutModal';
 import LoggedInNavBar from './LoggedInNavBar';
 import NewUserNavBar from './NewUserNavBar';
+import '../../styles/Header.css';
 
 class Header extends Component {
   state = { showSignout: false };
