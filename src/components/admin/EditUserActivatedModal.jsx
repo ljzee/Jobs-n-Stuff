@@ -40,7 +40,7 @@ class EditUserActivatedModal extends Component {
         <Modal.Body className="modal-body">
           <Form>
             <FormGroup controlId="activated">
-              <ControlLabel>Activate State</ControlLabel>
+              <ControlLabel>Activated State</ControlLabel>
               <Radio name="activatedGroup"
                 checked={this.state.activated === true}
                 onChange={this.handleChange.bind(this, true)}
@@ -48,7 +48,7 @@ class EditUserActivatedModal extends Component {
               <Radio name="activatedGroup"
                 checked={this.state.activated === false}
                 onChange={this.handleChange.bind(this, false)}
-              >Unactivated</Radio>
+              >Deactivated</Radio>
             </FormGroup>
 
           </Form>
