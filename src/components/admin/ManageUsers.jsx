@@ -5,14 +5,11 @@ import { withApollo } from 'react-apollo';
 import { Redirect, withRouter } from 'react-router-dom';
 import { Button, Image } from 'react-bootstrap';
 import ReactTable from 'react-table';
-import EditUserActivatedModal from './EditUserActivatedModal';
 import Loading from '../Loading';
 
 class ManageUsers extends React.Component {
   state = {
     users: [],
-    showEdit: false,
-    selectUser: null
   }
 
   getUsers = () => {
@@ -51,14 +48,18 @@ class ManageUsers extends React.Component {
     return users;
   }
 
-  openEdit = (user) => {
-    this.setState({ showEdit: true, selectUser: user });
-  }
+  onToggle = async (e) => {
+    const id = e.id;
+    const activated = !e.activated;
 
-  closeEdit = () => {
-    this.props.client.resetStore().then(() => {
-      this.setState({ showEdit: false });
+    await this.props.updateActivatedMutation ({
+      variables: {
+        id,
+        activated
+      }
     });
+
+    this.props.client.resetStore();
   }
 
   render() {
@@ -121,13 +122,17 @@ class ManageUsers extends React.Component {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: '',
         Cell: props => {
-          if (props.value.role === "ADMIN") {
-            return false;
+          if (props.value.role !== "ADMIN") {
+            if (props.value.activated) {
+              return <Button bsStyle="danger" onClick={() => this.onToggle(props.value)}>Deactivate</Button>
+            } else {
+              return <Button bsStyle="success" onClick={() => this.onToggle(props.value)}>Activate</Button>
+            }
           } else {
-            return <Button onClick={this.openEdit.bind(this, props.value)}>Edit</Button>;
+            return false;
           }
         },
-        width: 100
+        width: 120
       }
     ]
 
@@ -141,14 +146,6 @@ class ManageUsers extends React.Component {
             minRows={5}
             showPagination={false}
           />
-        { this.state.showEdit
-          ? <EditUserActivatedModal
-                show={this.state.showEdit}
-                close={this.closeEdit}
-                user={this.state.selectUser}
-            />
-          : false
-        }
       </div>
     );
   }
@@ -187,12 +184,25 @@ const USERS_QUERY = gql`
   }
 `
 
+const UPDATE_ACTIVATED_MUTATION = gql`
+  mutation toggleUserActiveMutation($id: ID!, $activated: Boolean!) {
+    toggleUserActive(id: $id, activated: $activated) {
+      id
+    }
+  }
+`
+
+
+
 export default compose(
   graphql(USERS_QUERY, {
     name: 'usersQuery',
   }),
   graphql(ME_QUERY, {
 	name: 'meQuery',
+  }),
+  graphql(UPDATE_ACTIVATED_MUTATION, {
+    name: 'updateActivatedMutation',
   }),
   withRouter,
   withApollo
