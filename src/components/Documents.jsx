@@ -6,7 +6,7 @@ import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import Loading from './Loading';
 import ReactTable from "react-table";
-import moment from 'moment'
+import moment from 'moment';
 import { Col, Form, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel, Modal } from 'react-bootstrap';
 import prettyBytes from 'pretty-bytes';
 import 'react-table/react-table.css'
@@ -15,12 +15,10 @@ import '../styles/Documents.css';
 const fileTypeMap = {
   'RESUME': 'Resume',
   'COVERLETTER': 'Cover Letter',
-  'TRANSCRIPT': 'Transcript',
-  'PROFILEIMAGE': 'Profile Image',
-  'OTHER': 'Other'
+  'PROFILEIMAGE': 'Profile Image'
 }
 
-const validationFields = ['resume', 'coverletter', 'transcript', 'other'];
+const validationFields = ['resume', 'coverletter'];
 const maxDocSize = 2000000;
 
 class Documents extends Component {
@@ -39,8 +37,6 @@ class Documents extends Component {
     quotaError: {value: false, remaining: 0.0, upload: 0.0},
     resume: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'RESUME'},
     coverletter: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'COVERLETTER'},
-    transcript: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'TRANSCRIPT'},
-    other: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'OTHER'},
     temp: {document: null, filetype: 'TEMP'},
     rename: {value: '', isValid: true, message: '', validState: null, filepath: ''},
   }
@@ -168,30 +164,6 @@ class Documents extends Component {
         state.coverletter.isValid = true;
         state.coverletter.message = '';
         state.coverletter.validState = null;
-        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
-          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-          state.temp.document.name = 'temp-file.pdf';
-          state.largeFileFlag = false;
-        }
-        break;
-      case 'transcriptFile':
-        state.transcript.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-        state.transcript.document.name = e.target.files[0].name;
-        state.transcript.isValid = true;
-        state.transcript.message = '';
-        state.transcript.validState = null;
-        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
-          state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-          state.temp.document.name = 'temp-file.pdf';
-          state.largeFileFlag = false;
-        }
-        break;
-      case 'otherFile':
-        state.other.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-        state.other.document.name = e.target.files[0].name;
-        state.other.isValid = true;
-        state.other.message = '';
-        state.other.validState = null;
         if (state.largeFileFlag && e.target.files[0].size > 1000000) {
           state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
           state.temp.document.name = 'temp-file.pdf';
@@ -434,8 +406,7 @@ class Documents extends Component {
       }
     ];
 
-    var { documents } = this.state;
-    documents = this.getDocuments();
+    let documents = this.getDocuments();
 
     return (
       <div className="documents">
@@ -496,50 +467,6 @@ class Documents extends Component {
                   </FormGroup>
                   <FormControl.Feedback />
                   <HelpBlock className="errormessage">{this.state.coverletter.message}</HelpBlock>
-                </Col>
-              </FormGroup>
-              <FormGroup controlId="transcript" validationState={this.state.transcript.validState}>
-                <Col componentClass={ControlLabel} sm={2}>
-                  Transcript:
-                </Col>
-                <Col sm={10}>
-                  <FormControl
-                    type="text"
-                    placeholder="Document name"
-                    value={this.state.transcript.value}
-                    onChange={this.handleChange}
-                  />
-                  <FormGroup controlId="transcriptFile">
-                    <FormControl
-                      type="file"
-                      className="file-upload"
-                      onChange={this.handleChange}
-                    />
-                  </FormGroup>
-                  <FormControl.Feedback />
-                  <HelpBlock className="errormessage">{this.state.transcript.message}</HelpBlock>
-                </Col>
-              </FormGroup>
-              <FormGroup controlId="other" validationState={this.state.other.validState}>
-                <Col componentClass={ControlLabel} sm={2}>
-                  Other:
-                </Col>
-                <Col sm={10}>
-                  <FormControl
-                    type="text"
-                    placeholder="Document name"
-                    value={this.state.other.value}
-                    onChange={this.handleChange}
-                  />
-                  <FormGroup controlId="otherFile">
-                    <FormControl
-                      type="file"
-                      className="file-upload"
-                      onChange={this.handleChange}
-                    />
-                  </FormGroup>
-                  <FormControl.Feedback />
-                  <HelpBlock className="errormessage">{this.state.other.message}</HelpBlock>
                 </Col>
               </FormGroup>
             </Form>

@@ -16,7 +16,7 @@ type UserProfile {
   lastname: String
   preferredname: String
   phonenumber: String
-  user: User! @unique @relation(name: "UserProfileDetails" onDelete: CASCADE)
+  user: User! @unique @relation(name: "UserProfileDetails")
   applications: [Application!]!
 }
 
@@ -27,8 +27,8 @@ type BusinessProfile {
   phonenumber: String
   address: String
   website: String
-  user: User! @unique @relation(name: "BusinessProfileDetails" onDelete: CASCADE)
-  jobpostings: [JobPosting!]!
+  user: User! @unique @relation(name: "BusinessProfileDetails")
+  jobpostings: [JobPosting!]! @relation(name: "JobPostingDetails" onDelete: CASCADE)
 }
 
 type File {
@@ -54,35 +54,38 @@ enum Role {
 enum Filetype {
   RESUME
   COVERLETTER
-  TRANSCRIPT
   PROFILEIMAGE
-  OTHER
   TEMP
 }
 
 type Location {
   id: ID! @unique
-  streetaddress: String!
-  city: String!
-  province: String!
-  country: String!
-  postalcode: String!
+  address: String
+  city: String
+  region: String
+  country: String
+  postalcode: String
+  jobposting: JobPosting! @unique @relation(name: "JobPostingLocation")
 }
 
 type JobPosting {
   id: ID! @unique
   title: String!
-  type: String
-  duration: String!
+  type: PositionType
+  duration: Int
+  location: Location @relation(name: "JobPostingLocation" onDelete: CASCADE)
+  openings: Int
+  description: String!
+  contactname: String
+  salary: Float
+  deadline: DateTime!
+  coverletter: Boolean
+  applications: [Application!]!
+  paytype: PayType
+  activated: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
-  location: Location
-  openings: String
-  description: String
-  contactname: String
-  salary: String
-  deadline: DateTime
-  applications: [Application!]!
+  businessprofile: BusinessProfile! @unique @relation(name: "JobPostingDetails")
 }
 
 enum StatusType {
@@ -96,4 +99,14 @@ type Application {
   status: StatusType!
   user: UserProfile!
   jobposting: JobPosting!
+}
+
+enum PositionType {
+  FULLTIME
+  PARTTIME
+}
+
+enum PayType {
+  HOURLY
+  SALARY
 }
