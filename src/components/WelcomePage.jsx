@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import { AUTH_TOKEN } from '../constants';
-import { Button } from 'react-bootstrap';
+import { Button, Jumbotron } from 'react-bootstrap';
 
 class WelcomePage extends Component {
   render() {
@@ -9,16 +9,18 @@ class WelcomePage extends Component {
 
     if(authToken) {
       return (
-        <Redirect to='dashboard'/>
+        <Redirect to='/dashboard'/>
       )
     }
 
     return (
-      <div className="WelcomePage">
-        <h1>Welcome to Website Name</h1>
-        <h3>Made for CMPT 470 by Group 1</h3>
-        <Button href="/signup">Create Account</Button>
-      </div>
+      <Jumbotron>
+        <div className="WelcomePage">
+          <h1>Welcome to Jobs n' Stuff!</h1>
+          <h3>Made for CMPT 470 by Group 1</h3>
+          <Button href="/signup" bsStyle="primary">Create Account</Button>
+        </div>
+      </Jumbotron>
     );
   }
 }

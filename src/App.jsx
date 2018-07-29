@@ -7,17 +7,16 @@ import Header from './components/header/Header';
 import WelcomePage from './components/WelcomePage';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
-import CreateEvent from './components/CreateEvent';
-import Login from './components/Login';
-import Signup from './components/Signup';
+import Login from './components/authentication/Login';
+import Signup from './components/authentication/Signup';
 import ManagePostings from './components/business/ManagePostings';
-import ChangePassword from './components/ChangePassword'
+import ChangePassword from './components/authentication/ChangePassword'
 import Job from './components/Job';
 import ManageUsers from './components/admin/ManageUsers';
-import Documents from './components/Documents';
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
-import ValidateEmail from './components/ValidateEmail';
+import Documents from './components/users/Documents';
+import ForgotPassword from './components/authentication/ForgotPassword';
+import ResetPassword from './components/authentication/ResetPassword';
+import ValidateEmail from './components/authentication/ValidateEmail';
 import './styles/App.css';
 
 class App extends Component {
@@ -37,7 +36,6 @@ class App extends Component {
               <AuthenticatedRoute exact path='/dashboard' component={Dashboard} />
               <AuthenticatedRoute exact path='/manage-postings/:username' component={ManagePostings} />
               <AuthenticatedRoute exact path='/profile/:username' component={Profile} />
-              <AuthenticatedRoute exact path='/create-event' component={CreateEvent} />
               <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
               <AuthenticatedRoute exact path='/job/:jobid' component={Job} />
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />

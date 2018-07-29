@@ -27,7 +27,7 @@ class ManageUsers extends React.Component {
       if (result.files[0]) {
         user.avatar = result.files[0].path;
       } else {
-        user.avatar = "avatar.png";
+        user.avatar = "/avatar.png";
       }
 
       if (result.userprofile) {

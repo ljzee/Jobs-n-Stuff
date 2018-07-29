@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, FormGroup, FormControl, ControlLabel, Form } from 'react-bootstrap';
-import '../styles/BusinessApprovalRequestForm.css'
+import '../../styles/BusinessApprovalRequestForm.css'
 
 class BusinessApprovalRequestForm extends Component {
 

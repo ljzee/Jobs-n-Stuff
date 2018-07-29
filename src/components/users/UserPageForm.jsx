@@ -1,13 +1,13 @@
 import React from 'react';
 import { Thumbnail, Col, Form, Image, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel } from 'react-bootstrap';
-import { USER_TOKEN } from '../constants';
+import { USER_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter, Link } from 'react-router-dom';
-import Loading from './Loading';
+import Loading from '../Loading';
 import { Redirect } from 'react-router';
-import '../styles/Profile.css';
+import '../../styles/Profile.css';
 
 const validationFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber', 'avatar'];
 const requiredFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber'];

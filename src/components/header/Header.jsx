@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
-
 import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import LogoutModal from '../LogoutModal';
 import LoggedInNavBar from './LoggedInNavBar';
