@@ -11,6 +11,7 @@ import CreateEvent from './components/CreateEvent';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import ManagePostings from './components/business/ManagePostings';
+import JobPostingsTable from './components/JobPostingsTable';
 import ChangePassword from './components/ChangePassword'
 import Job from './components/Job';
 import ManageUsers from './components/admin/ManageUsers';
@@ -39,7 +40,8 @@ class App extends Component {
               <AuthenticatedRoute exact path='/profile/:username' component={Profile} />
               <AuthenticatedRoute exact path='/create-event' component={CreateEvent} />
               <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
-              <AuthenticatedRoute exact path='/job/:jobid' component={Job} />
+              <AuthenticatedRoute exact path='/jobs/:jobid' component={Job} />
+              <AuthenticatedRoute exact path='/jobs/' component={JobPostingsTable} />
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
               <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
             </Switch>

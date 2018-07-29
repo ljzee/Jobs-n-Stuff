@@ -11,8 +11,8 @@ class LoggedInNavBar extends Component {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'ADMIN') {
       return (
         <React.Fragment>
-          <NavItem eventKey={4} href={"/manage-postings"}>Manage Postings</NavItem>
-          <NavItem eventKey={5} href="/manage-users">Manage Users</NavItem>
+          <NavItem eventKey={1} href={"/manage-postings"}>Manage Postings</NavItem>
+          <NavItem eventKey={2} href="/manage-users">Manage Users</NavItem>
         </React.Fragment>)
     }
 
@@ -24,8 +24,8 @@ class LoggedInNavBar extends Component {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'BUSINESS') {
       return (
         <React.Fragment>
-          <NavItem eventKey={4} href={`/manage-postings/${this.props.username}`}>Manage Postings</NavItem>
-          <NavItem eventKey={5} href="/create-event">Create Event</NavItem>
+          <NavItem eventKey={1} href={`/manage-postings/${this.props.username}`}>Manage Postings</NavItem>
+          <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
         </React.Fragment>)
     }
 
@@ -36,7 +36,7 @@ class LoggedInNavBar extends Component {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'BASEUSER') {
       return (
         <React.Fragment>
-          <NavItem eventKey={4} href={`/documents/${this.props.username}`}>Documents</NavItem>
+          <NavItem eventKey={1} href={`/documents/${this.props.username}`}>Documents</NavItem>
         </React.Fragment>)
     }
     return null;
@@ -54,8 +54,9 @@ class LoggedInNavBar extends Component {
           {this.renderAdminNavigationItems()}
           {this.renderBusinessNavigationItems()}
           {this.renderUserNavigationItems()}
-          <NavItem eventKey={1} href={`/profile/${this.props.username}`}>Profile</NavItem>
-          <NavItem eventKey={2} onClick={this.props.onClick}>
+          <NavItem eventKey={3} href={`/jobs`}>Job Postings</NavItem>
+          <NavItem eventKey={4} href={`/profile/${this.props.username}`}>Profile</NavItem>
+          <NavItem eventKey={5} onClick={this.props.onClick}>
             Logout
           </NavItem>
         </Nav>
