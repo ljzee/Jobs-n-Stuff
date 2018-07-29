@@ -787,7 +787,7 @@ const Mutation = {
   uploadFiles,
   createApplication,
   renameFile,
-  toggleUserActive
+  toggleUserActive,
   deletePosting
 }
 
