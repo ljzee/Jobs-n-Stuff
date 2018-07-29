@@ -24,6 +24,7 @@ type Mutation {
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
   createApplication (jobpostingid: ID!): ApplicationPayload!
+  toggleUserActive (id: ID!, activated: Boolean!): User!
   createOrEditPosting (
     title: String,
     type: String,
@@ -125,10 +126,11 @@ type User {
   username: String!
   email: String!
   role: Role!
+  activated: Boolean!
   docsize: Float!
   userprofile: UserProfile
   businessprofile: BusinessProfile
-  files: [File]
+  files(filetype: Filetype): [File]
 }
 
 input DocumentInput {

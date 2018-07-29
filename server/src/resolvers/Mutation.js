@@ -218,6 +218,7 @@ async function updatePassword(parent, args, ctx, info) {
 
 async function updateuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
+
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
   var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
   var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
@@ -290,7 +291,7 @@ async function updateuser(parent, args, ctx, info) {
   }
 
   var formattedPhone = '';
-  if(phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+  if (phonenumberValid && phoneRegEx.test(args.phonenumber)) {
     var unformattedPhone = args.phonenumber;
     formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
   } else {
@@ -304,7 +305,7 @@ async function updateuser(parent, args, ctx, info) {
         firstname: args.firstname,
         lastname: args.lastname,
         preferredname: args.preferredname,
-        phonenumber: formattedPhone
+        phonenumber: formattedPhone,
       },
       where: {id: user.userprofile.id}
     }, `{ id }`);
@@ -766,6 +767,15 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
+async function toggleUserActive(parent, args, ctx, info) {
+  return await ctx.db.mutation.updateUser({
+    data: {
+      activated: args.activated
+    },
+    where: {id: args.id}
+  }, `{ id }`);
+}
+
 const Mutation = {
   signup,
   login,
@@ -777,6 +787,7 @@ const Mutation = {
   uploadFiles,
   createApplication,
   renameFile,
+  toggleUserActive
   deletePosting
 }
 
