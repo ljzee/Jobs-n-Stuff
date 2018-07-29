@@ -30,7 +30,7 @@ class App extends Component {
               <Route exact path='/login' component={Login} />
               <Route exact path='/signup' component={Signup} />
               <AuthenticatedRoute exact path='/dashboard' component={Dashboard} />
-              <AuthenticatedRoute exact path='/manage-postings' component={ManagePostings} />
+              <AuthenticatedRoute exact path='/manage-postings/:username' component={ManagePostings} />
               <AuthenticatedRoute exact path='/create-posting' component={CreateJobPosting} />
               <Route exact path='/profile/:username' component={Profile} />
               <Route exact path='/create-event' component={CreateEvent} />

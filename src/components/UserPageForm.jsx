@@ -313,7 +313,6 @@ class UserPageForm extends React.Component {
                 <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
               </Col>
             </FormGroup>
-            <p className="requiredhelptext">Required field</p><br />
             <FormGroup controlId="avatar" className="avatarUpload"  validationState={this.state.avatar.validState}>
               <Col xs={6} md={4}>
                 <Thumbnail src={this.state.avatar.path} alt="avatar">
