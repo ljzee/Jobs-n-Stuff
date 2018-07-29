@@ -429,6 +429,13 @@ class ManagePostings extends Component {
                 <a
                   className="btn btn-info"
                   role="button"
+                  onClick={ () => this.props.history.push(`/job/${props.value}`) }
+                >
+                  View
+                </a>
+                <a
+                  className="btn btn-info"
+                  role="button"
                   onClick={ () => this.openActivateModal(props.value, props.original.title) }
                 >
                   Activate
@@ -436,16 +443,16 @@ class ManagePostings extends Component {
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.openDeleteModal(props.value, props.original.title) }
+                  onClick={ () => this.changeToEditMode(props.value) }
                 >
-                  Delete
+                  Edit
                 </a>
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.changeToEditMode(props.value) }
+                  onClick={ () => this.openDeleteModal(props.value, props.original.title) }
                 >
-                  Edit
+                  Delete
                 </a>
               </div>
           }

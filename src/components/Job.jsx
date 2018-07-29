@@ -83,32 +83,30 @@ class Job extends Component{
         }
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
-          <p>{this.props.jobQuery.jobPosting.location.region}{' '}{this.props.jobQuery.jobPosting.location.country}</p>
-          {this.props.jobQuery.jobPosting.type !== null &&
-            <p>
-              {(this.props.jobQuery.jobPosting.type === 'FULLTIME')? 'Full time' : 'Part time'}
-            </p>
-          }
-          <a
-            target="_blank"
-            // href={this.props.jobQuery.jobPosting.website}
-            href="https://google.ca"
-            className="company-website-link"
-          >
-            www.google.ca
-            {/* {this.props.jobQuery.jobPosting.website.replace('https://', '').replace('http://')} */}
-          </a>
+          <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>
         </div>
         <div className="jobdetailspanel">
+          <Panel>
+            <Panel.Heading>
+              <Panel.Title componentClass="h3">Job Description</Panel.Title>
+            </Panel.Heading>
+            <Panel.Body>
+              <div>{ReactHtmlParser(this.props.jobQuery.jobPosting.description)}</div>
+            </Panel.Body>
+          </Panel>
           <Panel>
             <Panel.Heading>
               <Panel.Title componentClass="h3">Job Details</Panel.Title>
             </Panel.Heading>
             <Panel.Body>
-              <div>{ReactHtmlParser(this.props.jobQuery.jobPosting.description)}</div>
               <p className="deadline-text">
                 <strong>Application Deadline: </strong>{moment(this.props.jobQuery.jobPosting.deadline).format("DD-MM-YYYY")}
               </p>
+              {this.props.jobQuery.jobPosting.type !== null &&
+                <p>
+                  <strong>Position type: </strong>{(this.props.jobQuery.jobPosting.type === 'FULLTIME')? 'Full time' : 'Part time'}
+                </p>
+              }
               {this.props.jobQuery.jobPosting.duration !== null &&
                 <p>
                   <strong>Duration: </strong>{`${this.props.jobQuery.jobPosting.duration} months`}
@@ -138,6 +136,16 @@ class Job extends Component{
                   <strong>Contact: </strong>{this.props.jobQuery.jobPosting.contactname}
                 </p>
               }
+              <strong>Company website: </strong>
+              <a
+                target="_blank"
+                // href={this.props.jobQuery.jobPosting.website}
+                href="https://google.ca"
+                className="company-website-link"
+              >
+                www.google.ca
+                {/* {this.props.jobQuery.jobPosting.website.replace('https://', '').replace('http://')} */}
+              </a>
             </Panel.Body>
           </Panel>
         </div>
