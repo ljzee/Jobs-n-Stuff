@@ -5,6 +5,9 @@ type User {
   password: String!
   role: Role!
   activated: Boolean!
+  validateEmailToken: String! @unique
+  resetPasswordToken: String! @unique
+  resetPasswordExpires: Float
   userprofile: UserProfile @relation(name: "UserProfileDetails" onDelete: CASCADE)
   businessprofile: BusinessProfile @relation(name: "BusinessProfileDetails" onDelete: CASCADE)
   files: [File!]! @relation(name: "UserFiles" onDelete: CASCADE)
