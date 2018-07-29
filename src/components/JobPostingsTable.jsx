@@ -162,7 +162,7 @@ class JobPostingsTable extends React.Component {
         Cell: props =>
           <div>
             {props.value
-              ? <span>{props.value}</span>
+              ? <span>{props.value} Openings</span>
               : <span>N/A</span>
             }
           </div>,
