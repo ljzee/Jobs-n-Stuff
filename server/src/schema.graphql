@@ -11,6 +11,7 @@ type Query {
 
 type Feed {
   users: [User!]!
+  jobpostings: [JobPosting!]!
   count: Int!
 }
 
@@ -131,6 +132,26 @@ type User {
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files(filetype: Filetype): [File]
+}
+
+type JobPosting {
+  id: ID!
+  title: String!
+  type: PositionType
+  duration: Int
+  location: Location
+  openings: Int
+  description: String!
+  contactname: String
+  salary: Float
+  deadline: DateTime!
+  coverletter: Boolean
+  applications: [Application!]!
+  paytype: PayType
+  activated: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  businessprofile: BusinessProfile!
 }
 
 input DocumentInput {
