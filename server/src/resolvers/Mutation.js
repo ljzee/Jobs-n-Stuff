@@ -4,6 +4,7 @@ const fs = require('fs');
 const { processSingleUpload, multipleUpload, closeStream } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
+const moment = require('moment');
 
 require('dotenv').config();
 
@@ -11,11 +12,11 @@ const app_secret = process.env.APP_SECRET;
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 const usernameRegEx = /^[a-z0-9]+$/i;
 const maxImageSize = 500000; // 500 KB
-const maxDocSize = 5000000; // 5 MB
+const maxDocSize = 2005000; // 2005 KB
 const userDocQuota = 50000000; // 50 MB
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 const isValidDocRegEx = new RegExp('^application/pdf$');
-const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$')
+const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$');
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -429,6 +430,7 @@ async function uploadFiles(parent, args, ctx, info) {
   }
 
   let uploads = [];
+  let userFiles = [null, null, null, null];
   let totalUploadSize = 0.0;
   let totalDocSize = 0.0;
   for (let i = 0; i < args.files.length; i++) {
@@ -453,6 +455,7 @@ async function uploadFiles(parent, args, ctx, info) {
       filename: document.filename,
       size: document.size
     }
+    userFiles[i] = document.file;
     uploads.push(upload);
   }
 
@@ -469,18 +472,20 @@ async function uploadFiles(parent, args, ctx, info) {
     for (let i = 0; i < uploadResult.length; i++) {
       const file = uploadResult[i];
       const path = `/uploads/${user.username}/${file.storedName}`;
-      await ctx.db.mutation.createFile({
-        data: {
-          name: file.name,
-          filetype: file.filetype,
-          filename: file.filename,
-          path,
-          storedName: file.storedName,
-          mimetype: file.mimetype,
-          size: file.size,
-          user: { connect: { id: userId } }
-        }
-      }, `{ id }`);
+      if (file.filename !== 'temp-file.pdf') {
+        await ctx.db.mutation.createFile({
+          data: {
+            name: file.name,
+            filetype: file.filetype,
+            filename: file.filename,
+            path,
+            storedName: file.storedName,
+            mimetype: file.mimetype,
+            size: file.size,
+            user: { connect: { id: userId } }
+          }
+        }, `{ id }`);
+      }
     }
     payload.success = true;
   } else {
@@ -526,7 +531,7 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   }
 
   if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
-    payload.error = 'Document size cannot exceed 5 MB.';
+    payload.error = 'Document size cannot exceed 2 MB.';
     return payload;
   }
 
@@ -554,37 +559,147 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   return payload;
 }
 
-//TODO: perform error checking
-async function createJobPosting(parent, args, ctx, info) {
-
-  var currentdate = new Date();
-  var dd = currentdate.getDate();
-  var mm = currentdate.getMonth() + 1;
-  var yyyy = currentdate.getFullYear();
-  currentdate = yyyy + '-' + mm + '-' + dd;
-
-  const posting = await ctx.db.mutation.createJobPosting({
-  data: {
-    title: args.title,
-    type: args.type,
-    duration: args.duration,
-    openings: args.openings,
-    description: args.description,
-    contactname: args.contactname,
-    salary: args.salary,
-    deadline: args.deadline,
-    location: null
-
-  },
-}, `{ id }`);
+async function createOrEditPosting(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id businessprofile { id } }`);
+  let valid = true;
 
   let payload = {
-    jobposting: posting,
-    errors: null
+    jobposting: null,
+    errors: {
+      title: '',
+      duration: '',
+      city: '',
+      region: '',
+      country: '',
+      openings: '',
+      description: '',
+      salary: '',
+      deadline: ''
+    }
   }
+
+  if (args.title === '' || args.title.trim().length > 128) {
+    valid = false;
+    payload.errors.title = 'Job posting title must be between 1 and 128 characters.'
+  }
+
+  if (args.description === '') {
+    valid = false;
+    payload.errors.description = 'Please enter a description for the job posting.'
+  }
+
+  if (args.openings !== '' && args.openings !== null) {
+    if (!validator.isInt(args.openings) || (validator.isInt(args.openings) && parseInt(args.openings) < 0)) {
+      valid = false;
+      payload.errors.openings = 'Please enter a whole number greater than 0.';
+    }
+  }
+
+  if (args.duration !== '' && args.duration !== null) {
+    if (!validator.isInt(args.duration) || (validator.isInt(args.duration) && parseInt(args.duration) < 0)) {
+      valid = false;
+      payload.errors.duration = 'Please enter a whole number greater than 0.';
+    }
+  }
+
+  if (args.city === '') {
+    valid = false;
+    payload.errors.city = 'Please enter a city name.';
+  }
+
+  if (args.country === '') {
+    valid = false;
+    payload.errors.country = 'Please select a country.';
+  }
+
+  if (args.region === '') {
+    valid = false;
+    payload.errors.region = 'Please select a region.';
+  }
+
+  let formattedSalary = '';
+  if (args.salary !== '' && args.salary !== null) {
+    if (!validator.isCurrency(args.salary)) {
+      valid = false;
+      payload.errors.salary = 'Please enter a valid dollar amount.';
+    } else {
+      let strippedSalary = args.salary.replace(',','');
+      if (parseFloat(strippedSalary) < 0) {
+        valid = false;
+        payload.errors.salary = 'Value must be greater than 0.'
+      } else {
+        formattedSalary = parseFloat(strippedSalary);
+      }
+    }
+  }
+
+  if (!moment(args.deadline, moment.ISO_8601, true).isValid()) {
+    valid = false;
+    payload.errors.deadline = 'Please enter a date with the format DD-MM-YYYY.';
+  } else {
+    if (moment(args.deadline).diff(moment()) < 0) {
+      valid = false;
+      payload.errors.deadline = 'The application deadline cannot be in the past.';
+    }
+  }
+
+  if (valid && args.newPosting) {
+    const posting = await ctx.db.mutation.createJobPosting({
+      data: {
+        title: args.title,
+        type: (args.type !== '') ? args.type : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        description: args.description,
+        contactname: args.contactname,
+        salary: (formattedSalary!== '') ? formattedSalary : null,
+        deadline: args.deadline,
+        activated: false,
+        paytype: (args.paytype !== '') ? args.paytype : null,
+        coverletter: args.coverletter,
+        businessprofile: { connect: { id: user.businessprofile.id } }
+      },
+    }, `{ id }`);
+    await ctx.db.mutation.createLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country,
+        jobposting: { connect: { id: posting.id } }
+      },
+    }, `{ id }`);
+    payload.jobposting = posting;
+  } else if (valid && !args.newPosting) {
+    const posting = await ctx.db.mutation.updateJobPosting({
+      data: {
+        title: args.title,
+        type: (args.type !== '') ? args.type : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        description: args.description,
+        contactname: args.contactname,
+        salary: (formattedSalary!== '') ? formattedSalary : null,
+        deadline: args.deadline,
+        activated: false,
+        paytype: (args.paytype !== '') ? args.paytype : null,
+        coverletter: args.coverletter
+      },
+      where: { id: args.id }
+    }, `{ id location { id } }`);
+    await ctx.db.mutation.updateLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country
+      },
+      where: { id: posting.location.id }
+    }, `{ id }`);
+    payload.jobposting = posting;
+  }
+
   return payload;
 }
-
 
 async function fileDelete(parent, args, ctx, info) {
   const filePath = `../public${args.path}`
@@ -592,6 +707,12 @@ async function fileDelete(parent, args, ctx, info) {
 
   return await ctx.db.mutation.deleteFile({
     where: { path: args.path }
+  }, `{ id }`);
+}
+
+async function deletePosting(parent, args, ctx, info) {
+  return await ctx.db.mutation.deleteJobPosting({
+    where: { id: args.id }
   }, `{ id }`);
 }
 
@@ -660,13 +781,14 @@ const Mutation = {
   login,
   updateuser,
   uploadFile,
-  createJobPosting,
+  createOrEditPosting,
   updatePassword,
   fileDelete,
   uploadFiles,
   createApplication,
   renameFile,
   toggleUserActive
+  deletePosting
 }
 
 module.exports = {

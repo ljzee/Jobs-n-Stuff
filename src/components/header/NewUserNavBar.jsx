@@ -5,7 +5,7 @@ const NewUserNavBar = () => (
   <Navbar inverse staticTop>
     <Navbar.Header>
       <Navbar.Brand>
-        <a href="/">Website Name</a>
+        <a id="brand" href="/">Jobs n' Stuff</a>
       </Navbar.Brand>
     </Navbar.Header>
     <Nav pullRight>

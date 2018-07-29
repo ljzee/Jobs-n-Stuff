@@ -24,7 +24,7 @@ class LoggedInNavBar extends Component {
     if (!this.props.userRole.loading && this.props.userRole.user.role === 'BUSINESS') {
       return (
         <React.Fragment>
-          <NavItem eventKey={4} href={`/manage-postings`}>Manage Postings</NavItem>
+          <NavItem eventKey={4} href={`/manage-postings/${this.props.username}`}>Manage Postings</NavItem>
           <NavItem eventKey={5} href="/create-event">Create Event</NavItem>
         </React.Fragment>)
     }
@@ -47,7 +47,7 @@ class LoggedInNavBar extends Component {
       <Navbar inverse staticTop>
         <Navbar.Header>
           <Navbar.Brand>
-            <a href="/dashboard">Dashboard</a>
+            <a id="brand" href="/dashboard">Jobs n' Stuff</a>
           </Navbar.Brand>
         </Navbar.Header>
         <Nav pullRight>
