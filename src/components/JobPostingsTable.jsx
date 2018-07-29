@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Label } from 'react-bootstrap';
+import { Button, Label } from 'react-bootstrap';
 import ReactTable from 'react-table';
 import Loading from './Loading';
 
@@ -22,12 +22,24 @@ const _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 // a and b are javascript Date objects
 function dateDiffInDays(a, b) {
-    // Discard the time and time-zone information.
-    const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-    const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  // Discard the time and time-zone information.
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
 
-    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+  return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
+/* End of referenced code */
+
+/*
+Code below is from (with minor alterations):
+  https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+By Elias Zamaria
+*/
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 /* End of referenced code */
 
 class JobPostingsTable extends React.Component {
@@ -60,7 +72,9 @@ class JobPostingsTable extends React.Component {
         country: result.location.country
       }
 
-      posting.description = result.description;
+      posting.duration = result.duration;
+      posting.openings = result.openings;
+      posting.salary = result.salary;
 
 
       postings.push(posting);
@@ -131,8 +145,49 @@ class JobPostingsTable extends React.Component {
         width: 220
       },
       {
-        Header: () => <div><strong>Description</strong></div>,
-        accessor: 'description'
+        Header: () => <div><strong>Duration</strong></div>,
+        accessor: 'duration',
+        Cell: props =>
+          <div>
+            {props.value
+              ? <span>{props.value} Months</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
+        Header: () => <div><strong>Openings</strong></div>,
+        accessor: 'openings',
+        Cell: props =>
+          <div>
+            {props.value
+              ? <span>{props.value}</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
+        Header: () => <div><strong>Salary/Wage</strong></div>,
+        accessor: 'salary',
+        Cell: props =>
+          <div>
+            {props.value
+              ? <span>${numberWithCommas(props.value)}</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 120
+      },
+      {
+        Header: () => <div><strong>Actions</strong></div>,
+        accessor: 'job',
+        Cell: props =>
+          <div>
+            <Button href={`/jobs/` + props.value.id} bsStyle="primary">Details</Button>
+          </div>,
+        width: 200
       }
     ]
 
@@ -158,7 +213,9 @@ const JOB_POSTINGS_QUERY = gql`
         id
         title
         deadline
-        description
+        duration
+        openings
+        salary
         businessprofile {
           name
         }
@@ -171,7 +228,6 @@ const JOB_POSTINGS_QUERY = gql`
     }
   }
 `
-
 
 export default compose(
   graphql(JOB_POSTINGS_QUERY, {
