@@ -15,9 +15,9 @@ type Feed {
 }
 
 type Mutation {
-  signup (email: String!, password: String!, username: String!, role: Role!, activated: Boolean!, confirmPassword: String!): AuthPayload!
+  signup (email: String!, password: String!, username: String!, role: Role!, confirmPassword: String!): AuthPayload!
   login (username: String!, password: String!): AuthPayload!
-  updateuser (username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!): UserPayload!
+  updateuser (username: String!, email: String!, firstname: String!, lastname: String!, preferredname: String, phonenumber: String!, newuser: Boolean!): UserPayload!
   uploadFile (file: Upload!, name: String, filetype: Filetype!, size: Float!, filename: String!, fieldId: String!, mimetype: String!): UploadPayload!
   uploadFiles (files: [DocumentInput!]!): UploadsPayload!
   renameFile (path: String!, name: String!): RenameFilePayload!
@@ -42,6 +42,10 @@ type Mutation {
     newPosting: Boolean
     id: ID): JobPostingPayload!
   deletePosting(id: ID!): JobPosting!
+  resetPassword(password: String!, confirmPassword: String!, resetPasswordToken: String!): AuthPayload!
+  sendLinkValidateEmail(email: String!): ValidatePayload!
+  validateEmail(validateEmailToken: String!): AuthPayload!
+  forgotPassword(email: String!): ValidatePayload!
 }
 
 type AuthErrors {
@@ -50,12 +54,19 @@ type AuthErrors {
   password: String
   confirmPassword: String
   login: String
+  resetPass: String
+  validateEmail: String
 }
 
 type AuthPayload {
   token: String
   user: User
   errors: AuthErrors
+}
+
+type ValidatePayload {
+  user: User
+  error: String
 }
 
 type JobPostingPayload {
@@ -126,7 +137,7 @@ type User {
   username: String!
   email: String!
   role: Role!
-  activated: Boolean!
+  activated: Boolean
   docsize: Float!
   userprofile: UserProfile
   businessprofile: BusinessProfile

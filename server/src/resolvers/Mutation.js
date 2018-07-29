@@ -5,6 +5,8 @@ const { processSingleUpload, multipleUpload, closeStream } = require('../files/f
 const { getUserId } = require('../utils');
 const validator = require('validator');
 const moment = require('moment');
+const emailGenerator = require('../emailGenerator');
+const crypto = require('crypto');
 
 require('dotenv').config();
 
@@ -17,6 +19,7 @@ const userDocQuota = 50000000; // 50 MB
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 const isValidDocRegEx = new RegExp('^application/pdf$');
 const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$');
+const dayInMilliseconds = 86400000;
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -92,6 +95,9 @@ async function signup(parent, args, ctx, info) {
   }
 
   if (valid) {
+    const resetPasswordToken = crypto.randomBytes(64).toString('hex');
+    const validateEmailToken = crypto.randomBytes(64).toString('hex');
+    const resetPasswordExpires = new Date().getTime() + dayInMilliseconds;
     const password = await bcrypt.hash(args.password, 10);
     const user = await ctx.db.mutation.createUser({
       data: {
@@ -99,9 +105,12 @@ async function signup(parent, args, ctx, info) {
         email: args.email,
         password: password,
         role: args.role,
-        activated: args.activated
+        activated: false,
+        validateEmailToken,
+        resetPasswordToken,
+        resetPasswordExpires
       },
-    }, `{ id }`);
+    }, `{ id email username}`);
 
     if (args.role === 'BASEUSER') {
       await ctx.db.mutation.createUserProfile({
@@ -219,7 +228,7 @@ async function updatePassword(parent, args, ctx, info) {
 async function updateuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
 
-  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
   var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
   var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
   var valid = true;
@@ -316,6 +325,11 @@ async function updateuser(parent, args, ctx, info) {
       },
       where: {id: userId}
     }, `{ id username }`);
+    if (args.newuser && user.role === 'BASEUSER') {
+      const firstname = (args.preferredname !== '') ? args.preferredname : args.firstname;
+      const lastname = args.lastname;
+      emailGenerator.sendWelcomeEmail(user, firstname, lastname, ctx);
+    }
   }
 
   return payload;
@@ -776,6 +790,164 @@ async function toggleUserActive(parent, args, ctx, info) {
   }, `{ id }`);
 }
 
+async function sendLinkValidateEmail (parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const user = await ctx.db.query.user({ where: { id: userId} }, `{ id email validateEmailToken userprofile { firstname preferredname lastname } }`);
+
+  let payload = {
+    user: null,
+    error: null
+  }
+
+  try {
+    const firstname = (user.userprofile.preferredname !== '') ? user.userprofile.preferredname : user.userprofile.firstname;
+    const lastname = user.userprofile.lastname;
+    await emailGenerator.sendWelcomeEmail(user, firstname, lastname, ctx);
+    payload.user = user;
+  } catch (e) {
+    payload.error = `Error: cannot send email to ${userMe.email}.`;
+  }
+
+  return payload;
+}
+
+async function resetPassword (parent, args, ctx, info) {
+  let valid = true;
+
+  const userCheck = await ctx.db.query.user({
+    where: { resetPasswordToken: args.resetPasswordToken }
+  });
+
+  let payload = {
+    user: null,
+    token: null,
+    errors: {
+      password: '',
+      confirmPassword: '',
+      resetPass: ''
+    }
+  }
+
+  if (!userCheck) {
+    valid = false;
+    payload.errors.resetPass = 'invalid'
+  }
+
+  if (valid && userCheck.resetPasswordExpires < new Date().getTime()) {
+    valid = false;
+    payload.errors.resetPass = 'expired';
+  }
+
+  if (args.password.trim().length < 8 || args.password.trim().length > 32) {
+    valid = false;
+    passwordValid = false;
+    payload.errors.password = 'Password must be between 8 and 32 characters';
+  }
+
+  if (args.password !== args.confirmPassword) {
+    valid = false;
+    payload.errors.confirmPassword = 'Passwords do not match';
+  }
+
+  if (valid) {
+    const password = await bcrypt.hash(args.password, 10);
+    const user = await ctx.db.mutation.updateUser({
+      where: { resetPasswordToken: args.resetPasswordToken },
+      data: {
+        password: password,
+        resetPasswordExpires: new Date().getTime()
+      }
+    });
+    payload.user = user;
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+  }
+
+  return payload;
+}
+
+async function validateEmail (parent, args, ctx, info) {
+  let valid = true;
+
+  const userCheck = await ctx.db.query.user({
+    where: {
+      validateEmailToken: args.validateEmailToken
+    }
+  });
+
+  let payload = {
+    user: null,
+    token: null,
+    errors: {
+      validateEmail: ''
+    }
+  }
+
+  if (!userCheck) {
+    valid = false;
+    payload.errors.validateEmail = 'No such user found.';
+  }
+
+  if (valid && userCheck.activated) {
+    valid = false;
+    payload.errors.validateEmail = 'User already activated.';
+  }
+
+  if (valid && userCheck.resetPasswordExpires < new Date().getTime()) {
+    valid = false;
+    payload.errors.validateEmail = 'Link is expired.';
+  }
+
+  if (valid) {
+    const user = await ctx.db.mutation.updateUser({
+      where: { validateEmailToken: args.validateEmailToken },
+      data: {
+        activated: true
+      }
+    });
+    payload.user = user;
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+  }
+
+  return payload;
+}
+
+async function forgotPassword (parent, { email }, ctx, info) {
+  let valid = true;
+
+  const user = await ctx.db.query.user({ where: { email: email} }, `{ id email userprofile { firstname preferredname lastname } }`);
+
+  let payload = {
+    user: null,
+    error: null
+  }
+
+  if (!user) {
+    valid = false;
+    payload.error = `User with email ${email} does not exist.`;
+  }
+
+  if (valid) {
+    try {
+      const uniqueId = crypto.randomBytes(64).toString('hex');
+      await ctx.db.mutation.updateUser({
+        where: { id: user.id },
+        data: {
+          resetPasswordExpires: new Date().getTime() + dayInMilliseconds,
+          resetPasswordToken: uniqueId
+        }
+      });
+      const firstname = (user.userprofile.preferredname !== '') ? user.userprofile.preferredname : user.userprofile.firstname;
+      const lastname = user.userprofile.lastname;
+      emailGenerator.sendForgetPassword(uniqueId, email, firstname, lastname, ctx);
+      payload.user = user;
+    } catch (e) {
+      payload.error = e.message;
+    }
+  }
+
+  return payload;
+}
+
 const Mutation = {
   signup,
   login,
@@ -788,7 +960,11 @@ const Mutation = {
   createApplication,
   renameFile,
   toggleUserActive,
-  deletePosting
+  deletePosting,
+  sendLinkValidateEmail,
+  resetPassword,
+  validateEmail,
+  forgotPassword
 }
 
 module.exports = {

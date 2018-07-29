@@ -1,5 +1,6 @@
 const { Prisma } = require('prisma-binding');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 require('dotenv').config();
 
@@ -32,13 +33,17 @@ async function createNewUser(username, email, password, role, activated, deleteU
   let user1 = await prisma.query.user({ where: { email: email } }, `{ id }`);
   let user2 = await prisma.query.user({ where: { username: username } }, `{ id }`);
   if (user1 === null && user2 === null) {
+    const resetPasswordToken = crypto.randomBytes(64).toString('hex');
+    const validateEmailToken = crypto.randomBytes(64).toString('hex');
     const user = await prisma.mutation.createUser({
       data: {
         username: username,
         email: email,
         password: hashed_pass,
         role: role,
-        activated: activated
+        activated: activated,
+        resetPasswordToken,
+        validateEmailToken
       } },
       "{ id }"
     );

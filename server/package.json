@@ -25,6 +25,7 @@
     "graphql-yoga": "^1.14.8",
     "jsonwebtoken": "^8.3.0",
     "mkdirp": "^0.5.1",
+    "nodemailer": "^4.6.7",
     "prisma-binding": "^2.1.0",
     "promises-all": "^1.0.0",
     "shortid": "^2.2.12"

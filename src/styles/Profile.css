@@ -2,6 +2,10 @@
   text-align: left;
 }
 
+div .activation-warning-first {
+  margin-bottom: 10px;
+}
+
 .EditProfile form {
   padding-top: 20px;
 }
