@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Button, Label } from 'react-bootstrap';
+import { Label } from 'react-bootstrap';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
 import '../../styles/JobPostingsTable.css'
@@ -62,10 +62,10 @@ class JobPostingsTable extends React.Component {
           country: result.location.country
         }
 
+        posting.type     = result.type;
         posting.duration = result.duration;
         posting.openings = result.openings;
-        posting.salary = result.salary;
-
+        posting.salary   = result.salary;
 
         postings.push(posting);
       }
@@ -123,6 +123,18 @@ class JobPostingsTable extends React.Component {
             <span>{props.value.organization}</span>
           </div>,
         width: 200
+      },
+      {
+        Header: () => <div><strong>Type</strong></div>,
+        accessor: 'type',
+        Cell: props =>
+          <div>
+            {props.value === 'FULLTIME'
+              ? <span>Full-time</span>
+              : <span>Part-time</span>
+            }
+          </div>,
+        width: 100
       },
       {
         Header: () => <div><strong>Location</strong></div>,
@@ -210,6 +222,7 @@ const JOB_POSTINGS_QUERY = gql`
         id
         activated
         title
+        type
         deadline
         duration
         openings
