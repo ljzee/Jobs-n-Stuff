@@ -72,9 +72,10 @@ class JobPostingsTable extends React.Component {
         country: result.location.country
       }
 
+      posting.type     = result.type;
       posting.duration = result.duration;
       posting.openings = result.openings;
-      posting.salary = result.salary;
+      posting.salary   = result.salary;
 
 
       postings.push(posting);
@@ -134,6 +135,18 @@ class JobPostingsTable extends React.Component {
         width: 200
       },
       {
+        Header: () => <div><strong>Type</strong></div>,
+        accessor: 'type',
+        Cell: props =>
+          <div>
+            {props.value === 'FULLTIME'
+              ? <span>Full-time</span>
+              : <span>Part-time</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
         Header: () => <div><strong>Location</strong></div>,
         accessor: 'location',
         Cell: props =>
@@ -187,7 +200,6 @@ class JobPostingsTable extends React.Component {
           <div>
             <Button href={`/jobs/` + props.value.id} bsStyle="primary">Details</Button>
           </div>,
-        width: 200
       }
     ]
 
@@ -212,6 +224,7 @@ const JOB_POSTINGS_QUERY = gql`
       jobpostings {
         id
         title
+        type
         deadline
         duration
         openings
