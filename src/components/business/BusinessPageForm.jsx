@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
-import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
