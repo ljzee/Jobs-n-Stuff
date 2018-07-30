@@ -142,7 +142,6 @@ type User {
   role: Role!
   activated: Boolean
   docsize: Float!
-  activated: Boolean!
   userprofile: UserProfile
   businessprofile: BusinessProfile
   files(filetype: Filetype): [File]

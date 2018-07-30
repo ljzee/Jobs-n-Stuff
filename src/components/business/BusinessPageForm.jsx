@@ -7,7 +7,7 @@ import gql from 'graphql-tag';
 import { withRouter } from 'react-router-dom';
 
 import BusinessApprovalRequestForm from './BusinessApprovalRequestForm';
-import Loading from './Loading';
+import Loading from '../Loading';
 
 const userToken = localStorage.getItem(USER_TOKEN)
 const authToken = localStorage.getItem(AUTH_TOKEN)

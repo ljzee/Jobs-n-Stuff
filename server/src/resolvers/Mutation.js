@@ -420,13 +420,13 @@ async function uploadFile(parent, args, ctx, info) {
       payload.error.message = dryRunPayload.error;
     }
     closeStream(upload)
-    .catch(error => {
-      if (streamErrorRegEx.test(error.message)) {
-        console.log('Stream closed as expected');
-      } else {
-        console.error('Caught unexpected error:', error.message);
-      }
-    });
+      .catch(error => {
+        if (streamErrorRegEx.test(error.message)) {
+          console.log('Stream closed as expected');
+        } else {
+          console.error('Caught unexpected error:', error.message);
+        }
+      });
   }
 
   return payload;
@@ -506,13 +506,13 @@ async function uploadFiles(parent, args, ctx, info) {
     for (let i = 0; i < uploads.length; i++) {
       const upload = uploads[i];
       closeStream(upload)
-      .catch(error => {
-        if (streamErrorRegEx.test(error.message)) {
-          console.log('Stream closed as expected');
-        } else {
-          console.error('Caught unexpected error:', error.message);
-        }
-      });
+        .catch(error => {
+          if (streamErrorRegEx.test(error.message)) {
+            console.log('Stream closed as expected');
+          } else {
+            console.error('Caught unexpected error:', error.message);
+          }
+        });
     }
   }
 
@@ -790,32 +790,6 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
-async function updatebusinessuser(parent, args, ctx, info) {
-  const userId = getUserId(ctx);
-  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
-  
-  var payload = {
-    user: null,
-  }
-
-  await ctx.db.mutation.updateBusinessProfile({
-    data: {
-      name: args.name,
-      description: args.description,
-      phonenumber: args.phonenumber,
-      address: args.address,
-      website: args.website
-    },
-    where: {id: businessProfileID.businessprofile.id}
-  }, `{ id }`);
-  payload.user =  await ctx.db.mutation.updateUser({
-    data: {
-      username: args.username,
-      email: args.email
-    },
-    where: {id: userId}
-  }, `{ id username }`);
-
 async function toggleUserActive(parent, args, ctx, info) {
   return await ctx.db.mutation.updateUser({
     data: {
@@ -983,6 +957,34 @@ async function forgotPassword (parent, { email }, ctx, info) {
   return payload;
 }
 
+async function updatebusinessuser(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
+  
+  var payload = {
+    user: null,
+  }
+
+  await ctx.db.mutation.updateBusinessProfile({
+    data: {
+      name: args.name,
+      description: args.description,
+      phonenumber: args.phonenumber,
+      address: args.address,
+      website: args.website
+    },
+    where: {id: businessProfileID.businessprofile.id}
+  }, `{ id }`);
+  payload.user =  await ctx.db.mutation.updateUser({
+    data: {
+      username: args.username,
+      email: args.email
+    },
+    where: {id: userId}
+  }, `{ id username }`);
+}
+
+
 const Mutation = {
   signup,
   login,
@@ -994,7 +996,7 @@ const Mutation = {
   uploadFiles,
   createApplication,
   renameFile,
-  updatebusinessuser
+  updatebusinessuser,
   toggleUserActive,
   deletePosting,
   sendLinkValidateEmail,
