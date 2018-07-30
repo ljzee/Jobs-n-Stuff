@@ -2,11 +2,11 @@ import React from 'react';
 import { Redirect } from 'react-router-dom';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
-import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock, Radio } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { withApollo } from 'react-apollo';
-import '../styles/Signup.css'
+import '../../styles/Signup.css'
 
 class Signup extends React.Component {
 

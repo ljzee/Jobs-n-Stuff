@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
-import { AUTH_TOKEN } from '../constants';
+import { AUTH_TOKEN } from '../../constants';
 import BusinessApprovalRequestForm from './BusinessApprovalRequestForm';
 
 class BusinessPageForm extends Component {

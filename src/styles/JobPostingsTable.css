@@ -1,0 +1,9 @@
+.job-details-button {
+  background-color: #286090;
+  border-color: #286090;
+}
+
+.center-content-div {
+  display: flex;
+  justify-content: center;
+}

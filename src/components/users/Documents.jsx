@@ -4,13 +4,13 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import Loading from './Loading';
+import Loading from '../Loading';
 import ReactTable from "react-table";
 import moment from 'moment';
 import { Col, Form, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel, Modal } from 'react-bootstrap';
 import prettyBytes from 'pretty-bytes';
 import 'react-table/react-table.css'
-import '../styles/Documents.css';
+import '../../styles/Documents.css';
 
 const fileTypeMap = {
   'RESUME': 'Resume',

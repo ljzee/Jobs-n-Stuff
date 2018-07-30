@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock, ButtonToolbar } from 'react-bootstrap';
-import { USER_TOKEN } from '../constants';
+import { USER_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import Loading from './Loading';
+import Loading from '../Loading';
 import { Redirect } from 'react-router';
-import '../styles/UpdatePassword.css';
+import '../../styles/UpdatePassword.css';
 
 const requiredFields = ['oldpassword', 'newpassword', 'newpassword2'];
 

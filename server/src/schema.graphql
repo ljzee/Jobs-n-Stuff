@@ -43,6 +43,7 @@ type Mutation {
     newPosting: Boolean
     id: ID): JobPostingPayload!
   deletePosting(id: ID!): JobPosting!
+  activatePosting(id: ID!): JobPosting!
   resetPassword(password: String!, confirmPassword: String!, resetPasswordToken: String!): AuthPayload!
   sendLinkValidateEmail(email: String!): ValidatePayload!
   validateEmail(validateEmailToken: String!): AuthPayload!
