@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { USER_TOKEN } from '../constants';
+import { USER_TOKEN } from '../../constants';
 import { graphql, compose, Mutation } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import gql from 'graphql-tag';
@@ -15,8 +15,10 @@ class BusinessApprovalRequestForm extends Component {
     name: {value: '', isValid: true, message: '', validState: null},
     description: {value: '', isValid: true, message: '', validState: null},
     phonenumber: {value: '', isValid: true, message: '', validState: null},
-    address: {value: '', isValid: true, message: '', validState: null},
-    website: {value: '', isValid: true, message: '', validState: null},
+    streetaddress: {value: '', isValid: true, message: '', validState: null},
+    city: {value: '', isValid: true, message: '', validState: null},
+    province: {value: '', isValid: true, message: '', validState: null},
+    country: {value: '', isValid: true, message: '', validState: null}
   }
 
   // componentDidMount() {
@@ -51,6 +53,9 @@ class BusinessApprovalRequestForm extends Component {
     const phonenumber = state.phonenumber.value;
     const address = state.address.value;
     const website = state.website.value;
+    const city = state.city.value;
+    const province = state.province.value;
+    const country = state.country.value;
 
     console.log("this is the name" + name);
     console.log("this is the des" + description);
@@ -64,7 +69,10 @@ class BusinessApprovalRequestForm extends Component {
         description,
         phonenumber,
         address,
-        website
+        website,
+        city,
+        province,
+        country
       }
     });
   
@@ -127,6 +135,56 @@ class BusinessApprovalRequestForm extends Component {
             />
           </FormGroup>
 
+          <FormGroup controlId="streetaddress">
+            <ControlLabel> Street Address </ControlLabel>
+            <FormControl
+              type="text"
+              placeholder="Address"
+              value={this.state.streetaddress.value}
+              onChange={this.handleChange}
+            />
+          </FormGroup>
+
+          <FormGroup controlId="city">
+            <ControlLabel> City </ControlLabel>
+            <FormControl
+              type="text"
+              placeholder="City"
+              value={this.state.city.value}
+              onChange={this.handleChange}
+            />
+          </FormGroup>
+
+          <FormGroup controlId="province">
+            <ControlLabel> Province/State </ControlLabel>
+            <FormControl
+              type="text"
+              placeholder=""
+              value={this.state.province.value}
+              onChange={this.handleChange}
+            />
+          </FormGroup>
+
+          <FormGroup controlId="postalcode">
+            <ControlLabel> Postal Code / Zip Code </ControlLabel>
+            <FormControl
+              type="text"
+              placeholder=""
+              value={this.state.postalcode.value}
+              onChange={this.handleChange}
+            />
+          </FormGroup>
+
+          <FormGroup controlId="country">
+            <ControlLabel> Country </ControlLabel>
+            <FormControl
+              type="text"
+              placeholder="Business Website"
+              value={this.state.country.value}
+              onChange={this.handleChange}
+            />
+          </FormGroup>
+
           <Button
             type="submit"
             onClick={this.onSubmit}
@@ -165,6 +223,10 @@ mutation UpdateBusinessUserMutation($name: String!, $description: String!, $phon
   }
 }
 `
+
+// const UPDATE_LOCATION_MUTATION = gql`
+
+// `
 
 export default compose(
   graphql(USER_QUERY, {
