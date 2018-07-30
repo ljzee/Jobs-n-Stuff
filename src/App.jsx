@@ -11,7 +11,8 @@ import Login from './components/authentication/Login';
 import Signup from './components/authentication/Signup';
 import ManagePostings from './components/business/ManagePostings';
 import ChangePassword from './components/authentication/ChangePassword'
-import Job from './components/Job';
+import JobPostingsTable from './components/jobs/JobPostingsTable';
+import Job from './components/jobs/Job';
 import ManageUsers from './components/admin/ManageUsers';
 import Documents from './components/users/Documents';
 import ForgotPassword from './components/authentication/ForgotPassword';
@@ -37,7 +38,8 @@ class App extends Component {
               <AuthenticatedRoute exact path='/manage-postings/:username' component={ManagePostings} />
               <AuthenticatedRoute exact path='/profile/:username' component={Profile} />
               <AuthenticatedRoute exact path='/change-password/:username' component={ChangePassword} />
-              <AuthenticatedRoute exact path='/job/:jobid' component={Job} />
+              <AuthenticatedRoute exact path='/jobs/:jobid' component={Job} />
+              <AuthenticatedRoute exact path='/jobs/' component={JobPostingsTable} />
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
               <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
             </Switch>

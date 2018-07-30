@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import '../styles/Job.css';
+import '../../styles/Job.css';
 import {Panel, Button, Alert} from 'react-bootstrap';
 import gql from 'graphql-tag';
-import Loading from './Loading';
+import Loading from '../Loading';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { USER_TOKEN } from '../constants';
+import { USER_TOKEN } from '../../constants';
 import { Redirect } from 'react-router';
 import moment from 'moment';
 import ReactHtmlParser from 'react-html-parser';
@@ -46,7 +46,7 @@ class Job extends Component{
             <p>This is how a user will view your job posting.</p>
             <Button
               type="submit"
-              bsSize="medium"
+              bsSize="sm"
               bsStyle="primary"
               className="manage-postings"
               onClick={ () => this.props.history.push(`/manage-postings/${this.props.userQuery.user.username}`) }
