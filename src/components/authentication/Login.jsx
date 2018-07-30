@@ -2,11 +2,11 @@ import React from 'react';
 import { Redirect } from 'react-router-dom';
 import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
-import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
 import { withApollo } from 'react-apollo';
 import { Link } from 'react-router-dom';
-import '../styles/Login.css';
+import '../../styles/Login.css';
 
 class Login extends React.Component {
 

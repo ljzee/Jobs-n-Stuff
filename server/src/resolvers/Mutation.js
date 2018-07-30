@@ -730,6 +730,15 @@ async function deletePosting(parent, args, ctx, info) {
   }, `{ id }`);
 }
 
+async function activatePosting(parent, args, ctx, info) {
+  return await ctx.db.mutation.updateJobPosting({
+    data: {
+      activated: true
+    },
+    where: { id: args.id }
+  }, `{ id }`);
+}
+
 async function renameFile(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const user = await ctx.db.query.user({ where: { id: userId } }, `{ id files { id name path } }`);
@@ -991,7 +1000,8 @@ const Mutation = {
   sendLinkValidateEmail,
   resetPassword,
   validateEmail,
-  forgotPassword
+  forgotPassword,
+  activatePosting
 }
 
 module.exports = {

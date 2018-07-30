@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import { graphql } from 'react-apollo';
 import { Nav, Navbar, NavItem } from 'react-bootstrap';
-
 import USER_ROLE from '../../queries/user_role';
-
 
 class LoggedInNavBar extends Component {
 
@@ -25,7 +23,6 @@ class LoggedInNavBar extends Component {
       return (
         <React.Fragment>
           <NavItem eventKey={1} href={`/manage-postings/${this.props.username}`}>Manage Postings</NavItem>
-          <NavItem eventKey={2} href="/create-event">Create Event</NavItem>
         </React.Fragment>)
     }
 

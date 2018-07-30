@@ -3,7 +3,7 @@ import { graphql, compose } from 'react-apollo';
 import gql from 'graphql-tag';
 import { withApollo } from 'react-apollo';
 import { Alert } from 'react-bootstrap';
-import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 
 class ValidateEmail extends Component {
   state = {

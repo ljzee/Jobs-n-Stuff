@@ -3,11 +3,9 @@
 }
 
 .predescription {
-  color: gray;
   margin-top: 25px;
   margin-bottom: 25px;
   margin-left: 5px;
-
 }
 
 #deadline {
@@ -16,16 +14,28 @@
 }
 
 .contactdetailspanel {
-  width: 50%; 
+  width: 50%;
 }
 
-.Job button{
+.Job button.user-buttons {
   margin-left: 10px;
   width: 120px;
+}
+
+.Job button.manage-postings {
+  margin-top: 5px;
 }
 
 .Job footer{
   float: right;
   color: gray;
   margin-right: 5px;
+}
+
+.deadline-text {
+  margin-top: 10px;
+}
+
+.Job a.company-website-link {
+  margin-bottom: 10px;
 }

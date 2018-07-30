@@ -6,8 +6,8 @@ import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import Loading from './Loading';
-import UserPageForm from './UserPageForm';
-import BusinessPageForm from './BusinessPageForm';
+import UserPageForm from './users/UserPageForm';
+import BusinessPageForm from './business/BusinessPageForm';
 import { Alert, Button } from 'react-bootstrap';
 import '../styles/Profile.css';
 
@@ -74,7 +74,6 @@ class Profile extends Component {
             <Alert bsStyle="warning">
               <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
               <div>
-                {'Activation link expired?   '}
                 <Button
                   type="submit"
                   bsSize="small"

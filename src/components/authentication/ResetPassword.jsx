@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Alert, Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
-import { AUTH_TOKEN, USER_TOKEN } from '../constants';
+import { AUTH_TOKEN, USER_TOKEN } from '../../constants';
 import { Link } from 'react-router-dom';
-import '../styles/ResetPassword.css';
+import '../../styles/ResetPassword.css';
 
 class ResetPassword extends Component {
   state = {

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
 import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
-import '../styles/ForgotPassword.css';
+import '../../styles/ForgotPassword.css';
 
 class ForgotPassword extends Component {
   state = {

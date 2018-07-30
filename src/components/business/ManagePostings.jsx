@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Modal, Panel, InputGroup, Radio, Checkbox, Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
+import { Modal, Panel, InputGroup, Radio, Checkbox, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Label } from 'react-bootstrap';
 import { USER_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
@@ -15,9 +15,8 @@ import ReactQuill from 'react-quill';
 import ReactTable from "react-table";
 import 'react-table/react-table.css';
 import 'react-datepicker/dist/react-datepicker.css';
-import '../../styles/ManagePostings.css';
-import '../../styles/CreateJobPosting.css';
 import 'react-quill/dist/quill.snow.css';
+import '../../styles/ManagePostings.css';
 
 const requiredFields = ['title', 'description', 'deadline', 'city', 'country', 'region'];
 const validationFields = [
@@ -36,7 +35,11 @@ class ManagePostings extends Component {
 
   state = {
     showDeleteModal: false,
+    showActivateModal: false,
+    activatePostingId: '',
+    activatePostingTitle: '',
     deletePostingId: '',
+    deletePostingTitle: '',
     editPostingId: '',
     isEditMode: false,
     postings: [],
@@ -92,7 +95,7 @@ class ManagePostings extends Component {
     state.deadline.value = moment(posting.deadline).format();
     state.deadline.date = moment(posting.deadline);
     state.coverletterrequired = posting.coverletter;
-    state.salary.value = posting.salary.toLocaleString("en-US", {minimumFractionDigits: 2});
+    state.salary.value = (posting.salary !== null) ? posting.salary.toLocaleString("en-US", {minimumFractionDigits: 2}) : '';
 
     if (posting.paytype !== null) {
       state.selectedOption.pay = (posting.paytype === 'SALARY') ? 'salary' : 'hourly';
@@ -105,10 +108,11 @@ class ManagePostings extends Component {
     this.setState(state);
   }
 
-  openDeleteModal = (id) => {
+  openDeleteModal = (id, title) => {
     let state = this.state;
     state.showDeleteModal = true;
     state.deletePostingId = id;
+    state.deletePostingTitle = title;
     this.setState(state);
   }
 
@@ -116,6 +120,23 @@ class ManagePostings extends Component {
     let state = this.state;
     state.showDeleteModal = false;
     state.deletePostingId = '';
+    state.deletePostingTitle = '';
+    this.setState(state);
+  }
+
+  openActivateModal = (id, title) => {
+    let state = this.state;
+    state.showActivateModal = true;
+    state.activatePostingId = id;
+    state.activatePostingTitle = title;
+    this.setState(state);
+  }
+
+  closeActivateModal = () => {
+    let state = this.state;
+    state.showActivateModal = false;
+    state.activatePostingId = '';
+    state.activatePostingTitle = '';
     this.setState(state);
   }
 
@@ -134,6 +155,25 @@ class ManagePostings extends Component {
       this.setState({
         showDeleteModal: false,
         deletePostingId: ''
+      })
+    });
+  }
+
+  activatePosting = async (e) => {
+    e.preventDefault();
+    let state = this.state;
+    const id = state.activatePostingId;
+
+    await this.props.activatePosting({
+      variables: {
+        id
+      }
+    });
+
+    this.props.client.resetStore().then(() => {
+      this.setState({
+        showActivateModal: false,
+        activatePostingId: ''
       })
     });
   }
@@ -354,26 +394,68 @@ class ManagePostings extends Component {
       {
         id: 'updatedAt',
         Header: () => <div><strong>Last Modified</strong></div>,
+        width: 175,
         accessor: props => moment(props.updatedAt).format('DD/MM/YYYY h:mm a')
+      },
+      {
+        id: 'activated',
+        Header: () => <div><strong>Activated</strong></div>,
+        width: 125,
+        accessor: props =>
+        <div>
+          {props.activated
+            ? <Label bsStyle="success">Activated</Label>
+            : <Label bsStyle="warning">Pending</Label>
+          }
+        </div>
       },
       {
         accessor: 'id',
         Cell: props =>
         <div className="manage-postings-button-div">
-          <a
-            className="btn btn-info"
-            role="button"
-            onClick={ () => this.openDeleteModal(props.value) }
-          >
-            Delete
-          </a>
-          <a
-            className="btn btn-info"
-            role="button"
-            onClick={ () => this.changeToEditMode(props.value) }
-          >
-            Edit
-          </a>
+          {props.original.activated
+            ?
+              <div>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.props.history.push(`/jobs/${props.value}`) }
+                >
+                  View
+                </a>
+              </div>
+            :
+              <div>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.props.history.push(`/jobs/${props.value}`) }
+                >
+                  View
+                </a>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.openActivateModal(props.value, props.original.title) }
+                >
+                  Activate
+                </a>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.changeToEditMode(props.value) }
+                >
+                  Edit
+                </a>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.openDeleteModal(props.value, props.original.title) }
+                >
+                  Delete
+                </a>
+              </div>
+          }
         </div>
       }
     ];
@@ -653,7 +735,7 @@ class ManagePostings extends Component {
         {this.state.showDeleteModal &&
           <Modal id="delete-file-modal" show={this.state.showDeleteModal} onHide={this.closeDeleteModal}>
             <Modal.Header>
-              <Modal.Title>Delete Job Posting</Modal.Title>
+              <Modal.Title>Delete - {this.state.deletePostingTitle}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="modal-body">
               Are you sure you want to delete this job posting?
@@ -661,6 +743,23 @@ class ManagePostings extends Component {
             <Modal.Footer>
               <Button bsSize="large" bsStyle="primary" onClick={this.deletePosting}>Yes</Button>
               <Button bsSize="large" onClick={this.closeDeleteModal}>Cancel</Button>
+            </Modal.Footer>
+          </Modal>
+        }
+        {this.state.showActivateModal &&
+          <Modal id="delete-file-modal" show={this.state.showActivateModal} onHide={this.closeActivateModal}>
+            <Modal.Header>
+              <Modal.Title>Activate - {this.state.activatePostingTitle}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="activate-modal-body">
+              <p className="modal-medium-text">Are you sure you want to activate this job posting?</p>
+              <p className="modal-small-text">
+                After activation this job posting will be viewable by all users. You will no longer be able to edit or delete the job posting.
+              </p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button bsSize="large" bsStyle="primary" onClick={this.activatePosting}>Yes</Button>
+              <Button bsSize="large" onClick={this.closeActivateModal}>Cancel</Button>
             </Modal.Footer>
           </Modal>
         }
@@ -683,6 +782,7 @@ const USER_QUERY = gql`
           updatedAt
           type
           duration
+          activated
           location {
             city
             region
@@ -704,6 +804,14 @@ const USER_QUERY = gql`
 const DELETE_POSTING_MUATATION = gql`
   mutation DeletePosting($id: ID!) {
     deletePosting(id: $id) {
+      id
+    }
+  }
+`
+
+const ACTIVATE_POSTING_MUATATION = gql`
+  mutation ActivatePosting($id: ID!) {
+    activatePosting(id: $id) {
       id
     }
   }
@@ -778,6 +886,9 @@ export default compose(
   }),
   graphql(CREATE_OR_EDIT_POSTING, {
     name: 'createOrEditPosting'
+  }),
+  graphql(ACTIVATE_POSTING_MUATATION, {
+    name: 'activatePosting'
   }),
   withRouter,
   withApollo

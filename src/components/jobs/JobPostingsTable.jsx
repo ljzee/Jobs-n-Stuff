@@ -3,9 +3,10 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Button, Label } from 'react-bootstrap';
+import { Label } from 'react-bootstrap';
 import ReactTable from 'react-table';
-import Loading from './Loading';
+import Loading from '../Loading';
+import '../../styles/JobPostingsTable.css'
 
 const monthNames = [
   "January", "February", "March", "April", "May", "June",
@@ -30,55 +31,44 @@ function dateDiffInDays(a, b) {
 }
 /* End of referenced code */
 
-/*
-Code below is from (with minor alterations):
-  https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
-By Elias Zamaria
-*/
-
-function numberWithCommas(x) {
-  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-/* End of referenced code */
-
 class JobPostingsTable extends React.Component {
 
   getPostings= () => {
     let postings = [];
 
     this.props.jobPostingsQuery.feed.jobpostings.forEach(result => {
-      let posting = {};
+      if (result.activated) {
+        let posting = {};
 
-      let date = new Date(result.deadline);
+        let date = new Date(result.deadline);
 
-      posting.deadline = {
-        day: monthNames[date.getMonth()] + " " +
-             date.getDate().toString() + ", " +
-             date.getFullYear().toString(),
+        posting.deadline = {
+          day: monthNames[date.getMonth()] + " " +
+              date.getDate().toString() + ", " +
+              date.getFullYear().toString(),
 
-        daysUntil: dateDiffInDays(new Date(Date.now()), date)
+          daysUntil: dateDiffInDays(new Date(Date.now()), date)
+        }
+
+        posting.job = {
+          id:           result.id,
+          title:        result.title,
+          organization: result.businessprofile.name
+        };
+
+        posting.location = {
+          city:    result.location.city,
+          region:  result.location.region,
+          country: result.location.country
+        }
+
+        posting.type     = result.type;
+        posting.duration = result.duration;
+        posting.openings = result.openings;
+        posting.salary   = result.salary;
+
+        postings.push(posting);
       }
-
-      posting.job = {
-        id:           result.id,
-        title:        result.title,
-        organization: result.businessprofile.name
-      };
-
-      posting.location = {
-        city:    result.location.city,
-        region:  result.location.region,
-        country: result.location.country
-      }
-
-      posting.type     = result.type;
-      posting.duration = result.duration;
-      posting.openings = result.openings;
-      posting.salary   = result.salary;
-
-
-      postings.push(posting);
     });
 
     return postings;
@@ -151,7 +141,7 @@ class JobPostingsTable extends React.Component {
         accessor: 'location',
         Cell: props =>
           <div>
-            <span>{props.value.city}, {props.value.region}</span>
+            <span>{props.value.city}, {props.value.region},</span>
             <br />
             <span>{props.value.country}</span>
           </div>,
@@ -161,7 +151,7 @@ class JobPostingsTable extends React.Component {
         Header: () => <div><strong>Duration</strong></div>,
         accessor: 'duration',
         Cell: props =>
-          <div>
+          <div className="center-content-div ">
             {props.value
               ? <span>{props.value} Months</span>
               : <span>N/A</span>
@@ -173,9 +163,9 @@ class JobPostingsTable extends React.Component {
         Header: () => <div><strong>Openings</strong></div>,
         accessor: 'openings',
         Cell: props =>
-          <div>
+          <div className="center-content-div ">
             {props.value
-              ? <span>{props.value} Openings</span>
+              ? <span>{props.value}</span>
               : <span>N/A</span>
             }
           </div>,
@@ -185,9 +175,9 @@ class JobPostingsTable extends React.Component {
         Header: () => <div><strong>Salary/Wage</strong></div>,
         accessor: 'salary',
         Cell: props =>
-          <div>
+          <div className="center-content-div ">
             {props.value
-              ? <span>${numberWithCommas(props.value)}</span>
+              ? <span>{`$ ${props.value.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
               : <span>N/A</span>
             }
           </div>,
@@ -196,15 +186,22 @@ class JobPostingsTable extends React.Component {
       {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: 'job',
+        width: 200,
         Cell: props =>
-          <div>
-            <Button href={`/jobs/` + props.value.id} bsStyle="primary">Details</Button>
-          </div>,
+          <div className="center-content-div ">
+            <a
+              className="btn btn-info job-details-button"
+              role="button"
+              href={`/jobs/${props.value.id}`}
+            >
+              Details
+            </a>
+          </div>
       }
     ]
 
     return (
-      <div id="view-job-postings">
+      <div className="view-job-postings">
         <h1>Job Postings</h1>
           <ReactTable
             id="job-postings-table"
@@ -223,6 +220,7 @@ const JOB_POSTINGS_QUERY = gql`
     feed {
       jobpostings {
         id
+        activated
         title
         type
         deadline
