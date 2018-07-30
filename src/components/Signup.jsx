@@ -42,7 +42,6 @@ class Signup extends React.Component {
     const password = state.password.value;
     const confirmPassword = state.confirmPassword.value;
     const role = (state.selectedOption === 'personal') ? 'BASEUSER' : 'BUSINESS';
-    const activated = (state.selectedOption === 'personal') ? true : false;
 
     const result = await this.props.signupMutation({
       variables: {
@@ -50,7 +49,6 @@ class Signup extends React.Component {
         email,
         password,
         confirmPassword,
-        activated,
         role
       },
     });
@@ -101,7 +99,7 @@ class Signup extends React.Component {
 
     this.props.client.resetStore().then(() => {
       const userToken = JSON.parse(localStorage.getItem(USER_TOKEN));
-      this.props.history.push(`/profile/` + userToken.username);
+      this.props.history.push(`/profile/${userToken.username}`);
     });
   }
 
@@ -204,8 +202,8 @@ class Signup extends React.Component {
 }
 
 const SIGNUP_MUTATION = gql`
-  mutation SignupMutation($email: String!, $password: String!, $username: String!, $role: Role!, $activated: Boolean!, $confirmPassword: String!) {
-    signup(email: $email, password: $password, username: $username, role: $role, activated: $activated, confirmPassword: $confirmPassword) {
+  mutation SignupMutation($email: String!, $password: String!, $username: String!, $role: Role!, $confirmPassword: String!) {
+    signup(email: $email, password: $password, username: $username, role: $role, confirmPassword: $confirmPassword) {
       token
       user {
         id

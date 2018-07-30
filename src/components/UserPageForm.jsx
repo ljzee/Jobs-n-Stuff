@@ -80,6 +80,7 @@ class UserPageForm extends React.Component {
     const lastname = state.lastname.value;
     const preferredname = state.preferredname.value;
     const phonenumber = state.phonenumber.value;
+    const newuser = state.isNewUser;
 
     const updateResult = await this.props.updateUserMutation({
       variables: {
@@ -88,7 +89,8 @@ class UserPageForm extends React.Component {
         firstname,
         lastname,
         preferredname,
-        phonenumber
+        phonenumber,
+        newuser
       }
     });
 
@@ -314,7 +316,6 @@ class UserPageForm extends React.Component {
                 <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
               </Col>
             </FormGroup>
-            <p className="requiredhelptext">Required field</p><br />
             <FormGroup controlId="avatar" className="avatarUpload"  validationState={this.state.avatar.validState}>
               <Col xs={6} md={4}>
                 <Thumbnail src={this.state.avatar.path} alt="avatar">
@@ -410,8 +411,23 @@ const USER_QUERY = gql`
 `
 
 const UPDATE_USER_MUTATION = gql`
-  mutation UpdateUserMutation($email: String!, $username: String!, $firstname: String!, $lastname: String!, $preferredname: String, $phonenumber: String!) {
-    updateuser(email: $email, username: $username, firstname: $firstname, lastname: $lastname, preferredname: $preferredname, phonenumber: $phonenumber) {
+  mutation UpdateUserMutation(
+    $email: String!,
+    $username: String!,
+    $firstname: String!,
+    $lastname: String!,
+    $preferredname: String,
+    $phonenumber: String!,
+    $newuser: Boolean!) {
+    updateuser(
+      email: $email,
+      username: $username,
+      firstname: $firstname,
+      lastname: $lastname,
+      preferredname: $preferredname,
+      phonenumber: $phonenumber,
+      newuser: $newuser
+    ) {
       user {
         username
       }

@@ -8,9 +8,47 @@ import { withRouter } from 'react-router-dom';
 import Loading from './Loading';
 import UserPageForm from './UserPageForm';
 import BusinessPageForm from './BusinessPageForm';
+import { Alert, Button } from 'react-bootstrap';
 import '../styles/Profile.css';
 
 class Profile extends Component {
+
+  state = {
+    emailError: ''
+  }
+
+  resendActivationEmail = async (e) => {
+    let state = this.state;
+
+    const result = await this.props.sendLinkValidateEmail({
+      variables: {
+        email: this.props.userQuery.user.email
+      },
+    });
+
+    const { user, error } = result.data.sendLinkValidateEmail;
+
+    if (user !== null) {
+      this.props.client.resetStore().then(() => {
+
+      });
+    } else {
+      state.emailError = error;
+      this.setState(state);
+    }
+  }
+
+  showActivationWarning = () => {
+    if (!this.props.userQuery.user.activated) {
+      if (this.props.userQuery.user.userprofile.firstname === '' && this.props.userQuery.user.userprofile.lastname === '') {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
 
   render() {
 
@@ -32,6 +70,27 @@ class Profile extends Component {
     if (authToken) {
       return (
         <div className="Profile">
+          {this.showActivationWarning() &&
+            <Alert bsStyle="warning">
+              <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
+              <div>
+                {'Activation link expired?   '}
+                <Button
+                  type="submit"
+                  bsSize="small"
+                  bsStyle="primary"
+                  onClick={this.resendActivationEmail}
+                >
+                  Resend Activation Link
+                </Button>
+              </div>
+            </Alert>
+          }
+          {this.state.emailError !== '' &&
+            <Alert bsStyle="danger">
+              {`${this.state.emailError}`}
+            </Alert>
+          }
           {this.props.userQuery.user.role === 'BASEUSER'
             ? this.userProfile()
             : this.businessProfile()}
@@ -65,6 +124,7 @@ const USER_QUERY = gql`
       role
       email
       username
+      activated
       files {
         filename
         path
@@ -88,6 +148,17 @@ const USER_QUERY = gql`
   }
 `
 
+const SEND_VALIDATION_LINK_MUTATION = gql`
+  mutation SendValidationLinkMutation($email: String!) {
+    sendLinkValidateEmail(email: $email) {
+      user {
+        id
+      }
+      error
+    }
+  }
+`
+
 export default compose(
   graphql(USER_QUERY, {
     name: 'userQuery',
@@ -99,6 +170,7 @@ export default compose(
         },
     }),
   }),
+  graphql(SEND_VALIDATION_LINK_MUTATION, { name: 'sendLinkValidateEmail' }),
   withRouter,
   withApollo
 )(Profile)

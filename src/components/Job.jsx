@@ -139,7 +139,7 @@ export default compose(
     options: props => ({
       variables: {
           where: {
-            id: "cjjuxw0e900bd0808lozfu11o" //change the job id here, this will be passed from the previous page
+            id: props.match.params.jobid
           }
         },
     }),

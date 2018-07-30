@@ -4,6 +4,9 @@ const fs = require('fs');
 const { processSingleUpload, multipleUpload, closeStream } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
+const moment = require('moment');
+const emailGenerator = require('../emailGenerator');
+const crypto = require('crypto');
 
 require('dotenv').config();
 
@@ -11,11 +14,12 @@ const app_secret = process.env.APP_SECRET;
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 const usernameRegEx = /^[a-z0-9]+$/i;
 const maxImageSize = 500000; // 500 KB
-const maxDocSize = 5000000; // 5 MB
+const maxDocSize = 2005000; // 2005 KB
 const userDocQuota = 50000000; // 50 MB
 const isValidImageRegEx = new RegExp('^image/(png|jpg|jpeg)$');
 const isValidDocRegEx = new RegExp('^application/pdf$');
-const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$')
+const streamErrorRegEx = new RegExp('^Request disconnected during file upload stream parsing.$');
+const dayInMilliseconds = 86400000;
 
 function sameUser(user1, user2) {
   if (user1 !== null && user2 !== null) {
@@ -91,6 +95,9 @@ async function signup(parent, args, ctx, info) {
   }
 
   if (valid) {
+    const resetPasswordToken = crypto.randomBytes(64).toString('hex');
+    const validateEmailToken = crypto.randomBytes(64).toString('hex');
+    const resetPasswordExpires = new Date().getTime() + dayInMilliseconds;
     const password = await bcrypt.hash(args.password, 10);
     const user = await ctx.db.mutation.createUser({
       data: {
@@ -98,9 +105,12 @@ async function signup(parent, args, ctx, info) {
         email: args.email,
         password: password,
         role: args.role,
-        activated: args.activated
+        activated: false,
+        validateEmailToken,
+        resetPasswordToken,
+        resetPasswordExpires
       },
-    }, `{ id }`);
+    }, `{ id email username}`);
 
     if (args.role === 'BASEUSER') {
       await ctx.db.mutation.createUserProfile({
@@ -217,7 +227,8 @@ async function updatePassword(parent, args, ctx, info) {
 
 async function updateuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id userprofile { id } }`);
+
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
   var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
   var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
   var valid = true;
@@ -289,7 +300,7 @@ async function updateuser(parent, args, ctx, info) {
   }
 
   var formattedPhone = '';
-  if(phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+  if (phonenumberValid && phoneRegEx.test(args.phonenumber)) {
     var unformattedPhone = args.phonenumber;
     formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
   } else {
@@ -303,7 +314,7 @@ async function updateuser(parent, args, ctx, info) {
         firstname: args.firstname,
         lastname: args.lastname,
         preferredname: args.preferredname,
-        phonenumber: formattedPhone
+        phonenumber: formattedPhone,
       },
       where: {id: user.userprofile.id}
     }, `{ id }`);
@@ -314,6 +325,11 @@ async function updateuser(parent, args, ctx, info) {
       },
       where: {id: userId}
     }, `{ id username }`);
+    if (args.newuser && user.role === 'BASEUSER') {
+      const firstname = (args.preferredname !== '') ? args.preferredname : args.firstname;
+      const lastname = args.lastname;
+      emailGenerator.sendWelcomeEmail(user, firstname, lastname, ctx);
+    }
   }
 
   return payload;
@@ -428,6 +444,7 @@ async function uploadFiles(parent, args, ctx, info) {
   }
 
   let uploads = [];
+  let userFiles = [null, null, null, null];
   let totalUploadSize = 0.0;
   let totalDocSize = 0.0;
   for (let i = 0; i < args.files.length; i++) {
@@ -452,6 +469,7 @@ async function uploadFiles(parent, args, ctx, info) {
       filename: document.filename,
       size: document.size
     }
+    userFiles[i] = document.file;
     uploads.push(upload);
   }
 
@@ -468,18 +486,20 @@ async function uploadFiles(parent, args, ctx, info) {
     for (let i = 0; i < uploadResult.length; i++) {
       const file = uploadResult[i];
       const path = `/uploads/${user.username}/${file.storedName}`;
-      await ctx.db.mutation.createFile({
-        data: {
-          name: file.name,
-          filetype: file.filetype,
-          filename: file.filename,
-          path,
-          storedName: file.storedName,
-          mimetype: file.mimetype,
-          size: file.size,
-          user: { connect: { id: userId } }
-        }
-      }, `{ id }`);
+      if (file.filename !== 'temp-file.pdf') {
+        await ctx.db.mutation.createFile({
+          data: {
+            name: file.name,
+            filetype: file.filetype,
+            filename: file.filename,
+            path,
+            storedName: file.storedName,
+            mimetype: file.mimetype,
+            size: file.size,
+            user: { connect: { id: userId } }
+          }
+        }, `{ id }`);
+      }
     }
     payload.success = true;
   } else {
@@ -525,7 +545,7 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   }
 
   if (filetype !== 'PROFILEIMAGE' && size > maxDocSize) {
-    payload.error = 'Document size cannot exceed 5 MB.';
+    payload.error = 'Document size cannot exceed 2 MB.';
     return payload;
   }
 
@@ -553,6 +573,7 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   return payload;
 }
 
+<<<<<<< HEAD
 //TODO: perform error checking
 async function createJobPosting(parent, args, ctx, info) {
 
@@ -576,14 +597,149 @@ async function createJobPosting(parent, args, ctx, info) {
 
     },
   }, `{ id }`);
+=======
+async function createOrEditPosting(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id businessprofile { id } }`);
+  let valid = true;
+>>>>>>> origin/master
 
   let payload = {
-    jobposting: posting,
-    errors: null
+    jobposting: null,
+    errors: {
+      title: '',
+      duration: '',
+      city: '',
+      region: '',
+      country: '',
+      openings: '',
+      description: '',
+      salary: '',
+      deadline: ''
+    }
   }
+
+  if (args.title === '' || args.title.trim().length > 128) {
+    valid = false;
+    payload.errors.title = 'Job posting title must be between 1 and 128 characters.'
+  }
+
+  if (args.description === '') {
+    valid = false;
+    payload.errors.description = 'Please enter a description for the job posting.'
+  }
+
+  if (args.openings !== '' && args.openings !== null) {
+    if (!validator.isInt(args.openings) || (validator.isInt(args.openings) && parseInt(args.openings) < 0)) {
+      valid = false;
+      payload.errors.openings = 'Please enter a whole number greater than 0.';
+    }
+  }
+
+  if (args.duration !== '' && args.duration !== null) {
+    if (!validator.isInt(args.duration) || (validator.isInt(args.duration) && parseInt(args.duration) < 0)) {
+      valid = false;
+      payload.errors.duration = 'Please enter a whole number greater than 0.';
+    }
+  }
+
+  if (args.city === '') {
+    valid = false;
+    payload.errors.city = 'Please enter a city name.';
+  }
+
+  if (args.country === '') {
+    valid = false;
+    payload.errors.country = 'Please select a country.';
+  }
+
+  if (args.region === '') {
+    valid = false;
+    payload.errors.region = 'Please select a region.';
+  }
+
+  let formattedSalary = '';
+  if (args.salary !== '' && args.salary !== null) {
+    if (!validator.isCurrency(args.salary)) {
+      valid = false;
+      payload.errors.salary = 'Please enter a valid dollar amount.';
+    } else {
+      let strippedSalary = args.salary.replace(',','');
+      if (parseFloat(strippedSalary) < 0) {
+        valid = false;
+        payload.errors.salary = 'Value must be greater than 0.'
+      } else {
+        formattedSalary = parseFloat(strippedSalary);
+      }
+    }
+  }
+
+  if (!moment(args.deadline, moment.ISO_8601, true).isValid()) {
+    valid = false;
+    payload.errors.deadline = 'Please enter a date with the format DD-MM-YYYY.';
+  } else {
+    if (moment(args.deadline).diff(moment()) < 0) {
+      valid = false;
+      payload.errors.deadline = 'The application deadline cannot be in the past.';
+    }
+  }
+
+  if (valid && args.newPosting) {
+    const posting = await ctx.db.mutation.createJobPosting({
+      data: {
+        title: args.title,
+        type: (args.type !== '') ? args.type : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        description: args.description,
+        contactname: args.contactname,
+        salary: (formattedSalary!== '') ? formattedSalary : null,
+        deadline: args.deadline,
+        activated: false,
+        paytype: (args.paytype !== '') ? args.paytype : null,
+        coverletter: args.coverletter,
+        businessprofile: { connect: { id: user.businessprofile.id } }
+      },
+    }, `{ id }`);
+    await ctx.db.mutation.createLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country,
+        jobposting: { connect: { id: posting.id } }
+      },
+    }, `{ id }`);
+    payload.jobposting = posting;
+  } else if (valid && !args.newPosting) {
+    const posting = await ctx.db.mutation.updateJobPosting({
+      data: {
+        title: args.title,
+        type: (args.type !== '') ? args.type : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        description: args.description,
+        contactname: args.contactname,
+        salary: (formattedSalary!== '') ? formattedSalary : null,
+        deadline: args.deadline,
+        activated: false,
+        paytype: (args.paytype !== '') ? args.paytype : null,
+        coverletter: args.coverletter
+      },
+      where: { id: args.id }
+    }, `{ id location { id } }`);
+    await ctx.db.mutation.updateLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country
+      },
+      where: { id: posting.location.id }
+    }, `{ id }`);
+    payload.jobposting = posting;
+  }
+
   return payload;
 }
-
 
 async function fileDelete(parent, args, ctx, info) {
   const filePath = `../public${args.path}`
@@ -591,6 +747,12 @@ async function fileDelete(parent, args, ctx, info) {
 
   return await ctx.db.mutation.deleteFile({
     where: { path: args.path }
+  }, `{ id }`);
+}
+
+async function deletePosting(parent, args, ctx, info) {
+  return await ctx.db.mutation.deleteJobPosting({
+    where: { id: args.id }
   }, `{ id }`);
 }
 
@@ -645,6 +807,7 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
+<<<<<<< HEAD
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
@@ -671,6 +834,171 @@ async function updatebusinessuser(parent, args, ctx, info) {
     where: {id: userId}
   }, `{ id username }`);
 
+=======
+async function toggleUserActive(parent, args, ctx, info) {
+  return await ctx.db.mutation.updateUser({
+    data: {
+      activated: args.activated
+    },
+    where: {id: args.id}
+  }, `{ id }`);
+}
+
+async function sendLinkValidateEmail (parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const user = await ctx.db.query.user({ where: { id: userId} }, `{ id email validateEmailToken userprofile { firstname preferredname lastname } }`);
+
+  let payload = {
+    user: null,
+    error: null
+  }
+
+  try {
+    const firstname = (user.userprofile.preferredname !== '') ? user.userprofile.preferredname : user.userprofile.firstname;
+    const lastname = user.userprofile.lastname;
+    await emailGenerator.sendWelcomeEmail(user, firstname, lastname, ctx);
+    payload.user = user;
+  } catch (e) {
+    payload.error = `Error: cannot send email to ${userMe.email}.`;
+  }
+
+  return payload;
+}
+
+async function resetPassword (parent, args, ctx, info) {
+  let valid = true;
+
+  const userCheck = await ctx.db.query.user({
+    where: { resetPasswordToken: args.resetPasswordToken }
+  });
+
+  let payload = {
+    user: null,
+    token: null,
+    errors: {
+      password: '',
+      confirmPassword: '',
+      resetPass: ''
+    }
+  }
+
+  if (!userCheck) {
+    valid = false;
+    payload.errors.resetPass = 'invalid'
+  }
+
+  if (valid && userCheck.resetPasswordExpires < new Date().getTime()) {
+    valid = false;
+    payload.errors.resetPass = 'expired';
+  }
+
+  if (args.password.trim().length < 8 || args.password.trim().length > 32) {
+    valid = false;
+    passwordValid = false;
+    payload.errors.password = 'Password must be between 8 and 32 characters';
+  }
+
+  if (args.password !== args.confirmPassword) {
+    valid = false;
+    payload.errors.confirmPassword = 'Passwords do not match';
+  }
+
+  if (valid) {
+    const password = await bcrypt.hash(args.password, 10);
+    const user = await ctx.db.mutation.updateUser({
+      where: { resetPasswordToken: args.resetPasswordToken },
+      data: {
+        password: password,
+        resetPasswordExpires: new Date().getTime()
+      }
+    });
+    payload.user = user;
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+  }
+
+  return payload;
+}
+
+async function validateEmail (parent, args, ctx, info) {
+  let valid = true;
+
+  const userCheck = await ctx.db.query.user({
+    where: {
+      validateEmailToken: args.validateEmailToken
+    }
+  });
+
+  let payload = {
+    user: null,
+    token: null,
+    errors: {
+      validateEmail: ''
+    }
+  }
+
+  if (!userCheck) {
+    valid = false;
+    payload.errors.validateEmail = 'No such user found.';
+  }
+
+  if (valid && userCheck.activated) {
+    valid = false;
+    payload.errors.validateEmail = 'User already activated.';
+  }
+
+  if (valid && userCheck.resetPasswordExpires < new Date().getTime()) {
+    valid = false;
+    payload.errors.validateEmail = 'Link is expired.';
+  }
+
+  if (valid) {
+    const user = await ctx.db.mutation.updateUser({
+      where: { validateEmailToken: args.validateEmailToken },
+      data: {
+        activated: true
+      }
+    });
+    payload.user = user;
+    payload.token = jwt.sign({ userId: user.id }, app_secret);
+  }
+
+  return payload;
+}
+
+async function forgotPassword (parent, { email }, ctx, info) {
+  let valid = true;
+
+  const user = await ctx.db.query.user({ where: { email: email} }, `{ id email userprofile { firstname preferredname lastname } }`);
+
+  let payload = {
+    user: null,
+    error: null
+  }
+
+  if (!user) {
+    valid = false;
+    payload.error = `User with email ${email} does not exist.`;
+  }
+
+  if (valid) {
+    try {
+      const uniqueId = crypto.randomBytes(64).toString('hex');
+      await ctx.db.mutation.updateUser({
+        where: { id: user.id },
+        data: {
+          resetPasswordExpires: new Date().getTime() + dayInMilliseconds,
+          resetPasswordToken: uniqueId
+        }
+      });
+      const firstname = (user.userprofile.preferredname !== '') ? user.userprofile.preferredname : user.userprofile.firstname;
+      const lastname = user.userprofile.lastname;
+      emailGenerator.sendForgetPassword(uniqueId, email, firstname, lastname, ctx);
+      payload.user = user;
+    } catch (e) {
+      payload.error = e.message;
+    }
+  }
+>>>>>>> origin/master
 
   return payload;
 }
@@ -680,13 +1008,22 @@ const Mutation = {
   login,
   updateuser,
   uploadFile,
-  createJobPosting,
+  createOrEditPosting,
   updatePassword,
   fileDelete,
   uploadFiles,
   createApplication,
   renameFile,
+<<<<<<< HEAD
   updatebusinessuser
+=======
+  toggleUserActive,
+  deletePosting,
+  sendLinkValidateEmail,
+  resetPassword,
+  validateEmail,
+  forgotPassword
+>>>>>>> origin/master
 }
 
 module.exports = {

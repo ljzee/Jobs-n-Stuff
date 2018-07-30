@@ -128,7 +128,7 @@ class Login extends React.Component {
           >
             Login
           </Button>
-          <br />
+          <p className="forgot-password-link"><Link to={'/forgot-password'}>Forgot password?</Link></p>
           <p>Need to create an account? <Link to={'/signup'}>Create Account</Link></p>
         </form>
       </div>

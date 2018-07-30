@@ -2,6 +2,10 @@
   text-align: left;
 }
 
+div .activation-warning-first {
+  margin-bottom: 10px;
+}
+
 .EditProfile form {
   padding-top: 20px;
 }
@@ -18,6 +22,8 @@
   width: 150px !important;
   position: relative;
   margin-bottom: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
 .EditProfile form span.help-block {
@@ -46,9 +52,3 @@
 .EditProfile form .avatarUpload {
   margin-left: 200px;
 }
-
-.EditProfile button {
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
