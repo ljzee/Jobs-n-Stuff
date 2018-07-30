@@ -25,9 +25,7 @@ type Mutation {
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
   createApplication (jobpostingid: ID!): ApplicationPayload!
-<<<<<<< HEAD
   updatebusinessuser (name: String!, description: String!, phonenumber: String!, address: String!, website: String!): BusinessUserPayload!
-=======
   toggleUserActive (id: ID!, activated: Boolean!): User!
   createOrEditPosting (
     title: String,
@@ -50,7 +48,6 @@ type Mutation {
   sendLinkValidateEmail(email: String!): ValidatePayload!
   validateEmail(validateEmailToken: String!): AuthPayload!
   forgotPassword(email: String!): ValidatePayload!
->>>>>>> origin/master
 }
 
 type AuthErrors {

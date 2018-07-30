@@ -573,36 +573,10 @@ async function uploadFileDryRun(user, file, filetype, size, mimetype, name) {
   return payload;
 }
 
-<<<<<<< HEAD
-//TODO: perform error checking
-async function createJobPosting(parent, args, ctx, info) {
-
-  var currentdate = new Date();
-  var dd = currentdate.getDate();
-  var mm = currentdate.getMonth() + 1;
-  var yyyy = currentdate.getFullYear();
-  currentdate = yyyy + '-' + mm + '-' + dd;
-
-  const posting = await ctx.db.mutation.createJobPosting({
-    data: {
-      title: args.title,
-      type: args.type,
-      duration: args.duration,
-      openings: args.openings,
-      description: args.description,
-      contactname: args.contactname,
-      salary: args.salary,
-      deadline: args.deadline,
-      location: null
-
-    },
-  }, `{ id }`);
-=======
 async function createOrEditPosting(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id businessprofile { id } }`);
   let valid = true;
->>>>>>> origin/master
 
   let payload = {
     jobposting: null,
@@ -807,7 +781,6 @@ async function createApplication(parent, args, ctx, info) {
   return payload;
 }
 
-<<<<<<< HEAD
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
@@ -834,7 +807,6 @@ async function updatebusinessuser(parent, args, ctx, info) {
     where: {id: userId}
   }, `{ id username }`);
 
-=======
 async function toggleUserActive(parent, args, ctx, info) {
   return await ctx.db.mutation.updateUser({
     data: {
@@ -998,7 +970,6 @@ async function forgotPassword (parent, { email }, ctx, info) {
       payload.error = e.message;
     }
   }
->>>>>>> origin/master
 
   return payload;
 }
@@ -1014,16 +985,13 @@ const Mutation = {
   uploadFiles,
   createApplication,
   renameFile,
-<<<<<<< HEAD
   updatebusinessuser
-=======
   toggleUserActive,
   deletePosting,
   sendLinkValidateEmail,
   resetPassword,
   validateEmail,
   forgotPassword
->>>>>>> origin/master
 }
 
 module.exports = {
