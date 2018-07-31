@@ -35,6 +35,10 @@ class Job extends Component{
       return <Redirect to='/dashboard'/>;
     }
 
+    if (!this.props.userQuery.user.activated) {
+      return <Redirect to='/dashboard'/>;
+    }
+
     if (this.props.jobQuery.jobPosting === null){
       return <h1>Sorry, this job doesn't exist.</h1>
     }
@@ -163,6 +167,7 @@ const USER_QUERY = gql`
     user(where: $where) {
       role
       username
+      activated
       businessprofile {
         id
       }

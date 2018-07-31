@@ -5,6 +5,7 @@ type User {
   password: String!
   role: Role!
   activated: Boolean!
+  admindeactivated: Boolean!
   validateEmailToken: String! @unique
   resetPasswordToken: String! @unique
   resetPasswordExpires: Float
