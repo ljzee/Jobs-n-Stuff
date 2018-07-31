@@ -401,7 +401,6 @@ class JobPostingsTable extends React.Component {
       {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: 'job',
-        width: 200,
         Cell: props =>
           <div className="center-content-div ">
             <a
@@ -430,9 +429,10 @@ class JobPostingsTable extends React.Component {
                 <Grid>
                   <Row>
                     <Col md={3}>
-                      <FormGroup controlId="title" bsSize="large">
+                      <FormGroup controlId="title">
                         <ControlLabel>Keywords</ControlLabel>
                         <FormControl
+                          id="keyword-field"
                           autoFocus
                           type="text"
                           placeholder="Keywords"
@@ -442,11 +442,13 @@ class JobPostingsTable extends React.Component {
                       </FormGroup>
                     </Col>
 
-                    <Col md={3}>
-                      <FormGroup controlId="deadline" bsSize="large">
-                      <ControlLabel>Latest Application Deadline</ControlLabel>
+                    <Col md={2}>
+                      <FormGroup controlId="deadline">
+                      <ControlLabel>Latest Deadline</ControlLabel>
                         <InputGroup>
                           <DatePicker
+                            id="date-picker"
+                            className="btn btn-default dropdown-toggle"
                             readOnly
                             dateFormat="DD-MM-YYYY"
                             selected={this.state.filters.deadline}
@@ -456,28 +458,33 @@ class JobPostingsTable extends React.Component {
                       </FormGroup>
                     </Col>
 
-                    <Col md={5}>
-                      <FormGroup controlId="country">
+
+                    <Col md={4}>
+                      <FormGroup controlId="country" className="location-selector">
                         <ControlLabel>Country</ControlLabel>
                         <CountryDropdown
+                          id="country-dropdown"
+                          classes="btn btn-default dropdown-toggle"
                           value={this.state.filters.location.country}
                           onChange={(val) => this.selectCountry(val)} />
                       </FormGroup>
-                      <br />
-                      <FormGroup controlId="region">
+                    </Col>
+
+                    <Col md={3}>
+                      <FormGroup controlId="region" className="location-selector">
                         <ControlLabel>Region</ControlLabel>
                         <RegionDropdown
+                          id="region-dropdown"
+                          classes="btn btn-default dropdown-toggle"
                           disableWhenEmpty={true}
                           country={this.state.filters.location.country}
                           value={this.state.filters.location.region}
                           onChange={(val) => this.selectRegion(val)} />
                       </FormGroup>
                     </Col>
-
                   </Row>
 
                   <Row>
-
                     <Col md={3}>
                       <FormGroup controlId="type">
                         <ControlLabel>Type of Position</ControlLabel>
@@ -507,7 +514,7 @@ class JobPostingsTable extends React.Component {
                     </Col>
 
                     <Col md={2}>
-                      <FormGroup controlId="salary" bsSize="large">
+                      <FormGroup controlId="salary">
                         <ControlLabel>Minimum Salary</ControlLabel>
                         <NumericInput
                           className="form-control"
@@ -519,7 +526,7 @@ class JobPostingsTable extends React.Component {
                     </Col>
 
                     <Col md={2}>
-                      <FormGroup controlId="wage" bsSize="large">
+                      <FormGroup controlId="wage">
                         <ControlLabel>Minimum Wage</ControlLabel>
                         <NumericInput
                           className="form-control"
@@ -530,7 +537,7 @@ class JobPostingsTable extends React.Component {
                     </Col>
 
                     <Col md={2}>
-                      <FormGroup controlId="openings" bsSize="large">
+                      <FormGroup controlId="openings">
                         <ControlLabel>Minimum Openings</ControlLabel>
                         <NumericInput
                           className="form-control"
@@ -542,7 +549,7 @@ class JobPostingsTable extends React.Component {
 
 
                     <Col md={2}>
-                      <FormGroup controlId="duration" bsSize="large">
+                      <FormGroup controlId="duration">
                         <ControlLabel>Minimum Duration</ControlLabel>
                         <NumericInput
                           className="form-control"
@@ -552,18 +559,22 @@ class JobPostingsTable extends React.Component {
                       </FormGroup>
                     </Col>
                   </Row>
+
+                  <Row>
+                    <Col md={2} mdPush={9}>
+                      <Button
+                        type="submit"
+                        block
+                        bsSize="large"
+                        bsStyle="primary"
+                        className="job-posting-submit-button pull-right"
+                      >
+                      Apply Filters
+                      </Button>
+                    </Col>
+                  </Row>
+
                 </Grid>
-
-
-                <Button
-                  type="submit"
-                  block
-                  bsSize="large"
-                  bsStyle="primary"
-                  className="job-posting-submit-button pull-right"
-                >
-                Apply Filters
-                </Button>
               </div>
 
             </Panel>
