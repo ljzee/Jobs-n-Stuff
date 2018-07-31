@@ -3,7 +3,10 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Label } from 'react-bootstrap';
+import { Button, Col, ControlLabel, FormControl, FormGroup, Grid, InputGroup, Label, Panel, Radio, Row } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
+import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
+import NumericInput from 'react-numeric-input';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
 import '../../styles/JobPostingsTable.css'
@@ -31,12 +34,105 @@ function dateDiffInDays(a, b) {
 }
 /* End of referenced code */
 
-class JobPostingsTable extends React.Component {
+/*
+Code below is from:
+  https://stackoverflow.com/questions/563406/add-days-to-javascript-date
+By sparebytes
+*/
+function addDays(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+/* End of referenced code */
 
-  getPostings= () => {
+class JobPostingsTable extends React.Component {
+  state = {
+    filters: {
+      deadline: '',
+      title: '',
+      type: '',
+      salary: '',
+      wage: '',
+      location: {
+        country: '',
+        region: ''
+      },
+      duration: '',
+      openings: ''
+    }
+  }
+
+  handleChange = (e) => {
+    let state = this.state;
+    state.filters[e.target.id] = e.target.value;
+
+    this.setState(state);
+  }
+
+  setDeadline = (val) => {
+    let state = this.state;
+    state.filters.deadline = val;
+
+    this.setState(state);
+  }
+
+  setType = (val) => {
+    let state = this.state;
+    state.filters.type = val;
+
+    this.setState(state);
+  }
+
+  setSalary = (val) => {
+    let state = this.state;
+    state.filters.salary = val;
+
+    this.setState(state);
+  }
+
+  setWage = (val) => {
+    let state = this.state;
+    state.filters.wage = val;
+
+    this.setState(state);
+  }
+
+  selectCountry= (val) => {
+    let state = this.state;
+    state.filters.location.country = val;
+    state.filters.location.region = '';
+
+    this.setState(state);
+  }
+
+  selectRegion= (val) => {
+    let state = this.state
+    state.filters.location.region = val;
+
+    this.setState(state);
+  }
+
+  setDuration = (val) => {
+    let state = this.state;
+    state.filters.duration = val;
+
+    this.setState(state);
+  }
+
+  setOpenings = (val) => {
+    let state = this.state;
+    state.filters.openings = val;
+
+    this.setState(state);
+  }
+
+  getPostings = () => {
     let postings = [];
 
-    this.props.jobPostingsQuery.jobpostings.forEach(result => {
+    let resultPostings = this.props.jobPostingsQuery.jobpostings;
+
+    resultPostings.forEach(result => {
       if (result.activated) {
         let posting = {};
 
@@ -72,6 +168,125 @@ class JobPostingsTable extends React.Component {
     });
 
     return postings;
+  }
+
+  filterPostings = async (e) => {
+    e.preventDefault();
+
+    let deadline = this.state.filters.deadline;
+    if (deadline !== '') {
+      deadline = addDays(deadline, 1);
+    } else {
+      deadline = addDays(new Date(Date.now()), 101);
+    }
+    const title    = this.state.filters.title;
+    const type     = this.state.filters.type;
+
+    let typeQuery;
+    if (type === 'FULLTIME') {
+      typeQuery = 'FULLTIME';
+
+    } else if (type === 'PARTTIME') {
+      typeQuery = 'PARTTIME';
+
+    } else {
+      typeQuery = ['FULLTIME', 'PARTTIME'];
+    }
+
+    let salary = this.state.filters.salary;
+    if (salary === null || salary === '') {
+      salary = 0;
+    }
+
+    let wage = this.state.filters.wage;
+    if (wage === null || wage === '') {
+      wage = 0;
+    }
+
+    let duration = this.state.filters.duration;
+    if (duration === null || duration === '') {
+      duration = 0;
+    }
+
+    let openings = this.state.filters.openings;
+    if (openings === null || openings === '') {
+      openings = 0;
+    }
+
+    const country = this.state.filters.location.country;
+    const region = this.state.filters.location.region;
+
+    let locationQuery;
+
+    if (country !== '') {
+
+      if (region !== '') {
+        // Country and region defined
+        locationQuery = {
+          country: country,
+          region: region
+        }
+
+      } else {
+        // Only country defined
+        locationQuery = {
+          country: country,
+        }
+      }
+
+    } else {
+      // Country and region undefined
+      locationQuery = {
+        country_contains: '',
+        region_contains: ''
+      }
+    }
+
+    this.props.jobPostingsQuery.refetch({
+      where: {
+        deadline_lte: deadline,
+        AND: [{
+          OR: [{
+            title_contains: title.charAt(0).toUpperCase() + title.slice(1)
+          }, {
+            title_contains: title.charAt(0).toLowerCase() + title.slice(1)
+          }]
+        }, {
+          OR: [{
+            OR: [{
+              paytype: "SALARY",
+              salary_gte: salary
+            }, {
+              paytype: "SALARY",
+              salary: null
+            }]
+          }, {
+            OR: [{
+              paytype: "HOURLY",
+              salary_gte: wage
+            }, {
+              paytype: "HOURLY",
+              salary: null
+            }],
+          }]
+        }],
+
+        type_in: typeQuery,
+        location: locationQuery,
+
+        OR: [{
+          duration_gte: duration
+        }, {
+          duration: null
+        }],
+
+        OR: [{
+          openings_gte: openings
+        }, {
+          openings: null
+        }]
+      }
+    });
   }
 
   render() {
@@ -201,23 +416,175 @@ class JobPostingsTable extends React.Component {
     ]
 
     return (
-      <div className="view-job-postings">
+      <div id="view-job-postings">
         <h1>Job Postings</h1>
-          <ReactTable
-            id="job-postings-table"
-            columns={columns}
-            data={postings}
-            minRows={5}
-            showPagination={false}
-          />
+
+        <div id="filter-job-postings">
+          <form onSubmit={this.filterPostings}>
+            <Panel>
+              <Panel.Heading>
+                <Panel.Title componentClass="h3">Filters</Panel.Title>
+              </Panel.Heading>
+
+              <div className="panel-form">
+                <Grid>
+                  <Row>
+                    <Col md={3}>
+                      <FormGroup controlId="title" bsSize="large">
+                        <ControlLabel>Keywords</ControlLabel>
+                        <FormControl
+                          autoFocus
+                          type="text"
+                          placeholder="Keywords"
+                          value={this.state.filters.title}
+                          onChange={this.handleChange}
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={3}>
+                      <FormGroup controlId="deadline" bsSize="large">
+                      <ControlLabel>Latest Application Deadline</ControlLabel>
+                        <InputGroup>
+                          <DatePicker
+                            readOnly
+                            dateFormat="DD-MM-YYYY"
+                            selected={this.state.filters.deadline}
+                            onChange={(date) => this.setDeadline(date)}
+                          />
+                        </InputGroup>
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={5}>
+                      <FormGroup controlId="country">
+                        <ControlLabel>Country</ControlLabel>
+                        <CountryDropdown
+                          value={this.state.filters.location.country}
+                          onChange={(val) => this.selectCountry(val)} />
+                      </FormGroup>
+                      <br />
+                      <FormGroup controlId="region">
+                        <ControlLabel>Region</ControlLabel>
+                        <RegionDropdown
+                          disableWhenEmpty={true}
+                          country={this.state.filters.location.country}
+                          value={this.state.filters.location.region}
+                          onChange={(val) => this.selectRegion(val)} />
+                      </FormGroup>
+                    </Col>
+
+                  </Row>
+
+                  <Row>
+
+                    <Col md={3}>
+                      <FormGroup controlId="type">
+                        <ControlLabel>Type of Position</ControlLabel>
+                        <br />
+                        <Radio
+                          inline
+                          checked={this.state.filters.type === ''}
+                          onChange={() => this.setType('')}
+                        >
+                          Any
+                        </Radio>{' '}
+                        <Radio
+                          inline
+                          checked={this.state.filters.type ==='FULLTIME'}
+                          onChange={() => this.setType('FULLTIME')}
+                        >
+                          Full-Time
+                        </Radio>{' '}
+                        <Radio
+                          inline
+                          checked={this.state.filters.type ==='PARTTIME'}
+                          onChange={() => this.setType('PARTTIME')}
+                        >
+                          Part-Time
+                        </Radio>{' '}
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={2}>
+                      <FormGroup controlId="salary" bsSize="large">
+                        <ControlLabel>Minimum Salary</ControlLabel>
+                        <NumericInput
+                          className="form-control"
+                          value={this.state.filters.salary}
+                          min={0}
+                          step={5000}
+                          onChange={this.setSalary}/>
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={2}>
+                      <FormGroup controlId="wage" bsSize="large">
+                        <ControlLabel>Minimum Wage</ControlLabel>
+                        <NumericInput
+                          className="form-control"
+                          value={this.state.filters.wage}
+                          min={0}
+                          onChange={this.setWage}/>
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={2}>
+                      <FormGroup controlId="openings" bsSize="large">
+                        <ControlLabel>Minimum Openings</ControlLabel>
+                        <NumericInput
+                          className="form-control"
+                          value={this.state.filters.openings}
+                          min={0}
+                          onChange={this.setOpenings}/>
+                      </FormGroup>
+                    </Col>
+
+
+                    <Col md={2}>
+                      <FormGroup controlId="duration" bsSize="large">
+                        <ControlLabel>Minimum Duration</ControlLabel>
+                        <NumericInput
+                          className="form-control"
+                          value={this.state.filters.duration}
+                          min={0}
+                          onChange={this.setDuration}/>
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                </Grid>
+
+
+                <Button
+                  type="submit"
+                  block
+                  bsSize="large"
+                  bsStyle="primary"
+                  className="job-posting-submit-button pull-right"
+                >
+                Apply Filters
+                </Button>
+              </div>
+
+            </Panel>
+          </form>
+        </div>
+
+        <ReactTable
+          id="job-postings-table"
+          columns={columns}
+          data={postings}
+          minRows={5}
+          showPagination={false}
+        />
       </div>
     );
   }
 }
 
 const JOB_POSTINGS_QUERY = gql`
-  query UserQuery {
-    jobpostings {
+  query JobPostingsQuery($where: JobPostingWhereInput) {
+    jobpostings(where: $where, orderBy: deadline_ASC) {
       id
       activated
       title
@@ -225,6 +592,7 @@ const JOB_POSTINGS_QUERY = gql`
       deadline
       duration
       openings
+      paytype
       salary
       businessprofile {
         name
