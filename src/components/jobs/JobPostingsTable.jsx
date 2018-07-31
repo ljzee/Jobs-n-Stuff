@@ -456,7 +456,7 @@ class JobPostingsTable extends React.Component {
 
                     <Col md={2}>
                       <FormGroup controlId="deadline">
-                      <ControlLabel>Latest Deadline</ControlLabel>
+                      <ControlLabel>Deadline Before</ControlLabel>
                         <InputGroup>
                           <DatePicker
                             id="date-picker"
