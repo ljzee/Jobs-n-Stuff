@@ -382,6 +382,10 @@ class ManagePostings extends Component {
       return <Redirect to='/dashboard'/>;
     }
 
+    if (!this.props.userQuery.user.activated) {
+      return <Redirect to='/dashboard'/>;
+    }
+
     if (this.props.userQuery.user.username !== this.props.match.params.username) {
       return <Redirect to='/dashboard'/>;
     }
@@ -774,6 +778,7 @@ const USER_QUERY = gql`
       id
       role
       username
+      activated
       businessprofile {
         id
         jobpostings {

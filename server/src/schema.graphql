@@ -134,7 +134,8 @@ type User {
   username: String!
   email: String!
   role: Role!
-  activated: Boolean
+  activated: Boolean!
+  admindeactivated: Boolean!
   docsize: Float!
   userprofile: UserProfile
   businessprofile: BusinessProfile
