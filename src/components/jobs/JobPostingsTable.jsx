@@ -64,6 +64,24 @@ class JobPostingsTable extends React.Component {
     }
   }
 
+  resetFilters = async () => {
+    this.setState({
+      filters: {
+        deadline: '',
+        title: '',
+        type: '',
+        salary: '',
+        wage: '',
+        location: {
+          country: '',
+          region: ''
+        },
+        duration: '',
+        openings: ''
+      }
+    });
+  }
+
   handleChange = (e) => {
     let state = this.state;
     state.filters[e.target.id] = e.target.value;
@@ -583,13 +601,21 @@ class JobPostingsTable extends React.Component {
                   </Row>
 
                   <Row>
-                    <Col md={2} mdPush={9}>
+                    <Col md={2} mdPush={7}>
+                      <Button
+                        id="filter-reset-button"
+                        bsSize="large"
+                        onClick={this.resetFilters}
+                      >
+                      Reset Filters
+                      </Button>
+                    </Col>
+                    <Col md={2} mdPush={7}>
                       <Button
                         type="submit"
                         block
                         bsSize="large"
                         bsStyle="primary"
-                        className="job-posting-submit-button pull-right"
                       >
                       Apply Filters
                       </Button>

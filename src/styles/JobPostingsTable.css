@@ -9,6 +9,7 @@
 }
 
 #filter-job-postings {
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -38,4 +39,8 @@
 #region-dropdown {
   min-width: 165px;
   max-width: 165px;
+}
+
+#filter-reset-button {
+  width: 100%;
 }
