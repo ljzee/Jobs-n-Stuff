@@ -7,26 +7,24 @@ async function me (parent, args, ctx, info) {
   return ctx.db.query.user({ where: { id } }, info);
 }
 
-async function feed(parent, args, ctx, info) {
-  const { filter, first, skip } = args // destructure input arguments
-  const where = filter
-    ? { OR: [{ username_contains: filter }, { email_contains: filter }] }
-    : {}
+async function users(parent, args, ctx, info) {
+  const { where } = args;
+  const users = await ctx.db.query.users({ where }, info);
 
-  const allUsers = await ctx.db.query.users({})
-  const count = allUsers.length
+  return users;
+}
 
-  const queriedUsers = await ctx.db.query.users({ first, skip, where })
+async function jobpostings(parent, args, ctx, info) {
+  const { where } = args;
+  const jobpostings = await ctx.db.query.jobPostings({ where }, info);
 
-  return {
-    userIds: queriedUsers.map(user => user.id),
-    count
-  }
+  return jobpostings;
 }
 
 const Query = {
   me,
-  feed,
+  users,
+  jobpostings,
   user: (parent, args, ctx, info) => {
     return forwardTo('db')(parent, args, ctx, info);
   },
