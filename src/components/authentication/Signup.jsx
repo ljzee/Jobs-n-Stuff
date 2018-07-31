@@ -54,6 +54,7 @@ class Signup extends React.Component {
       if (!values[field.name]) {
         values[field.name] = '';
       }
+      return null;
     });
     if (!values['role']) {
       values['role'] = 'BASEUSER';
