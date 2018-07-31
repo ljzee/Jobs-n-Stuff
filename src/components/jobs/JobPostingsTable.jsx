@@ -161,7 +161,11 @@ class JobPostingsTable extends React.Component {
         posting.type     = result.type;
         posting.duration = result.duration;
         posting.openings = result.openings;
-        posting.salary   = result.salary;
+
+        posting.pay = {
+          paytype: result.paytype,
+          salary:  result.salary
+        }
 
         postings.push(posting);
       }
@@ -346,7 +350,9 @@ class JobPostingsTable extends React.Component {
           <div>
             {props.value === 'FULLTIME'
               ? <span>Full-time</span>
-              : <span>Part-time</span>
+              : props.value === 'PARTTIME'
+              ? <span>Part-time</span>
+              : <span>N/A</span>
             }
           </div>,
         width: 100
@@ -356,7 +362,7 @@ class JobPostingsTable extends React.Component {
         accessor: 'location',
         Cell: props =>
           <div>
-            <span>{props.value.city}, {props.value.region},</span>
+            <span>{props.value.city}, {props.value.region}</span>
             <br />
             <span>{props.value.country}</span>
           </div>,
@@ -387,12 +393,17 @@ class JobPostingsTable extends React.Component {
         width: 100
       },
       {
-        Header: () => <div><strong>Salary/Wage</strong></div>,
-        accessor: 'salary',
+        Header: () => <div><strong>Pay</strong></div>,
+        accessor: 'pay',
         Cell: props =>
-          <div className="center-content-div ">
-            {props.value
-              ? <span>{`$ ${props.value.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
+          <div>
+            {props.value.paytype === "SALARY"
+              ? <span>Salary</span>
+              : <span>Wage</span>
+            }
+            <br />
+            {props.value.salary
+              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
               : <span>N/A</span>
             }
           </div>,
