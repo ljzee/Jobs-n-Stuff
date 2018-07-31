@@ -6,13 +6,8 @@ scalar Upload
 
 type Query {
   me: User
-  feed(filter: String, skip: Int, first: Int, orderBy: UserOrderByInput): Feed!
-}
-
-type Feed {
-  users: [User!]!
-  jobpostings: [JobPosting!]!
-  count: Int!
+  users(where: UserWhereInput, orderBy: UserOrderByInput): [User!]!
+  jobpostings(where: JobPostingWhereInput, orderBy: JobPostingOrderByInput): [JobPosting!]!
 }
 
 type Mutation {
