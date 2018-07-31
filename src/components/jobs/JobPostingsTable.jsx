@@ -187,14 +187,15 @@ class JobPostingsTable extends React.Component {
     const type     = this.state.filters.type;
 
     let typeQuery;
+    // typeQuery is reversed to allow retrieval of jobs with null position types
     if (type === 'FULLTIME') {
-      typeQuery = 'FULLTIME';
-
-    } else if (type === 'PARTTIME') {
       typeQuery = 'PARTTIME';
 
+    } else if (type === 'PARTTIME') {
+      typeQuery = 'FULLTIME';
+
     } else {
-      typeQuery = ['FULLTIME', 'PARTTIME'];
+      typeQuery = [];
     }
 
     let salary = this.state.filters.salary;
@@ -275,7 +276,7 @@ class JobPostingsTable extends React.Component {
           }]
         }],
 
-        type_in: typeQuery,
+        type_not_in: typeQuery,
         location: locationQuery,
 
         OR: [{
