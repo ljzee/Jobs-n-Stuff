@@ -16,7 +16,6 @@ const monthNames = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-
 /*
 Code below is from:
   https://stackoverflow.com/questions/3224834/get-difference-between-2-dates-in-javascript
@@ -461,6 +460,7 @@ class JobPostingsTable extends React.Component {
                           <DatePicker
                             id="date-picker"
                             className="btn btn-default dropdown-toggle"
+                            placeholderText="Select Date"
                             readOnly
                             dateFormat="DD-MM-YYYY"
                             selected={this.state.filters.deadline}
@@ -530,6 +530,7 @@ class JobPostingsTable extends React.Component {
                         <ControlLabel>Minimum Salary</ControlLabel>
                         <NumericInput
                           className="form-control"
+                          placeholder="$/yr"
                           value={this.state.filters.salary}
                           min={0}
                           step={5000}
@@ -542,6 +543,7 @@ class JobPostingsTable extends React.Component {
                         <ControlLabel>Minimum Wage</ControlLabel>
                         <NumericInput
                           className="form-control"
+                          placeholder="$/hr"
                           value={this.state.filters.wage}
                           min={0}
                           onChange={this.setWage}/>
@@ -553,6 +555,7 @@ class JobPostingsTable extends React.Component {
                         <ControlLabel>Minimum Openings</ControlLabel>
                         <NumericInput
                           className="form-control"
+                          placeholder="Openings"
                           value={this.state.filters.openings}
                           min={0}
                           onChange={this.setOpenings}/>
@@ -565,6 +568,7 @@ class JobPostingsTable extends React.Component {
                         <ControlLabel>Minimum Duration</ControlLabel>
                         <NumericInput
                           className="form-control"
+                          placeholder="Months"
                           value={this.state.filters.duration}
                           min={0}
                           onChange={this.setDuration}/>
