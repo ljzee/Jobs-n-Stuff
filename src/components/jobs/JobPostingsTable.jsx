@@ -447,9 +447,9 @@ class JobPostingsTable extends React.Component {
                   <Row>
                     <Col md={3}>
                       <FormGroup controlId="title">
-                        <ControlLabel>Keywords</ControlLabel>
+                        <ControlLabel>Title Keywords</ControlLabel>
                         <FormControl
-                          id="keyword-field"
+                          className="text-field"
                           autoFocus
                           type="text"
                           placeholder="Keywords"
