@@ -6,6 +6,8 @@ import { withRouter } from 'react-router-dom';
 import { Label } from 'react-bootstrap';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
+import { Redirect } from 'react-router';
+import { USER_TOKEN } from '../../constants';
 import '../../styles/JobPostingsTable.css'
 
 const monthNames = [
@@ -75,12 +77,16 @@ class JobPostingsTable extends React.Component {
   }
 
   render() {
-    if (this.props.jobPostingsQuery.loading) {
+    if (this.props.jobPostingsQuery.loading || this.props.userQuery.loading) {
       return <Loading />
     }
 
     if (this.props.jobPostingsQuery.error) {
       return <h3>Error</h3>
+    }
+
+    if (!this.props.userQuery.user.activated) {
+      return <Redirect to='/dashboard'/>;
     }
 
     let postings = this.getPostings();
@@ -215,8 +221,16 @@ class JobPostingsTable extends React.Component {
   }
 }
 
+const USER_QUERY = gql`
+  query UserQuery($where: UserWhereUniqueInput!) {
+    user(where: $where) {
+      activated
+    }
+  }
+`
+
 const JOB_POSTINGS_QUERY = gql`
-  query UserQuery {
+  query JobPostingsQuery {
     jobpostings {
       id
       activated
@@ -241,6 +255,16 @@ const JOB_POSTINGS_QUERY = gql`
 export default compose(
   graphql(JOB_POSTINGS_QUERY, {
     name: 'jobPostingsQuery',
+  }),
+  graphql(USER_QUERY, {
+    name: 'userQuery',
+    options: props => ({
+      variables: {
+          where: {
+            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+          }
+        },
+    }),
   }),
   withRouter,
   withApollo

@@ -42,6 +42,7 @@ async function createNewUser(username, email, password, role, activated, deleteU
         password: hashed_pass,
         role: role,
         activated: activated,
+        admindeactivated: false,
         resetPasswordToken,
         validateEmailToken
       } },
