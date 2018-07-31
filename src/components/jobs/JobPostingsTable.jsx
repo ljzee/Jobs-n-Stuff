@@ -36,7 +36,7 @@ class JobPostingsTable extends React.Component {
   getPostings= () => {
     let postings = [];
 
-    this.props.jobPostingsQuery.feed.jobpostings.forEach(result => {
+    this.props.jobPostingsQuery.jobpostings.forEach(result => {
       if (result.activated) {
         let posting = {};
 
@@ -217,24 +217,22 @@ class JobPostingsTable extends React.Component {
 
 const JOB_POSTINGS_QUERY = gql`
   query UserQuery {
-    feed {
-      jobpostings {
-        id
-        activated
-        title
-        type
-        deadline
-        duration
-        openings
-        salary
-        businessprofile {
-          name
-        }
-        location {
-          city
-          region
-          country
-        }
+    jobpostings {
+      id
+      activated
+      title
+      type
+      deadline
+      duration
+      openings
+      salary
+      businessprofile {
+        name
+      }
+      location {
+        city
+        region
+        country
       }
     }
   }

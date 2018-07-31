@@ -15,7 +15,7 @@ class ManageUsers extends React.Component {
   getUsers = () => {
     let users = [];
 
-    this.props.usersQuery.feed.users.forEach(result => {
+    this.props.usersQuery.users.forEach(result => {
       let user       = {};
       user.id        = result.id;
       user.username  = result.username;
@@ -159,26 +159,24 @@ const ME_QUERY =gql`
 `
 const USERS_QUERY = gql`
   query UserQuery {
-    feed {
-      users {
-        id
-        username
-        email
-        role
-        activated
-        files(filetype: PROFILEIMAGE) {
-          path
-        }
-        userprofile {
-          firstname
-          preferredname
-          lastname
-          phonenumber
-        }
-        businessprofile{
-          name
-          phonenumber
-        }
+    users {
+      id
+      username
+      email
+      role
+      activated
+      files(filetype: PROFILEIMAGE) {
+        path
+      }
+      userprofile {
+        firstname
+        preferredname
+        lastname
+        phonenumber
+      }
+      businessprofile{
+        name
+        phonenumber
       }
     }
   }
