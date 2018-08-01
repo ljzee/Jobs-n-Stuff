@@ -124,13 +124,33 @@ async function signup(parent, args, ctx, info) {
       }, `{ id }`);
     }
     if (args.role === 'BUSINESS') {
-      await ctx.db.mutation.createBusinessProfile({
+       const businessprofile = await ctx.db.mutation.createBusinessProfile({
         data: {
           name: '',
           description: '',
           phonenumber: '',
           address: '',
           website: '',
+          location: {},
+          user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+      await ctx.db.mutation.createLocation({
+        data: {
+          city: '',
+          region: '',
+          country: '',
+          postalcode: '',
+          address: '',
+          businessprofile: { connect: { id: businessprofile.id } }
+        },
+      }, `{ id }`);
+      await ctx.db.mutation.createUserProfile({
+        data: {
+          firstname: '',
+          lastname: '',
+          preferredname: '',
+          phonenumber: '',
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
@@ -959,21 +979,122 @@ async function forgotPassword (parent, { email }, ctx, info) {
 
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile {id}}`);
-  
+  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
+  const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile { id }}`);
+
+
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
+  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  var valid = true;
+  var usernameValid = true;
+  var emailValid = true;
+  var phonenumberValid = true;
+  //
+   console.log("the businessProfileId is" + businessProfileID.businessprofile.id);
+   console.log("the user id is " + userId);
+  // console.log("businessProfileId" + businessProfileID.businessprofile.location.id);
+  // console.log("userProfileId" + userProfileID.userprofile.id);
+
   var payload = {
     user: null,
+    errors: {
+      username: '',
+      email: '',
+      firstname: '',
+      lastname: '',
+      phonenumber: ''
+    }
   }
 
-  await ctx.db.mutation.updateBusinessProfile({
+  if (args.username === '' || args.username.trim().length > 32) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username must be between 1 and 32 characters';
+  }
+
+  if (usernameValid && !usernameRegEx.test(args.username)) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  }
+
+  if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username already in use';
+  }
+
+  if (args.email === '') {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Please enter an email';
+  }
+
+  if (emailValid && !validator.isEmail(args.email)) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Not a valid email address';
+  }
+
+  if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Email already in use';
+  }
+
+  if (args.firstname === '' || args.firstname.trim().length > 32) {
+    valid = false;
+    payload.errors.firstname = 'First name must be between 1 and 32 characters';
+  }
+
+  if (args.lastname === '' || args.lastname.trim().length > 32) {
+    valid = false;
+    payload.errors.lastname = 'Please enter your last name';
+  }
+
+  if (args.phonenumber === '') {
+    valid = false;
+    phonenumberValid = false;
+    payload.errors.phonenumber = 'Please enter your phone number';
+  }
+
+  var formattedPhone = '';
+  if (phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+    var unformattedPhone = args.phonenumber;
+    formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+  } else {
+    valid = false;
+    payload.errors.phonenumber = 'Not a valid phone number';
+  }
+if(valid) {
+  await ctx.db.mutation.updateUserProfile({
+    data: {
+      firstname: args.firstname,
+      lastname: args.lastname,
+      preferredname: '',
+      phonenumber: '',
+    },
+    where: {id: userProfileID.userprofile.id}
+  }, `{ id }`);
+  const businessprofile = await ctx.db.mutation.updateBusinessProfile({
     data: {
       name: args.name,
       description: args.description,
-      phonenumber: args.phonenumber,
-      address: args.address,
+      phonenumber: formattedPhone,
       website: args.website
     },
     where: {id: businessProfileID.businessprofile.id}
+  }, `{ id location { id } }`);
+  await ctx.db.mutation.updateLocation({
+    data: {
+      city: args.city,
+      region: args.region,
+      country: args.country,
+      address: args.address,
+      postalcode: args.postalcode
+    },
+    where: {id: businessprofile.location.id}
   }, `{ id }`);
   payload.user =  await ctx.db.mutation.updateUser({
     data: {
@@ -982,6 +1103,8 @@ async function updatebusinessuser(parent, args, ctx, info) {
     },
     where: {id: userId}
   }, `{ id username }`);
+}
+  return payload;
 }
 
 

@@ -39,7 +39,7 @@ class Profile extends Component {
   }
 
   showActivationWarning = () => {
-    if (!this.props.userQuery.user.activated) {
+    if (!this.props.userQuery.user.activated && this.props.userQuery.user.role === "BASEUSER") {
       if (this.props.userQuery.user.userprofile.firstname === '' && this.props.userQuery.user.userprofile.lastname === '') {
         return false;
       } else {
