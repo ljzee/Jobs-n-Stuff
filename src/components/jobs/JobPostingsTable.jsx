@@ -57,7 +57,8 @@ class JobPostingsTable extends React.Component {
       wage: '',
       location: {
         country: '',
-        region: ''
+        region: '',
+        city: ''
       },
       duration: '',
       openings: ''
@@ -74,7 +75,8 @@ class JobPostingsTable extends React.Component {
         wage: '',
         location: {
           country: '',
-          region: ''
+          region: '',
+          city: ''
         },
         duration: '',
         openings: ''
@@ -84,7 +86,11 @@ class JobPostingsTable extends React.Component {
 
   handleChange = (e) => {
     let state = this.state;
-    state.filters[e.target.id] = e.target.value;
+    if (e.target.id === "title") {
+      state.filters[e.target.id] = e.target.value;
+    } else if (e.target.id === "city") {
+      state.filters.location[e.target.id] = e.target.value;
+    }
 
     this.setState(state);
   }
@@ -117,7 +123,7 @@ class JobPostingsTable extends React.Component {
     this.setState(state);
   }
 
-  selectCountry= (val) => {
+  selectCountry = (val) => {
     let state = this.state;
     state.filters.location.country = val;
     state.filters.location.region = '';
@@ -125,8 +131,8 @@ class JobPostingsTable extends React.Component {
     this.setState(state);
   }
 
-  selectRegion= (val) => {
-    let state = this.state
+  selectRegion = (val) => {
+    let state = this.state;
     state.filters.location.region = val;
 
     this.setState(state);
@@ -172,9 +178,9 @@ class JobPostingsTable extends React.Component {
         };
 
         posting.location = {
-          city:    result.location.city,
+          country: result.location.country,
           region:  result.location.region,
-          country: result.location.country
+          city:    result.location.city
         }
 
         posting.type     = result.type;
@@ -238,7 +244,8 @@ class JobPostingsTable extends React.Component {
     }
 
     const country = this.state.filters.location.country;
-    const region = this.state.filters.location.region;
+    const region  = this.state.filters.location.region;
+    const city    = this.state.filters.location.city;
 
     let locationQuery;
 
@@ -265,6 +272,12 @@ class JobPostingsTable extends React.Component {
         region_contains: ''
       }
     }
+
+    locationQuery.OR = [{
+      city_contains: city.charAt(0).toUpperCase() + city.slice(1)
+    }, {
+      city_contains: city.charAt(0).toLowerCase() + city.slice(1)
+    }];
 
     this.props.jobPostingsQuery.refetch({
       where: {
@@ -495,7 +508,7 @@ class JobPostingsTable extends React.Component {
                     </Col>
 
 
-                    <Col md={4}>
+                    <Col md={2}>
                       <FormGroup controlId="country" className="location-selector">
                         <ControlLabel>Country</ControlLabel>
                         <CountryDropdown
@@ -506,7 +519,7 @@ class JobPostingsTable extends React.Component {
                       </FormGroup>
                     </Col>
 
-                    <Col md={3}>
+                    <Col md={2}>
                       <FormGroup controlId="region" className="location-selector">
                         <ControlLabel>Region</ControlLabel>
                         <RegionDropdown
@@ -516,6 +529,20 @@ class JobPostingsTable extends React.Component {
                           country={this.state.filters.location.country}
                           value={this.state.filters.location.region}
                           onChange={(val) => this.selectRegion(val)} />
+                      </FormGroup>
+                    </Col>
+
+                    <Col md={2}>
+                      <FormGroup controlId="city">
+                        <ControlLabel>City</ControlLabel>
+                        <FormControl
+                          className="text-field"
+                          autoFocus
+                          type="text"
+                          placeholder="City"
+                          value={this.state.filters.location.city}
+                          onChange={this.handleChange}
+                        />
                       </FormGroup>
                     </Col>
                   </Row>
