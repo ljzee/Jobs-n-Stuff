@@ -106,6 +106,7 @@ async function signup(parent, args, ctx, info) {
         password: password,
         role: args.role,
         activated: false,
+        admindeactivated: false,
         validateEmailToken,
         resetPasswordToken,
         resetPasswordExpires
@@ -813,7 +814,8 @@ async function createApplication(parent, args, ctx, info) {
 async function toggleUserActive(parent, args, ctx, info) {
   return await ctx.db.mutation.updateUser({
     data: {
-      activated: args.activated
+      activated: args.activated,
+      admindeactivated: !args.activated
     },
     where: {id: args.id}
   }, `{ id }`);

@@ -38,6 +38,10 @@ class Profile extends Component {
     }
   }
 
+  adminDeactivated = () => {
+    return this.props.userQuery.user.admindeactivated;
+  }
+
   showActivationWarning = () => {
     if (!this.props.userQuery.user.activated && this.props.userQuery.user.role === "BASEUSER") {
       if (this.props.userQuery.user.userprofile.firstname === '' && this.props.userQuery.user.userprofile.lastname === '') {
@@ -70,20 +74,29 @@ class Profile extends Component {
     if (authToken) {
       return (
         <div className="Profile">
-          {this.showActivationWarning() &&
-            <Alert bsStyle="warning">
-              <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
+          {this.adminDeactivated()
+            ?
+              <Alert bsStyle="danger">
+                Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
+              </Alert>
+            :
               <div>
-                <Button
-                  type="submit"
-                  bsSize="small"
-                  bsStyle="primary"
-                  onClick={this.resendActivationEmail}
-                >
-                  Resend Activation Link
-                </Button>
+                {this.showActivationWarning() &&
+                  <Alert bsStyle="warning">
+                    <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
+                    <div>
+                      <Button
+                        type="submit"
+                        bsSize="small"
+                        bsStyle="primary"
+                        onClick={this.resendActivationEmail}
+                      >
+                        Resend Activation Link
+                      </Button>
+                    </div>
+                  </Alert>
+                }
               </div>
-            </Alert>
           }
           {this.state.emailError !== '' &&
             <Alert bsStyle="danger">
@@ -124,6 +137,7 @@ const USER_QUERY = gql`
       email
       username
       activated
+      admindeactivated
       files {
         filename
         path

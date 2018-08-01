@@ -355,7 +355,7 @@ class Documents extends Component {
       return <Redirect to='/login'/>;
     }
 
-    if (this.props.userQuery.user.username !== this.props.match.params.username) {
+    if (this.props.userQuery.user.username !== this.props.match.params.username || !this.props.userQuery.user.activated) {
       return <Redirect to='/dashboard'/>;
     }
 
@@ -583,6 +583,7 @@ const USER_QUERY = gql`
     user(where: $where) {
       role
       username
+      activated
       files {
         id
         updatedAt
