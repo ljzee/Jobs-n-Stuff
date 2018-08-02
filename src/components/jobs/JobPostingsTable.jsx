@@ -202,12 +202,15 @@ class JobPostingsTable extends React.Component {
   filterPostings = async (e) => {
     e.preventDefault();
 
-    let deadline = this.state.filters.deadline;
+    const deadline = this.state.filters.deadline;
+    let deadlineQuery = [{
+      deadline_gte: new Date(Date.now())
+    }];
+
     if (deadline !== '') {
-      deadline = addDays(deadline, 1);
-    } else {
-      deadline = addDays(new Date(Date.now()), 101);
+      deadlineQuery.push({deadline_lte: addDays(deadline, 1)});
     }
+
     const title    = this.state.filters.title;
     const type     = this.state.filters.type;
 
@@ -332,13 +335,15 @@ class JobPostingsTable extends React.Component {
 
     this.props.jobPostingsQuery.refetch({
       where: {
-        deadline_lte: deadline,
         AND: [{
+          AND: deadlineQuery,
+
           OR: [{
             title_contains: title.charAt(0).toUpperCase() + title.slice(1)
           }, {
             title_contains: title.charAt(0).toLowerCase() + title.slice(1)
           }]
+
         }, {
           OR: payQuery
         }, {
@@ -750,6 +755,13 @@ const JOB_POSTINGS_QUERY = gql`
 export default compose(
   graphql(JOB_POSTINGS_QUERY, {
     name: 'jobPostingsQuery',
+    options: props => ({
+      variables: {
+          where: {
+            deadline_gte: new Date(Date.now())
+          }
+        },
+    }),
   }),
   graphql(USER_QUERY, {
     name: 'userQuery',
