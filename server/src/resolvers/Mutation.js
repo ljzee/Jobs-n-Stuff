@@ -336,6 +336,12 @@ async function updateuser(parent, args, ctx, info) {
   return payload;
 }
 
+async function deleteUser(parent, args, ctx, info) {
+  return await ctx.db.mutation.deleteUser({
+    where: { id: args.id }
+  }, `{ id }`);
+}
+
 async function uploadFile(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const user = await ctx.db.query.user({ where: { id: userId } }, `{ id username files { id filename storedName size } }`);
@@ -963,6 +969,7 @@ const Mutation = {
   signup,
   login,
   updateuser,
+  deleteUser,
   uploadFile,
   createOrEditPosting,
   updatePassword,

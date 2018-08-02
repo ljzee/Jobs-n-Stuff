@@ -3,13 +3,40 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { Redirect, withRouter } from 'react-router-dom';
-import { Button, Image } from 'react-bootstrap';
+import { Button, Image, Row, Col } from 'react-bootstrap';
 import ReactTable from 'react-table';
+import DeleteUserModal from './DeleteUserModal';
 import Loading from '../Loading';
+import '../../styles/ManageUsers.css';
 
 class ManageUsers extends React.Component {
   state = {
-    users: [],
+    showDelete: false,
+    selectedUser: {}
+  }
+
+  openDelete = (user) => {
+    this.setState({
+      showDelete: true,
+      selectedUser: user
+    });
+  }
+
+  closeDelete = () => {
+    this.setState({showDelete: false});
+  }
+
+  deleteUser = async () => {
+    const id = this.state.selectedUser.id;
+
+    await this.props.deleteUserMutation({
+      variables: {
+        id
+      }
+    });
+
+    this.setState({showDelete: false});
+    this.props.client.resetStore();
   }
 
   getUsers = () => {
@@ -32,14 +59,11 @@ class ManageUsers extends React.Component {
 
       if (result.userprofile) {
         user.name = result.userprofile.firstname + " " + result.userprofile.lastname;
-        user.phonenumber   = result.userprofile.phonenumber;
+        user.phonenumber = result.userprofile.phonenumber;
 
       } else if (result.businessprofile) {
         user.name        = result.businessprofile.name;
         user.phonenumber = result.businessprofile.phonenumber;
-
-      } else {
-        user.phonenumber = "N/A";
       }
 
       users.push(user);
@@ -48,7 +72,7 @@ class ManageUsers extends React.Component {
     return users;
   }
 
-  onToggle = async (e) => {
+  handleToggle = async (e) => {
     const id = e.id;
     const activated = !e.activated;
 
@@ -89,22 +113,40 @@ class ManageUsers extends React.Component {
         accessor: 'username'
       },
       {
+        Header: () => <div><strong>Role</strong></div>,
+        accessor: 'role',
+        Cell: props => {
+          if (props.value === 'BASEUSER') {
+            return 'User';
+
+          } else if (props.value === 'BUSINESS') {
+            return 'Business';
+
+          } else if (props.value === 'ADMIN') {
+            return 'Admin';
+
+          } else {
+            return 'Undefined';
+          }
+        },
+        width: 100
+      },
+      {
         Header: () => <div><strong>Name</strong></div>,
         accessor: 'name'
       },
       {
-        Header: () => <div><strong>Email</strong></div>,
-        accessor: 'email',
-      },
-      {
-        Header: () => <div><strong>Phone Number</strong></div>,
-        accessor: 'phonenumber',
-        width: 130
-      },
-      {
-        Header: () => <div><strong>Role</strong></div>,
-        accessor: 'role',
-        width: 100
+        Header: () => <div><strong>Contact Info</strong></div>,
+        accessor: '',
+        Cell: props => {
+          return (
+            <div>
+              <span>{props.value.email}</span>
+              <br />
+              <span>{props.value.phonenumber}</span>
+            </div>
+          );
+        }
       },
       {
         Header: () => <div><strong>Activated</strong></div>,
@@ -121,31 +163,79 @@ class ManageUsers extends React.Component {
       {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: '',
+        width: 250,
         Cell: props => {
           if (props.value.role !== "ADMIN") {
             if (props.value.activated) {
-              return <Button bsStyle="danger" onClick={() => this.onToggle(props.value)}>Deactivate</Button>
+              return (
+                <Row>
+                  <Col md={6}>
+                    <Button
+                      className="action-button"
+                      bsStyle="warning"
+                      onClick={() => this.handleToggle(props.value)}
+                    >
+                    Deactivate
+                    </Button>
+                  </Col>
+                  <Col md={6}>
+                    <Button
+                      className="action-button"
+                      bsStyle="danger"
+                      onClick={() => this.openDelete(props.value)}
+                    >
+                    Delete
+                    </Button>
+                  </Col>
+                </Row>
+              );
             } else {
-              return <Button bsStyle="success" onClick={() => this.onToggle(props.value)}>Activate</Button>
+              return (
+                <Row>
+                  <Col md={6}>
+                    <Button
+                      className="action-button"
+                      bsStyle="success"
+                      onClick={() => this.handleToggle(props.value)}
+                    >
+                    Activate
+                    </Button>
+                  </Col>
+                  <Col md={6}>
+                    <Button
+                      className="action-button"
+                      bsStyle="danger"
+                      onClick={() => this.openDelete(props.value)}
+                    >
+                    Delete
+                    </Button>
+                  </Col>
+                </Row>
+              );
             }
           } else {
             return false;
           }
-        },
-        width: 120
+        }
       }
     ]
 
     return (
       <div id="manage-users">
         <h1>Manage Users</h1>
-          <ReactTable
-            id="users-table"
-            columns={columns}
-            data={users}
-            minRows={5}
-            showPagination={false}
-          />
+        <DeleteUserModal
+          show={this.state.showDelete}
+          close={this.closeDelete}
+          user={this.state.selectedUser}
+          delete={this.deleteUser}
+        />
+        <ReactTable
+          id="users-table"
+          columns={columns}
+          data={users}
+          minRows={5}
+          showPagination={false}
+        />
       </div>
     );
   }
@@ -190,7 +280,13 @@ const UPDATE_ACTIVATED_MUTATION = gql`
   }
 `
 
-
+const DELETE_USER_MUTATION = gql`
+  mutation deleteUserMutation($id: ID!) {
+    deleteUser(id: $id) {
+      id
+    }
+  }
+`
 
 export default compose(
   graphql(USERS_QUERY, {
@@ -201,6 +297,9 @@ export default compose(
   }),
   graphql(UPDATE_ACTIVATED_MUTATION, {
     name: 'updateActivatedMutation',
+  }),
+  graphql(DELETE_USER_MUTATION, {
+    name: 'deleteUserMutation',
   }),
   withRouter,
   withApollo
