@@ -394,7 +394,10 @@ class JobPostingsTable extends React.Component {
             <br />
             <span>{props.value.day}</span>
          </div>,
-        width: 150
+        width: 150,
+        sortMethod: (a, b) => {
+          return a.daysUntil -  b.daysUntil;
+        }
       },
       {
         Header: () => <div><strong>Job</strong></div>,
@@ -405,7 +408,10 @@ class JobPostingsTable extends React.Component {
             <br />
             <span>{props.value.organization}</span>
           </div>,
-        width: 200
+        width: 200,
+        sortMethod: (a, b) => {
+          return a.title > b.title ? 1 : -1;
+        }
       },
       {
         Header: () => <div><strong>Type</strong></div>,
@@ -430,7 +436,10 @@ class JobPostingsTable extends React.Component {
             <br />
             <span>{props.value.country}</span>
           </div>,
-        width: 220
+        width: 220,
+        sortMethod: (a, b) => {
+          return a.city> b.city? 1 : -1;
+        }
       },
       {
         Header: () => <div><strong>Openings</strong></div>,
@@ -442,7 +451,7 @@ class JobPostingsTable extends React.Component {
               : <span>N/A</span>
             }
           </div>,
-        width: 100
+        width: 100,
       },
       {
         Header: () => <div><strong>Duration</strong></div>,
@@ -478,7 +487,10 @@ class JobPostingsTable extends React.Component {
               : <span>N/A</span>
             }
           </div>,
-        width: 120
+        width: 120,
+        sortMethod: (a, b) => {
+          return a.salary - b.salary;
+        }
       },
       {
         Header: () => <div><strong>Actions</strong></div>,
@@ -492,7 +504,8 @@ class JobPostingsTable extends React.Component {
             >
               Details
             </a>
-          </div>
+          </div>,
+        sortable: false
       }
     ]
 
