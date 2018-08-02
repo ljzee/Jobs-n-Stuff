@@ -13,8 +13,22 @@ class LogoutModal extends Component {
           Are you sure you want to logout?
         </Modal.Body>
         <Modal.Footer>
-          <Button bsSize="large" bsStyle="danger" onClick={this.props.logout}>Yes</Button>
-          <Button bsSize="large" onClick={this.props.close}>No</Button>
+          <Button
+            className="modal-button"
+            bsSize="large"
+            bsStyle="danger"
+            onClick={this.props.logout}
+          >
+          Yes
+          </Button>
+
+          <Button
+            className="modal-button"
+            bsSize="large"
+            onClick={this.props.close}
+          >
+          No
+          </Button>
         </Modal.Footer>
       </Modal>
     );

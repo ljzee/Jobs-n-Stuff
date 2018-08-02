@@ -5,14 +5,42 @@ import { withApollo } from 'react-apollo';
 import { Redirect, withRouter } from 'react-router-dom';
 import { Button, Image, Row, Col } from 'react-bootstrap';
 import ReactTable from 'react-table';
+import ActivateUserModal from './ActivateUserModal';
 import DeleteUserModal from './DeleteUserModal';
 import Loading from '../Loading';
 import '../../styles/ManageUsers.css';
 
 class ManageUsers extends React.Component {
   state = {
+    showActivate: false,
     showDelete: false,
     selectedUser: {}
+  }
+
+  openActivate = (user) => {
+    this.setState({
+      showActivate: true,
+      selectedUser: user
+    });
+  };
+
+  closeActivate = () => {
+    this.setState({showActivate: false});
+  }
+
+  activateUser = async () => {
+    const id = this.state.selectedUser.id;
+    const activated = !this.state.selectedUser.activated;
+
+    await this.props.updateActivatedMutation({
+      variables: {
+        id,
+        activated
+      }
+    });
+
+    this.setState({showActivate: false});
+    this.props.client.resetStore();
   }
 
   openDelete = (user) => {
@@ -72,20 +100,6 @@ class ManageUsers extends React.Component {
     return users;
   }
 
-  handleToggle = async (e) => {
-    const id = e.id;
-    const activated = !e.activated;
-
-    await this.props.updateActivatedMutation ({
-      variables: {
-        id,
-        activated
-      }
-    });
-
-    this.props.client.resetStore();
-  }
-
   render() {
     if (this.props.usersQuery.loading || this.props.meQuery.loading) {
       return <Loading />
@@ -103,10 +117,10 @@ class ManageUsers extends React.Component {
 
     const columns = [
       {
-        Header: () => <div><strong>Avatar</strong></div>,
+        Header: () => <div><strong>Picture</strong></div>,
         accessor: 'avatar',
         Cell: props => <Image src={props.value} style={{"width": "50px"}} />,
-        width: 70
+        width: 70,
       },
       {
         Header: () => <div><strong>Username</strong></div>,
@@ -115,20 +129,20 @@ class ManageUsers extends React.Component {
       {
         Header: () => <div><strong>Role</strong></div>,
         accessor: 'role',
-        Cell: props => {
-          if (props.value === 'BASEUSER') {
-            return 'User';
+        Cell: props =>
+          <div className="center-column">
+            {props.value === 'BASEUSER'
+             ?'User'
 
-          } else if (props.value === 'BUSINESS') {
-            return 'Business';
+             :props.value === 'BUSINESS'
+             ?'Business'
 
-          } else if (props.value === 'ADMIN') {
-            return 'Admin';
+             :props.value === 'ADMIN'
+             ?'Admin'
 
-          } else {
-            return 'Undefined';
-          }
-        },
+             :'Undefined'
+            }
+          </div>,
         width: 100
       },
       {
@@ -146,24 +160,29 @@ class ManageUsers extends React.Component {
               <span>{props.value.phonenumber}</span>
             </div>
           );
+        },
+        sortMethod: (a, b) => {
+          return a.email > b.email? 1 : -1;
         }
+
       },
       {
         Header: () => <div><strong>Activated</strong></div>,
         accessor: 'activated',
-        Cell: props => {
-          if (props.value) {
-            return 'Yes';
-          } else {
-            return 'No';
-          }
-        },
+        Cell: props =>
+          <div className="center-column">
+            {props.value
+              ? 'Yes'
+              : 'No'
+            }
+          </div>,
         width: 100
       },
       {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: '',
         width: 250,
+        sortable: false,
         Cell: props => {
           if (props.value.role !== "ADMIN") {
             if (props.value.activated) {
@@ -173,7 +192,7 @@ class ManageUsers extends React.Component {
                     <Button
                       className="action-button"
                       bsStyle="warning"
-                      onClick={() => this.handleToggle(props.value)}
+                      onClick={() => this.openActivate(props.value)}
                     >
                     Deactivate
                     </Button>
@@ -196,7 +215,7 @@ class ManageUsers extends React.Component {
                     <Button
                       className="action-button"
                       bsStyle="success"
-                      onClick={() => this.handleToggle(props.value)}
+                      onClick={() => this.openActivate(props.value)}
                     >
                     Activate
                     </Button>
@@ -223,6 +242,12 @@ class ManageUsers extends React.Component {
     return (
       <div id="manage-users">
         <h1>Manage Users</h1>
+        <ActivateUserModal
+          show={this.state.showActivate}
+          close={this.closeActivate}
+          user={this.state.selectedUser}
+          activate={this.activateUser}
+        />
         <DeleteUserModal
           show={this.state.showDelete}
           close={this.closeDelete}
