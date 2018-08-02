@@ -1135,7 +1135,7 @@ if(valid) {
     },
     where: {id: userProfileID.userprofile.id}
   }, `{ id }`);
-  const businessprofile = await ctx.db.mutation.updateBusinessProfile({
+  const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
     data: {
       name: args.name,
       description: args.description,
@@ -1152,7 +1152,7 @@ if(valid) {
       address: args.address,
       postalcode: args.postalcode
     },
-    where: {id: businessprofile.location.id}
+    where: {id: businessprofileupdate.location.id}
   }, `{ id }`);
   payload.user =  await ctx.db.mutation.updateUser({
     data: {

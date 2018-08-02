@@ -50,13 +50,12 @@ class BusinessPageForm extends Component {
       state.firstname.value = this.props.user.userprofile.firstname;
       state.lastname.value = this.props.user.userprofile.lastname;
       state.preferredname.value = this.props.user.userprofile.preferredname;
-      //state.phonenumber.value = this.props.user.userprofile.phonenumber;
       state.phonenumber.value = this.props.user.businessprofile.phonenumber;
-      state.city.value = this.props.user.businessprofile.location.city;
-      state.country.value = this.props.user.businessprofile.location.country;
-      state.region.value = this.props.user.businessprofile.location.region;
-      state.postalcode.value = this.props.user.businessprofile.location.country;
-      state.address.value = this.props.user.businessprofile.location.address;
+      state.city.value = this.props.user.businessprofile.city;
+      state.country.value = this.props.user.businessprofile.country;
+      state.region.value = this.props.user.businessprofile.region;
+      state.postalcode.value = this.props.user.businessprofile.country;
+      state.address.value = this.props.user.businessprofile.address;
       state.name.value = this.props.user.businessprofile.name;
       state.description.value = this.props.user.businessprofile.description;
       state.website.value = this.props.user.businessprofile.website;
@@ -130,9 +129,6 @@ class BusinessPageForm extends Component {
 
     const { user, errors } = updateResult.data.updatebusinessuser;
 
-    console.log(user);
-    console.log(updateResult.data.businessuser)
-
     if (user === null) {
 
       for (let key in errors) {
@@ -183,14 +179,12 @@ class BusinessPageForm extends Component {
   selectCountry(val) {
     let state = this.state;
     state.country.value = val;
-    console.log(val);
     this.setState(state);
   }
 
   selectRegion(val) {
     let state = this.state;
     state.region.value = val;
-    console.log(val);
     this.setState(state);
   }
 
@@ -557,8 +551,16 @@ class BusinessPageForm extends Component {
         responsive
         />
       }
-      <p>{'Email: ' + this.state.email.value}</p>
+      <p>{'Business Name: ' + this.state.name.value}</p>
+      <p>{'Business Description: ' + this.state.description.value}</p>
+      <p>{'Business Website: ' + this.state.website.value}</p>
+      <p>{'Business Phone Number: ' + this.state.phonenumber.value}</p>
       <p>{'Phone number: ' + this.state.phonenumber.value}</p>
+      <p>{'Street Address: ' + this.state.address.value}</p>
+      <p>{'City: ' + this.state.city.value}</p>
+      <p>{'Region: ' + this.state.region.value}</p>
+      <p>{'Country: ' + this.state.country.value}</p>
+      <p>{'Locale Code: ' + this.state.postalcode.value}</p>
       {this.props.userQuery.user.username === this.props.match.params.username &&
         <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
       }
@@ -584,32 +586,70 @@ const USER_QUERY = gql`
 query UserQuery($where: UserWhereUniqueInput!) {
   user(where: $where) {
     id
+    role
     username
+    activated
+    businessprofile {
+      id
+      location {
+        address
+        city
+        region
+        country
+        postalcode
+      }
+    }
   }
 }
 `
 
-const UPDATE_USER_MUTATION = gql`
-mutation UpdateUserMutation(
+const UPDATE_BUSINESS_USER_MUTATION = gql`
+mutation UpdateBusinessUserMutation(
   $email: String!,
   $username: String!,
   $firstname: String!,
   $lastname: String!,
   $preferredname: String,
+  $newuser: Boolean!,
+  $name: String!,
+  $description: String!,
   $phonenumber: String!,
-  $newuser: Boolean!) {
-    updateuser(
+  $address: String!,
+  $website: String!
+  $city: String!,
+  $country: String!,
+  $region: String!,
+  $postalcode: String!) {
+    updatebusinessuser(
       email: $email,
       username: $username,
       firstname: $firstname,
       lastname: $lastname,
       preferredname: $preferredname,
+      newuser: $newuser,
+      name: $name,
+      description: $description,
       phonenumber: $phonenumber,
-      newuser: $newuser
+      address: $address,
+      website: $website,
+      city: $city,
+      country: $country,
+      region: $region,
+      postalcode: $postalcode,
     ) {
       user {
         id
         username
+        businessprofile {
+          id
+          location {
+            address
+            country
+            city
+            postalcode
+            region
+          }
+        }
       }
       errors {
         username
@@ -617,106 +657,54 @@ mutation UpdateUserMutation(
         firstname
         lastname
         phonenumber
+        name
+        description
+        address
+        website
+        city
+        country
+        region
+        postalcode
       }
     }
   }
   `
 
-  const UPDATE_BUSINESS_USER_MUTATION = gql`
-  mutation UpdateBusinessUserMutation(
-    $email: String!,
-    $username: String!,
-    $firstname: String!,
-    $lastname: String!,
-    $preferredname: String,
-    $newuser: Boolean!,
-    $name: String!,
-    $description: String!,
-    $phonenumber: String!,
-    $address: String!,
-    $website: String!
-    $city: String!,
-    $country: String!,
-    $region: String!,
-    $postalcode: String!) {
-      updatebusinessuser(
-        email: $email,
-        username: $username,
-        firstname: $firstname,
-        lastname: $lastname,
-        preferredname: $preferredname,
-        newuser: $newuser,
-        name: $name,
-        description: $description,
-        phonenumber: $phonenumber,
-        address: $address,
-        website: $website,
-        city: $city,
-        country: $country,
-        region: $region,
-        postalcode: $postalcode,
-      ) {
-        user {
-          id
-          username
-        }
-        errors {
-          username
-          email
-          firstname
-          lastname
-          phonenumber
-          name
-          description
-          address
-          website
-          city
-          country
-          region
-          postalcode
-        }
+  const UPLOAD_MUTATION = gql`
+  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
+    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
+      file {
+        path
+      }
+      error {
+        fieldId
+        message
+      }
+      quotaError {
+        uploadSize
+        remaining
       }
     }
-    `
+  }
+  `
 
-    const UPLOAD_MUTATION = gql`
-    mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
-      uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
-        file {
-          path
-        }
-        error {
-          fieldId
-          message
-        }
-        quotaError {
-          uploadSize
-          remaining
-        }
-      }
-    }
-    `
-
-    export default compose(
-      graphql(USER_QUERY, {
-        name: 'userQuery',
-        options: props => ({
-          variables: {
-            where: {
-              id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
-            }
-          },
-        }),
+  export default compose(
+    graphql(USER_QUERY, {
+      name: 'userQuery',
+      options: props => ({
+        variables: {
+          where: {
+            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+          }
+        },
       }),
-      graphql(UPDATE_USER_MUTATION, {
-        name: 'updateUserMutation'
-      }),
-      graphql(UPDATE_BUSINESS_USER_MUTATION, {
-        name: 'updateBusinessUserMutation',
-      }),
-      graphql(UPLOAD_MUTATION, {
-        name: 'uploadMutation'
-      }),
-      withRouter,
-      withApollo
-    )(BusinessPageForm)
+    }),
+    graphql(UPDATE_BUSINESS_USER_MUTATION, {
+      name: 'updateBusinessUserMutation',
+    }),
+    graphql(UPLOAD_MUTATION, {
+      name: 'uploadMutation'
+    }),
+    withRouter,
+    withApollo
+  )(BusinessPageForm)
