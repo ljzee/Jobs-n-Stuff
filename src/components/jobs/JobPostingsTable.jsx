@@ -224,23 +224,74 @@ class JobPostingsTable extends React.Component {
     }
 
     let salary = this.state.filters.salary;
-    if (salary === null || salary === '') {
-      salary = 0;
-    }
-
     let wage = this.state.filters.wage;
-    if (wage === null || wage === '') {
-      wage = 0;
+
+    const salaryEmpty = (salary === null || salary === '');
+    const wageEmpty   = (wage === null || wage === '');
+
+    let payQuery;
+
+    if (salaryEmpty && wageEmpty) {
+      // Query all pay types
+      payQuery = [{
+        salary_gte: 0
+      }, {
+        salary: null
+      }];
+
+    } else if (salaryEmpty) {
+      // Query for wage only
+      payQuery = [{
+        paytype: 'HOURLY',
+        salary_gte: wage,
+      }];
+
+    } else if (wageEmpty) {
+      // Query for salary only
+      payQuery = [{
+        paytype: 'SALARY',
+        salary_gte: salary
+      }];
+
+    } else {
+      // Query both salary and wage
+      payQuery = [{
+        paytype: 'SALARY',
+        salary_gte: salary
+      }, {
+        paytype: 'HOURLY',
+        salary_gte: wage,
+      }];
     }
 
     let duration = this.state.filters.duration;
+    let durationQuery;
     if (duration === null || duration === '') {
-      duration = 0;
+      durationQuery = [{
+        duration_gte: 0
+      }, {
+        duration: null
+      }];
+
+    } else {
+      durationQuery = [{
+        duration_gte: duration
+      }];
     }
 
     let openings = this.state.filters.openings;
+    let openingsQuery;
     if (openings === null || openings === '') {
-      openings = 0;
+      openingsQuery = [{
+        openings_gte: 0
+      }, {
+        openings: null
+      }];
+
+    } else {
+      openingsQuery = [{
+        openings_gte: openings
+      }]
     }
 
     const country = this.state.filters.location.country;
@@ -289,39 +340,15 @@ class JobPostingsTable extends React.Component {
             title_contains: title.charAt(0).toLowerCase() + title.slice(1)
           }]
         }, {
-          OR: [{
-            OR: [{
-              paytype: "SALARY",
-              salary_gte: salary
-            }, {
-              paytype: "SALARY",
-              salary: null
-            }]
-          }, {
-            OR: [{
-              paytype: "HOURLY",
-              salary_gte: wage
-            }, {
-              paytype: "HOURLY",
-              salary: null
-            }],
-          }]
-        }],
-
-        type_not_in: typeQuery,
-        location: locationQuery,
-
-        OR: [{
-          duration_gte: duration
+          OR: payQuery
         }, {
-          duration: null
-        }],
-
-        OR: [{
-          openings_gte: openings
+          type_not_in: typeQuery,
+          location: locationQuery,
         }, {
-          openings: null
-        }]
+          OR: durationQuery
+        }, {
+          OR: openingsQuery
+        }],
       }
     });
   }
@@ -406,18 +433,6 @@ class JobPostingsTable extends React.Component {
         width: 220
       },
       {
-        Header: () => <div><strong>Duration</strong></div>,
-        accessor: 'duration',
-        Cell: props =>
-          <div className="center-content-div ">
-            {props.value
-              ? <span>{props.value} Months</span>
-              : <span>N/A</span>
-            }
-          </div>,
-        width: 100
-      },
-      {
         Header: () => <div><strong>Openings</strong></div>,
         accessor: 'openings',
         Cell: props =>
@@ -430,17 +445,36 @@ class JobPostingsTable extends React.Component {
         width: 100
       },
       {
+        Header: () => <div><strong>Duration</strong></div>,
+        accessor: 'duration',
+        Cell: props =>
+          <div className="center-content-div ">
+            {props.value
+              ? <span>{props.value} Months</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
         Header: () => <div><strong>Pay</strong></div>,
         accessor: 'pay',
         Cell: props =>
           <div>
-            {props.value.paytype === "SALARY"
-              ? <span>Salary</span>
-              : <span>Wage</span>
-            }
-            <br />
-            {props.value.salary
-              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
+            {props.value.salary && props.value.paytype === "SALARY"
+              ? <div>
+                  <span>Salary</span>
+                  <br />
+                  <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
+                </div>
+
+              : props.value.salary && props.value.paytype === "HOURLY"
+              ? <div>
+                  <span>Wage</span>
+                  <br />
+                  <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
+                </div>
+
               : <span>N/A</span>
             }
           </div>,
