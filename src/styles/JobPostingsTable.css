@@ -24,23 +24,10 @@
   max-width: 50px;
 }
 
-.text-field {
-  max-width: 360px;
+.component-field {
+  width: 155px;
 }
 
-#date-picker {
-  max-width: 165px;
-}
-
-#country-dropdown {
-  max-width: 165px;
-}
-
-#region-dropdown {
-  min-width: 165px;
-  max-width: 165px;
-}
-
-#filter-reset-button {
-  width: 100%;
+.filter-button {
+  margin-top: 13px;
 }
