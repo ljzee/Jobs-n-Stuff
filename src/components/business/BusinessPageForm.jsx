@@ -639,76 +639,84 @@ mutation UpdateUserMutation(
     $country: String!,
     $region: String!,
     $postalcode: String!) {
-    updatebusinessuser(
-      email: $email,
-      username: $username,
-      firstname: $firstname,
-      lastname: $lastname,
-      preferredname: $preferredname,
-      newuser: $newuser,
-      name: $name,
-      description: $description,
-      phonenumber: $phonenumber,
-      address: $address,
-      website: $website,
-      city: $city,
-      country: $country,
-      region: $region,
-      postalcode: $postalcode,
-    ) {
-      user {
-        id
-        username
-      }
-      errors {
-        username
-        email
-        firstname
-        lastname
-        phonenumber
-      }
-    }
-  }
-  `
-
-  const UPLOAD_MUTATION = gql`
-  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
-    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
-      file {
-        path
-      }
-      error {
-        fieldId
-        message
-      }
-      quotaError {
-        uploadSize
-        remaining
+      updatebusinessuser(
+        email: $email,
+        username: $username,
+        firstname: $firstname,
+        lastname: $lastname,
+        preferredname: $preferredname,
+        newuser: $newuser,
+        name: $name,
+        description: $description,
+        phonenumber: $phonenumber,
+        address: $address,
+        website: $website,
+        city: $city,
+        country: $country,
+        region: $region,
+        postalcode: $postalcode,
+      ) {
+        user {
+          id
+          username
+        }
+        errors {
+          username
+          email
+          firstname
+          lastname
+          phonenumber
+          name
+          description
+          address
+          website
+          city
+          country
+          region
+          postalcode
+        }
       }
     }
-  }
-  `
+    `
 
-  export default compose(
-    graphql(USER_QUERY, {
-      name: 'userQuery',
-      options: props => ({
-        variables: {
-          where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
-          }
-        },
+    const UPLOAD_MUTATION = gql`
+    mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
+      uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
+        file {
+          path
+        }
+        error {
+          fieldId
+          message
+        }
+        quotaError {
+          uploadSize
+          remaining
+        }
+      }
+    }
+    `
+
+    export default compose(
+      graphql(USER_QUERY, {
+        name: 'userQuery',
+        options: props => ({
+          variables: {
+            where: {
+              id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+            }
+          },
+        }),
       }),
-    }),
-    graphql(UPDATE_USER_MUTATION, {
-      name: 'updateUserMutation'
-    }),
-    graphql(UPDATE_BUSINESS_USER_MUTATION, {
-      name: 'updateBusinessUserMutation',
-    }),
-    graphql(UPLOAD_MUTATION, {
-      name: 'uploadMutation'
-    }),
-    withRouter,
-    withApollo
-  )(BusinessPageForm)
+      graphql(UPDATE_USER_MUTATION, {
+        name: 'updateUserMutation'
+      }),
+      graphql(UPDATE_BUSINESS_USER_MUTATION, {
+        name: 'updateBusinessUserMutation',
+      }),
+      graphql(UPLOAD_MUTATION, {
+        name: 'uploadMutation'
+      }),
+      withRouter,
+      withApollo
+    )(BusinessPageForm)

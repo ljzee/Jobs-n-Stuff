@@ -130,6 +130,22 @@ type UserErrors {
   phonenumber: String
 }
 
+type BusinessUserErrors {
+  username: String
+  email: String
+  firstname: String
+  lastname: String
+  phonenumber: String
+  name: String
+  description: String
+  address: String
+  website: String
+  city: String
+  country: String
+  region: String
+  postalcode: String
+}
+
 type UserPayload {
   user: User
   errors: UserErrors
@@ -199,5 +215,5 @@ type RenameFilePayload {
 }
 type BusinessUserPayload {
   user: User
-  errors: UserErrors
+  errors: BusinessUserErrors
 }

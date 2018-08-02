@@ -992,11 +992,7 @@ async function updatebusinessuser(parent, args, ctx, info) {
   var usernameValid = true;
   var emailValid = true;
   var phonenumberValid = true;
-  //
-   console.log("the businessProfileId is" + businessProfileID.businessprofile.id);
-   console.log("the user id is " + userId);
-  // console.log("businessProfileId" + businessProfileID.businessprofile.location.id);
-  // console.log("userProfileId" + userProfileID.userprofile.id);
+
 
   var payload = {
     user: null,
@@ -1005,7 +1001,15 @@ async function updatebusinessuser(parent, args, ctx, info) {
       email: '',
       firstname: '',
       lastname: '',
-      phonenumber: ''
+      phonenumber: '',
+      name: '',
+      description: '',
+      address: '',
+      website: '',
+      city: '',
+      country: '',
+      region: '',
+      postalcode: '',
     }
   }
 
@@ -1053,6 +1057,58 @@ async function updatebusinessuser(parent, args, ctx, info) {
   if (args.lastname === '' || args.lastname.trim().length > 32) {
     valid = false;
     payload.errors.lastname = 'Please enter your last name';
+  }
+
+  if (args.name === '') {
+    valid = false;
+    payload.errors.name = 'Please enter a business name.';
+  }
+
+  if (args.description === '') {
+    valid = false;
+    payload.errors.description = 'Please enter a business description.';
+  }
+
+  if (args.website === '') {
+    valid = false;
+    payload.errors.website = 'Please enter a business website.';
+  }
+
+  if (!validator.isURL(args.website)) {
+    valid = false;
+    payload.errors.website = 'Please enter a valid website';
+  }
+
+  if (args.city === '') {
+    valid = false;
+    payload.errors.city = 'Please enter a city name.';
+  }
+
+  if (args.address === '') {
+    valid = false;
+    payload.errors.address = 'Please enter an address.';
+  }
+
+  if (args.postalcode === '') {
+    valid = false;
+    payload.errors.postalcode = 'Please enter a locale code.';
+  }
+
+  // Doesn't check if the locale code matches specific country
+  // Checks whether locale code matches a format from all known types
+  if (!validator.isPostalCode(args.postalcode, 'any')) {
+    valid = false;
+    payload.errors.postalcode = 'Please enter a valid locale code format.';
+  }
+
+  if (args.country === '') {
+    valid = false;
+    payload.errors.country = 'Please select a country.';
+  }
+
+  if (args.region === '') {
+    valid = false;
+    payload.errors.region = 'Please select a region.';
   }
 
   if (args.phonenumber === '') {
