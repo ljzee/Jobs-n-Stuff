@@ -55,6 +55,7 @@ class BusinessJob extends Component{
         </Alert>
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
+
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
           <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>

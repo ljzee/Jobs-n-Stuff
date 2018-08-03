@@ -24,3 +24,11 @@
   font-size: 14pt;
   text-align: left;
 }
+
+h3 {
+  font-size: 14pt;
+}
+
+.footerLink {
+  float: left;
+}
