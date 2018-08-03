@@ -131,8 +131,6 @@ type UserErrors {
 type BusinessUserErrors {
   username: String
   email: String
-  firstname: String
-  lastname: String
   phonenumber: String
   name: String
   description: String

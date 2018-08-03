@@ -8,7 +8,12 @@ import { withRouter, Link } from 'react-router-dom';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
+import ReactQuill from 'react-quill';
+import moment from 'moment';
+import ReactHtmlParser from 'react-html-parser';
 import '../../styles/Profile.css';
+import '../../styles/BusinessPageForm.css';
+import 'react-quill/dist/quill.snow.css';
 
 const validationFields = ['email', 'username', 'phonenumber', 'avatar', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
 const requiredFields = ['email', 'username', 'phonenumber', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
@@ -181,6 +186,15 @@ class BusinessPageForm extends Component {
     this.setState(state);
   }
 
+  setDescription(val) {
+    let state = this.state;
+    state.description.isValid = true;
+    state.description.validState = null;
+    state.description.message = '';
+    state.description.value = val;
+    this.setState(state);
+  }
+
   formIsValid = () => {
     let state = this.state;
 
@@ -246,12 +260,12 @@ class BusinessPageForm extends Component {
 
     return (
       <div className="Profile">
-      {this.state.isNewUser
-        ? this.editUserForm()
-        : this.state.isEditMode
-        ? this.editUserForm()
-        : this.userDetails()
-      }
+        {this.state.isNewUser
+          ? this.editUserForm()
+          : this.state.isEditMode
+          ? this.editUserForm()
+          : this.userDetails()
+        }
       </div>
     );
   }
@@ -259,231 +273,238 @@ class BusinessPageForm extends Component {
   editUserForm  = () => {
     return (
       <div className="EditProfile">
-      <h2>
-      {this.state.isNewUser
-        ? 'Create Profile'
-        : 'Edit Profile'}
-        </h2>
-        <Panel>
-        <Panel.Heading>
-        <Panel.Title componentClass="h3">Profile</Panel.Title>
-        </Panel.Heading>
-        <Form horizontal>
-        {!this.state.isNewUser &&
-          <div>
-          <FormGroup controlId="username" validationState={this.state.username.validState}>
-          <Col componentClass={ControlLabel} sm={2} className="required">
-          Username:
-          </Col>
-          <Col sm={10}>
-          <FormControl
-          type="text"
-          placeholder="Username"
-          value={this.state.username.value}
-          onChange={this.handleChange}
-          />
-          <FormControl.Feedback />
-          <HelpBlock className="errormessage">{this.state.username.message}</HelpBlock>
-          </Col>
-          </FormGroup>
-          <FormGroup controlId="email" validationState={this.state.email.validState}>
-          <Col componentClass={ControlLabel} sm={2} className="required">
-          Email:
-          </Col>
-          <Col sm={10}>
-          <FormControl
-          type="text"
-          placeholder="Email"
-          value={this.state.email.value}
-          onChange={this.handleChange}
-          />
-          <FormControl.Feedback />
-          <HelpBlock className="errormessage">{this.state.email.message}</HelpBlock>
-          </Col>
-          </FormGroup>
-          </div>
-        }
+        <h2>
+          {this.state.isNewUser
+            ? 'Create Profile'
+            : 'Edit Profile'}
+          </h2>
+          <Panel>
+            <Panel.Heading>
+              <Panel.Title componentClass="h3">Profile</Panel.Title>
+            </Panel.Heading>
+            <Form horizontal>
 
+              {!this.state.isNewUser &&
+                <div>
+                  <FormGroup controlId="username" validationState={this.state.username.validState}>
+                    <Col componentClass={ControlLabel} sm={2} className="required">
+                      Username:
+                    </Col>
+                    <Col sm={10}>
+                      <FormControl
+                        type="text"
+                        placeholder="Username"
+                        value={this.state.username.value}
+                        onChange={this.handleChange}
+                        />
+                      <FormControl.Feedback />
+                      <HelpBlock className="errormessage">{this.state.username.message}</HelpBlock>
+                    </Col>
+                  </FormGroup>
+                  <FormGroup controlId="email" validationState={this.state.email.validState}>
+                    <Col componentClass={ControlLabel} sm={2} className="required">
+                      Email:
+                    </Col>
+                    <Col sm={10}>
+                      <FormControl
+                        type="text"
+                        placeholder="Email"
+                        value={this.state.email.value}
+                        onChange={this.handleChange}
+                        />
+                      <FormControl.Feedback />
+                      <HelpBlock className="errormessage">{this.state.email.message}</HelpBlock>
+                    </Col>
+                  </FormGroup>
+                </div>
+              }
 
-        <FormGroup controlId="name" validationState={this.state.name.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Business Name:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Business name"
-        value={this.state.name.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.name.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="name" validationState={this.state.name.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Business Name:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="Business name"
+                    value={this.state.name.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.name.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="description" validationState={this.state.description.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Description:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Description"
-        value={this.state.description.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.description.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="website" validationState={this.state.website.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Website:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="Website"
+                    value={this.state.website.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.website.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="website" validationState={this.state.website.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Website:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Website"
-        value={this.state.website.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.website.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="phonenumber" validationState={this.state.phonenumber.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Phone number:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="Phone number"
+                    value={this.state.phonenumber.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="phonenumber" validationState={this.state.phonenumber.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Phone number:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Phone number"
-        value={this.state.phonenumber.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.phonenumber.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="address" validationState={this.state.address.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Street Address:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="Address"
+                    value={this.state.address.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.address.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="address" validationState={this.state.address.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Street Address:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Address"
-        value={this.state.address.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.address.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="city" validationState={this.state.city.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  City:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="City"
+                    value={this.state.city.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.city.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="city" validationState={this.state.city.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        City:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="City"
-        value={this.state.city.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.city.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="country" validationState={this.state.country.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Country:
+                </Col>
+                <Col sm={10}>
+                  {/* <br /> */}
+                  <CountryDropdown
+                    value={this.state.country.value}
+                    onChange={(val) => this.selectCountry(val)} />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.country.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="country" validationState={this.state.country.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Country:
-        </Col>
-        <Col sm={10}>
-        {/* <br /> */}
-        <CountryDropdown
-        value={this.state.country.value}
-        onChange={(val) => this.selectCountry(val)} />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.country.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="region" validationState={this.state.region.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Region:
+                </Col>
+                <Col sm={10}>
+                  {/* <br /> */}
+                  <RegionDropdown
+                    disableWhenEmpty={true}
+                    country={this.state.country.value}
+                    value={this.state.region.value}
+                    onChange={(val) => this.selectRegion(val)} />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.region.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="region" validationState={this.state.region.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Region:
-        </Col>
-        <Col sm={10}>
-        {/* <br /> */}
-        <RegionDropdown
-        disableWhenEmpty={true}
-        country={this.state.country.value}
-        value={this.state.region.value}
-        onChange={(val) => this.selectRegion(val)} />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.region.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="postalcode" validationState={this.state.postalcode.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Locale Code:
+                </Col>
+                <Col sm={10}>
+                  <FormControl
+                    type="text"
+                    placeholder="Postal Code / Zip Code"
+                    value={this.state.postalcode.value}
+                    onChange={this.handleChange}
+                    />
+                  <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.postalcode.message}</HelpBlock>
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="postalcode" validationState={this.state.postalcode.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Locale Code:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Postal Code / Zip Code"
-        value={this.state.postalcode.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.postalcode.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+              <FormGroup controlId="description" bsSize="large" validationState={this.state.description.validState}>
+                <Col componentClass={ControlLabel} sm={2} className="required">
+                  Description:
+                </Col>
+                <Col sm={10}>
+                  <HelpBlock className="errormessage">{this.state.description.message}</HelpBlock>
+                  <div className="description-text-area">
+                    <ReactQuill
+                      value={this.state.description.value}
+                      style={{ height: 400 }}
+                      onChange={(val) => this.setDescription(val)}
+                      />
+                  </div>
+                  <br/>
+                  <br/>
+                  <br/>
+                  <br/>
+                  <br/>
+                  <FormControl.Feedback />
+                </Col>
+              </FormGroup>
 
-        <FormGroup controlId="avatar" className="avatarUpload"  validationState={this.state.avatar.validState}>
-        <Col xs={6} md={4}>
-        <Thumbnail src={this.state.avatar.path} alt="avatar">
-        <h3>Profile Picture</h3>
-        <FormControl
-        type="file"
-        accept='image/*'
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.avatar.message}</HelpBlock>
-        </Thumbnail>
-        </Col>
-        </FormGroup>
-        </Form>
-        </Panel>
-        <Button
-        type="submit"
-        bsSize="large"
-        className="pull-right cancelbutton"
-        onClick={ () => {
-          this.resetValidationStates();
-          this.setState({ isEditMode: !this.state.isEditMode })
-        }}
-        >
-        Cancel
-        </Button>
-        <Button
-        type="submit"
-        bsSize="large"
-        bsStyle="primary"
-        className="pull-right savebutton"
-        onClick={this.onSubmit}
-        disabled={this.buttonDisabled()}
-        >
-        Save
-        </Button>
+              <FormGroup controlId="avatar" className="avatarUpload"  validationState={this.state.avatar.validState}>
+                <Col xs={6} md={4}>
+                  <Thumbnail src={this.state.avatar.path} alt="avatar">
+                    <h3>Profile Picture</h3>
+                    <FormControl
+                      type="file"
+                      accept='image/*'
+                      onChange={this.handleChange}
+                      />
+                    <FormControl.Feedback />
+                    <HelpBlock className="errormessage">{this.state.avatar.message}</HelpBlock>
+                  </Thumbnail>
+                </Col>
+              </FormGroup>
+
+            </Form>
+          </Panel>
+          <Button
+            type="submit"
+            bsSize="large"
+            className="pull-right cancelbutton"
+            onClick={ () => {
+              this.resetValidationStates();
+              this.setState({ isEditMode: !this.state.isEditMode })
+            }}
+            >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            bsSize="large"
+            bsStyle="primary"
+            className="pull-right savebutton"
+            onClick={this.onSubmit}
+            disabled={this.buttonDisabled()}
+            >
+            Save
+          </Button>
         </div>
       );
     }
@@ -491,165 +512,184 @@ class BusinessPageForm extends Component {
     userDetails  = () => {
       return (
         <div className="UserDetails">
-        <h1>
-        {(this.state.name.value)}
-        </h1>
-        <Panel>
-        <Panel.Heading>
-        <Panel.Title componentClass="h3">Profile</Panel.Title>
-        </Panel.Heading>
-        <Panel.Body>
-        {this.state.avatar.path !== '' &&
-        <Image
-        alt="avatar"
-        src={this.state.avatar.path}
-        rounded
-        className="pull-right"
-        responsive
-        />
-      }
-      <p>{'Description: ' + this.state.description.value}</p>
-      <p>{'Website: ' + this.state.website.value}</p>
-      <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
-      <p>{'Street Address: ' + this.state.address.value}</p>
-      <p>{'City: ' + this.state.city.value}</p>
-      <p>{'Region: ' + this.state.region.value}</p>
-      <p>{'Country: ' + this.state.country.value}</p>
-      <p>{'Locale Code: ' + this.state.postalcode.value}</p>
-      {this.props.userQuery.user.username === this.props.match.params.username &&
-        <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
-      }
-      </Panel.Body>
-      </Panel>
-      {this.props.userQuery.user.username === this.props.match.params.username &&
-        <Button
-        type="submit"
-        bsSize="large"
-        bsStyle="primary"
-        className="pull-right"
-        onClick={ () => this.setState({ isEditMode: !this.state.isEditMode })}
-        >
-        Edit Profile
-        </Button>
-      }
-      </div>
-    );
-  }
-}
+          <h1>
+            {(this.state.name.value)}
+          </h1>
 
-const USER_QUERY = gql`
-query UserQuery($where: UserWhereUniqueInput!) {
-  user(where: $where) {
-    role
-    username
-    activated
-    businessprofile {
-      id
-      location {
-        address
-        city
-        region
-        country
-        postalcode
-      }
+          <Panel>
+            <Panel.Heading>
+              <Panel.Title componentClass="h3">Profile</Panel.Title>
+            </Panel.Heading>
+            <Panel.Body>
+
+              <Panel>
+                <Panel.Heading>
+                  <Panel.Title componentClass="h3">Description</Panel.Title>
+                </Panel.Heading>
+                <Panel.Body>
+                  <div>{ReactHtmlParser(this.state.description.value)}</div>
+                </Panel.Body>
+              </Panel>
+
+              <Panel>
+                <Panel.Heading>
+                  <Panel.Title componentClass="h3">Details</Panel.Title>
+                </Panel.Heading>
+                <Panel.Body>
+                  {this.state.avatar.path !== '' &&
+                    <Image
+                      alt="avatar"
+                      src={this.state.avatar.path}
+                      rounded
+                      className="pull-right"
+                      responsive
+                      />
+                  }
+                  <p>{'Website: ' + this.state.website.value}</p>
+                  <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
+                  <p>{'Street Address: ' + this.state.address.value}</p>
+                  <p>{'City: ' + this.state.city.value}</p>
+                  <p>{'Region: ' + this.state.region.value}</p>
+                  <p>{'Country: ' + this.state.country.value}</p>
+                  <p>{'Locale Code: ' + this.state.postalcode.value}</p>
+
+                  {this.props.userQuery.user.username === this.props.match.params.username &&
+                    <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
+                  }
+                </Panel.Body>
+              </Panel>
+
+            </Panel.Body>
+          </Panel>
+          {this.props.userQuery.user.username === this.props.match.params.username &&
+            <Button
+              type="submit"
+              bsSize="large"
+              bsStyle="primary"
+              className="pull-right"
+              onClick={ () => this.setState({ isEditMode: !this.state.isEditMode })}
+              >
+              Edit Profile
+            </Button>
+          }
+        </div>
+      );
     }
   }
-}
-`
 
-const UPDATE_BUSINESS_USER_MUTATION = gql`
-mutation UpdateBusinessUserMutation(
-  $email: String!,
-  $username: String!,
-  $newuser: Boolean!,
-  $name: String!,
-  $description: String!,
-  $phonenumber: String!,
-  $address: String!,
-  $website: String!
-  $city: String!,
-  $country: String!,
-  $region: String!,
-  $postalcode: String!) {
-    updatebusinessuser(
-      email: $email,
-      username: $username,
-      newuser: $newuser,
-      name: $name,
-      description: $description,
-      phonenumber: $phonenumber,
-      address: $address,
-      website: $website,
-      city: $city,
-      country: $country,
-      region: $region,
-      postalcode: $postalcode,
-    ) {
-      user {
-        username
-        businessprofile {
-          id
-          location {
-            address
-            country
-            city
-            postalcode
-            region
-          }
+  const USER_QUERY = gql`
+  query UserQuery($where: UserWhereUniqueInput!) {
+    user(where: $where) {
+      role
+      username
+      activated
+      businessprofile {
+        id
+        location {
+          address
+          city
+          region
+          country
+          postalcode
         }
       }
-      errors {
-        username
-        email
-        phonenumber
-        name
-        description
-        address
-        website
-        city
-        country
-        region
-        postalcode
-      }
     }
   }
   `
 
-  const UPLOAD_MUTATION = gql`
-  mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
-    uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
-      file {
-        path
-      }
-      error {
-        fieldId
-        message
-      }
-      quotaError {
-        uploadSize
-        remaining
-      }
-    }
-  }
-  `
-
-  export default compose(
-    graphql(USER_QUERY, {
-      name: 'userQuery',
-      options: props => ({
-        variables: {
-          where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+  const UPDATE_BUSINESS_USER_MUTATION = gql`
+  mutation UpdateBusinessUserMutation(
+    $email: String!,
+    $username: String!,
+    $newuser: Boolean!,
+    $name: String!,
+    $description: String!,
+    $phonenumber: String!,
+    $address: String!,
+    $website: String!
+    $city: String!,
+    $country: String!,
+    $region: String!,
+    $postalcode: String!) {
+      updatebusinessuser(
+        email: $email,
+        username: $username,
+        newuser: $newuser,
+        name: $name,
+        description: $description,
+        phonenumber: $phonenumber,
+        address: $address,
+        website: $website,
+        city: $city,
+        country: $country,
+        region: $region,
+        postalcode: $postalcode,
+      ) {
+        user {
+          username
+          businessprofile {
+            id
+            location {
+              address
+              country
+              city
+              postalcode
+              region
+            }
           }
-        },
+        }
+        errors {
+          username
+          email
+          phonenumber
+          name
+          description
+          address
+          website
+          city
+          country
+          region
+          postalcode
+        }
+      }
+    }
+    `
+
+    const UPLOAD_MUTATION = gql`
+    mutation UploadFile($file: Upload!, $name: String, $filetype: Filetype!, $size: Float!, $filename: String!, $fieldId: String!, $mimetype: String!) {
+      uploadFile(file: $file, name: $name, filetype: $filetype, size: $size, filename: $filename, fieldId: $fieldId, mimetype: $mimetype) {
+        file {
+          path
+        }
+        error {
+          fieldId
+          message
+        }
+        quotaError {
+          uploadSize
+          remaining
+        }
+      }
+    }
+    `
+
+    export default compose(
+      graphql(USER_QUERY, {
+        name: 'userQuery',
+        options: props => ({
+          variables: {
+            where: {
+              id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+            }
+          },
+        }),
       }),
-    }),
-    graphql(UPDATE_BUSINESS_USER_MUTATION, {
-      name: 'updateBusinessUserMutation',
-    }),
-    graphql(UPLOAD_MUTATION, {
-      name: 'uploadMutation'
-    }),
-    withRouter,
-    withApollo
-  )(BusinessPageForm)
+      graphql(UPDATE_BUSINESS_USER_MUTATION, {
+        name: 'updateBusinessUserMutation',
+      }),
+      graphql(UPLOAD_MUTATION, {
+        name: 'uploadMutation'
+      }),
+      withRouter,
+      withApollo
+    )(BusinessPageForm)
