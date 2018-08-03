@@ -47,7 +47,7 @@ class App extends Component {
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
               <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
               <AuthenticatedRoute exact path='/job-applications/:jobid' component={JobApplications} />
-              <AuthenticatedRoute exact path='/user-applications/:username' component={UserApplications} />
+              <AuthenticatedRoute exact path='/applications/:username' component={UserApplications} />
             </Switch>
           </div>
         </div>
