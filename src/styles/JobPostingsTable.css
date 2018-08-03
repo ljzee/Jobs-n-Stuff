@@ -7,3 +7,27 @@
   display: flex;
   justify-content: center;
 }
+
+#filter-job-postings {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.panel-form {
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.location-selector {
+  max-width: 50px;
+}
+
+.component-field {
+  width: 155px;
+}
+
+.filter-button {
+  margin-top: 13px;
+}
