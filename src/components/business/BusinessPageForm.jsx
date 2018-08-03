@@ -232,6 +232,15 @@ class BusinessPageForm extends Component {
 
   render() {
 
+    const authToken = localStorage.getItem(AUTH_TOKEN)
+
+    if(!authToken) {
+      return (
+        <Redirect to='login'/>
+      )
+    }
+
+
     if (this.props.userQuery.loading) {
       return <Loading />;
     }

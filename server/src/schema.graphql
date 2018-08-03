@@ -20,7 +20,7 @@ type Mutation {
   renameFile (path: String!, name: String!): RenameFilePayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
-  createApplication (jobpostingid: ID!): ApplicationPayload!
+  createApplication (jobpostingid: ID!, resume: [String], coverletter: [String]): ApplicationPayload!
   updatebusinessuser (
   username: String!,
   email: String!,
