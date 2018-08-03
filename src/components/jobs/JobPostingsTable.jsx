@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Button, Col, ControlLabel, FormControl, FormGroup, InputGroup, Label, Panel, Radio, Row } from 'react-bootstrap';
+import { Button, Col, ControlLabel, FormControl, FormGroup, Glyphicon, InputGroup, Label, Panel, Radio, Row } from 'react-bootstrap';
 import CreatableSelect from 'react-select';
 import DatePicker from 'react-datepicker';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
@@ -56,10 +56,11 @@ function addDays(date, days) {
 
 class JobPostingsTable extends React.Component {
   state = {
+    showFilters: false,
     inputTitle: '',
     title: [],
     filters: {
-      deadline: {value: `${moment().format()}`, date: moment()},
+      deadline: {value: null, date: null},
       type: '',
       salary: '',
       wage: '',
@@ -78,7 +79,7 @@ class JobPostingsTable extends React.Component {
       inputTitle: '',
       title: [],
       filters: {
-        deadline: {value: `${moment().format()}`, date: moment()},
+        deadline: {value: null, date: null},
         type: '',
         salary: '',
         wage: '',
@@ -91,6 +92,10 @@ class JobPostingsTable extends React.Component {
         openings: ''
       }
     });
+  }
+
+  toggleFilters = () => {
+    this.setState({ showFilters: !this.state.showFilters });
   }
 
   handleTitleCreate= (title, actionMeta) => {
@@ -249,7 +254,7 @@ class JobPostingsTable extends React.Component {
       deadline_gte: new Date(Date.now())
     }];
 
-    if (deadline !== '') {
+    if (deadline !== null) {
       deadlineQuery.push({deadline_lte: addDays(deadline, 1)});
     }
 
@@ -521,18 +526,10 @@ class JobPostingsTable extends React.Component {
         Cell: props =>
           <div>
             {props.value.salary && props.value.paytype === "SALARY"
-              ? <div>
-                  <span>Salary</span>
-                  <br />
-                  <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
-                </div>
+              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
 
               : props.value.salary && props.value.paytype === "HOURLY"
-              ? <div>
-                  <span>Wage</span>
-                  <br />
-                  <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
-                </div>
+              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}/hr</span>
 
               : <span>N/A</span>
             }
@@ -565,277 +562,284 @@ class JobPostingsTable extends React.Component {
         <h1>Job Postings</h1>
         <div id="filter-job-postings">
           <form onSubmit={this.filterPostings}>
-            <Panel>
+            <Panel onToggle={this.toggleFilters} expanded={this.state.showFilters}>
               <Panel.Heading>
-                <Panel.Title componentClass="h3" toggle><strong>Filters</strong></Panel.Title>
-              </Panel.Heading>
-              <Panel.Collapse>
-              <div className="panel-form">
+                <Panel.Title componentClass="h3" toggle>
+                <strong>Filters</strong>
+                {' '}
+                {this.state.showFilters === false
+                  ? <Glyphicon glyph="glyphicon glyphicon-menu-down" />
+                  : <Glyphicon glyph="glyphicon glyphicon-menu-up" />
+                }
+              </Panel.Title>
+            </Panel.Heading>
+            <Panel.Collapse>
+            <div className="panel-form">
 
-                <Row>
-                  <Col md={6}>
-                    <FormGroup controlId="title">
-                      <ControlLabel>Title Keywords</ControlLabel>
-                        <CreatableSelect
-                          components={{DropdownIndicator: null}}
-                          inputValue={this.state.inputTitle}
-                          isClearable
-                          isMulti
-                          menuIsOpen={false}
-                          onChange={this.handleTitleCreate}
-                          onInputChange={this.handleInputChange}
-                          onKeyDown={this.handleKeyDown}
-                          onBlur={this.handleBlur}
-                          placeholder="Enter Keywords"
-                          value={this.state.title}
-                        />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={6}>
-                    {/* Organization name field goes here*/}
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={2}>
-                    <FormGroup controlId="deadline">
-                    <ControlLabel>Deadline Before</ControlLabel>
-                      <InputGroup>
-                        <DatePicker
-                          className="btn btn-default dropdown-toggle component-field"
-                          readOnly
-                          placeholderText="Select Date"
-                          dateFormat="DD-MM-YYYY"
-                          selected={this.state.filters.deadline.date}
-                          onChange={(date) => this.setDeadline(date)}
-                        />
-                      </InputGroup>
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={2}>
-                    <FormGroup controlId="country" className="location-selector">
-                      <ControlLabel>Country</ControlLabel>
-                      <CountryDropdown
-                        classes="btn btn-default dropdown-toggle component-field"
-                        value={this.state.filters.location.country}
-                        onChange={(val) => this.selectCountry(val)} />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={2}>
-                    <FormGroup controlId="region" className="location-selector">
-                      <ControlLabel>Region</ControlLabel>
-                      <RegionDropdown
-                        classes="btn btn-default dropdown-toggle component-field"
-                        disableWhenEmpty={true}
-                        country={this.state.filters.location.country}
-                        value={this.state.filters.location.region}
-                        onChange={(val) => this.selectRegion(val)} />
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={2}>
-                    <FormGroup controlId="city">
-                      <ControlLabel>City</ControlLabel>
-                      <FormControl
-                        className="text-field"
-                        autoFocus
-                        type="text"
-                        placeholder="City"
-                        value={this.state.filters.location.city}
-                        onChange={this.handleChange}
+              <Row>
+                <Col md={6}>
+                  <FormGroup controlId="title">
+                    <ControlLabel>Job Title Keywords</ControlLabel>
+                      <CreatableSelect
+                        components={{DropdownIndicator: null}}
+                        inputValue={this.state.inputTitle}
+                        isClearable
+                        isMulti
+                        menuIsOpen={false}
+                        onChange={this.handleTitleCreate}
+                        onInputChange={this.handleInputChange}
+                        onKeyDown={this.handleKeyDown}
+                        onBlur={this.handleBlur}
+                        placeholder="Enter Keywords"
+                        value={this.state.title}
                       />
-                    </FormGroup>
-                  </Col>
+                  </FormGroup>
+                </Col>
 
-                  <Col md={4}>
-                    <FormGroup controlId="type">
-                      <ControlLabel>Type of Position</ControlLabel>
-                      <br />
-                      <Radio
-                        inline
-                        checked={this.state.filters.type === ''}
-                        onChange={() => this.setType('')}
-                      >
-                        Any
-                      </Radio>{' '}
-                      <Radio
-                        inline
-                        checked={this.state.filters.type ==='FULLTIME'}
-                        onChange={() => this.setType('FULLTIME')}
-                      >
-                        Full-Time
-                      </Radio>{' '}
-                      <Radio
-                        inline
-                        checked={this.state.filters.type ==='PARTTIME'}
-                        onChange={() => this.setType('PARTTIME')}
-                      >
-                        Part-Time
-                      </Radio>{' '}
-                    </FormGroup>
-                  </Col>
-                </Row>
+                <Col md={6}>
+                  {/* Organization name field goes here*/}
+                </Col>
+              </Row>
 
+              <Row>
+                <Col md={2}>
+                  <FormGroup controlId="deadline">
+                  <ControlLabel>Deadline Before</ControlLabel>
+                    <InputGroup>
+                      <DatePicker
+                        className="btn btn-default dropdown-toggle component-field"
+                        readOnly
+                        placeholderText="Select Date"
+                        dateFormat="DD-MM-YYYY"
+                        selected={this.state.filters.deadline.date}
+                        onChange={(date) => this.setDeadline(date)}
+                      />
+                    </InputGroup>
+                  </FormGroup>
+                </Col>
 
-                <Row>
-                  <Col md={2}>
-                    <FormGroup controlId="salary">
-                      <ControlLabel>Minimum Salary</ControlLabel>
-                      <NumericInput
-                        className="form-control"
-                        placeholder="$/yr"
-                        value={this.state.filters.salary}
-                        min={0}
-                        precision={2}
-                        step={5000}
-                        onChange={this.setSalary}/>
-                    </FormGroup>
-                  </Col>
+                <Col md={2}>
+                  <FormGroup controlId="country" className="location-selector">
+                    <ControlLabel>Country</ControlLabel>
+                    <CountryDropdown
+                      classes="btn btn-default dropdown-toggle component-field"
+                      value={this.state.filters.location.country}
+                      onChange={(val) => this.selectCountry(val)} />
+                  </FormGroup>
+                </Col>
 
-                  <Col md={2}>
-                    <FormGroup controlId="wage">
-                      <ControlLabel>Minimum Wage</ControlLabel>
-                      <NumericInput
-                        className="form-control"
-                        placeholder="$/hr"
-                        value={this.state.filters.wage}
-                        precision={2}
-                        min={0}
-                        onChange={this.setWage}/>
-                    </FormGroup>
-                  </Col>
+                <Col md={2}>
+                  <FormGroup controlId="region" className="location-selector">
+                    <ControlLabel>Region</ControlLabel>
+                    <RegionDropdown
+                      classes="btn btn-default dropdown-toggle component-field"
+                      disableWhenEmpty={true}
+                      country={this.state.filters.location.country}
+                      value={this.state.filters.location.region}
+                      onChange={(val) => this.selectRegion(val)} />
+                  </FormGroup>
+                </Col>
 
-                  <Col md={2}>
-                    <FormGroup controlId="openings">
-                      <ControlLabel>Minimum Openings</ControlLabel>
-                      <NumericInput
-                        className="form-control"
-                        placeholder="Openings"
-                        value={this.state.filters.openings}
-                        min={0}
-                        onChange={this.setOpenings}/>
-                    </FormGroup>
-                  </Col>
+                <Col md={2}>
+                  <FormGroup controlId="city">
+                    <ControlLabel>City</ControlLabel>
+                    <FormControl
+                      className="text-field"
+                      autoFocus
+                      type="text"
+                      placeholder="City"
+                      value={this.state.filters.location.city}
+                      onChange={this.handleChange}
+                    />
+                  </FormGroup>
+                </Col>
 
-
-                  <Col md={2}>
-                    <FormGroup controlId="duration">
-                      <ControlLabel>Minimum Duration</ControlLabel>
-                      <NumericInput
-                        className="form-control"
-                        placeholder="Months"
-                        value={this.state.filters.duration}
-                        min={0}
-                        onChange={this.setDuration}/>
-                    </FormGroup>
-                  </Col>
-
-                  <Col md={2}>
-                    <Button
-                      className="filter-button"
-                      block
-                      bsSize="large"
-                      onClick={this.resetFilters}
+                <Col md={4}>
+                  <FormGroup controlId="type">
+                    <ControlLabel>Type of Position</ControlLabel>
+                    <br />
+                    <Radio
+                      inline
+                      checked={this.state.filters.type === ''}
+                      onChange={() => this.setType('')}
                     >
-                    Reset Filters
-                    </Button>
-                  </Col>
-
-                  <Col md={2}>
-                    <Button
-                      className="filter-button"
-                      type="submit"
-                      block
-                      bsSize="large"
-                      bsStyle="primary"
+                      Any
+                    </Radio>{' '}
+                    <Radio
+                      inline
+                      checked={this.state.filters.type ==='FULLTIME'}
+                      onChange={() => this.setType('FULLTIME')}
                     >
-                    Apply Filters
-                    </Button>
-                  </Col>
-                </Row>
+                      Full-Time
+                    </Radio>{' '}
+                    <Radio
+                      inline
+                      checked={this.state.filters.type ==='PARTTIME'}
+                      onChange={() => this.setType('PARTTIME')}
+                    >
+                      Part-Time
+                    </Radio>{' '}
+                  </FormGroup>
+                </Col>
+              </Row>
 
-                </div>
-              </Panel.Collapse>
 
-            </Panel>
-          </form>
-        </div>
+              <Row>
+                <Col md={2}>
+                  <FormGroup controlId="salary">
+                    <ControlLabel>Minimum Salary</ControlLabel>
+                    <NumericInput
+                      className="form-control"
+                      placeholder="$/yr"
+                      value={this.state.filters.salary}
+                      min={0}
+                      precision={2}
+                      step={5000}
+                      onChange={this.setSalary}/>
+                  </FormGroup>
+                </Col>
 
-        <ReactTable
-          id="job-postings-table"
-          columns={columns}
-          data={postings}
-          minRows={5}
-          showPagination={false}
-          style={{
-            borderRadius: "5px",
-            overflow: "hidden",
-            padding: "5px",
-            textAlign: "center"
-          }}
-        />
+                <Col md={2}>
+                  <FormGroup controlId="wage">
+                    <ControlLabel>Minimum Wage</ControlLabel>
+                    <NumericInput
+                      className="form-control"
+                      placeholder="$/hr"
+                      value={this.state.filters.wage}
+                      precision={2}
+                      min={0}
+                      onChange={this.setWage}/>
+                  </FormGroup>
+                </Col>
+
+                <Col md={2}>
+                  <FormGroup controlId="openings">
+                    <ControlLabel>Minimum Openings</ControlLabel>
+                    <NumericInput
+                      className="form-control"
+                      placeholder="Openings"
+                      value={this.state.filters.openings}
+                      min={0}
+                      onChange={this.setOpenings}/>
+                  </FormGroup>
+                </Col>
+
+
+                <Col md={2}>
+                  <FormGroup controlId="duration">
+                    <ControlLabel>Minimum Duration</ControlLabel>
+                    <NumericInput
+                      className="form-control"
+                      placeholder="Months"
+                      value={this.state.filters.duration}
+                      min={0}
+                      onChange={this.setDuration}/>
+                  </FormGroup>
+                </Col>
+
+                <Col md={2}>
+                  <Button
+                    className="filter-button"
+                    block
+                    bsSize="large"
+                    onClick={this.resetFilters}
+                  >
+                  Reset Filters
+                  </Button>
+                </Col>
+
+                <Col md={2}>
+                  <Button
+                    className="filter-button"
+                    type="submit"
+                    block
+                    bsSize="large"
+                    bsStyle="primary"
+                  >
+                  Apply Filters
+                  </Button>
+                </Col>
+              </Row>
+
+              </div>
+            </Panel.Collapse>
+
+          </Panel>
+        </form>
       </div>
-    );
-  }
+
+      <ReactTable
+        id="job-postings-table"
+        columns={columns}
+        data={postings}
+        minRows={5}
+        showPagination={false}
+        style={{
+          borderRadius: "5px",
+          overflow: "hidden",
+          padding: "5px",
+          textAlign: "center"
+        }}
+      />
+    </div>
+  );
+}
 }
 
 const USER_QUERY = gql`
-  query UserQuery($where: UserWhereUniqueInput!) {
-    user(where: $where) {
-      activated
-    }
+query UserQuery($where: UserWhereUniqueInput!) {
+  user(where: $where) {
+    activated
   }
+}
 `
 
 const JOB_POSTINGS_QUERY = gql`
-  query JobPostingsQuery($where: JobPostingWhereInput) {
-    jobpostings(where: $where, orderBy: deadline_ASC) {
+query JobPostingsQuery($where: JobPostingWhereInput) {
+  jobpostings(where: $where, orderBy: deadline_ASC) {
+    id
+    activated
+    title
+    type
+    deadline
+    duration
+    openings
+    paytype
+    salary
+    businessprofile {
       id
-      activated
-      title
-      type
-      deadline
-      duration
-      openings
-      paytype
-      salary
-      businessprofile {
-        id
-        name
-      }
-      location {
-        city
-        region
-        country
-      }
+      name
+    }
+    location {
+      city
+      region
+      country
     }
   }
+}
 `
 
 export default compose(
-  graphql(JOB_POSTINGS_QUERY, {
-    name: 'jobPostingsQuery',
-    options: props => ({
-      variables: {
-          where: {
-            deadline_gte: new Date(Date.now())
-          }
-        },
-    }),
+graphql(JOB_POSTINGS_QUERY, {
+  name: 'jobPostingsQuery',
+  options: props => ({
+    variables: {
+        where: {
+          deadline_gte: new Date(Date.now())
+        }
+      },
   }),
-  graphql(USER_QUERY, {
-    name: 'userQuery',
-    options: props => ({
-      variables: {
-          where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
-          }
-        },
-    }),
+}),
+graphql(USER_QUERY, {
+  name: 'userQuery',
+  options: props => ({
+    variables: {
+        where: {
+          id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+        }
+      },
   }),
-  withRouter,
-  withApollo
+}),
+withRouter,
+withApollo
 ) (JobPostingsTable);
