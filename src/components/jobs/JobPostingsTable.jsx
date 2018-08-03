@@ -11,7 +11,6 @@ import NumericInput from 'react-numeric-input';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
-import moment from 'moment';
 import { USER_TOKEN } from '../../constants';
 import '../../styles/JobPostingsTable.css'
 
