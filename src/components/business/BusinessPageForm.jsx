@@ -14,6 +14,7 @@ import '../../styles/Profile.css';
 import '../../styles/BusinessPageForm.css';
 import 'react-quill/dist/quill.snow.css';
 
+
 const validationFields = ['email', 'username', 'phonenumber', 'avatar', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
 const requiredFields = ['email', 'username', 'phonenumber', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
@@ -456,10 +457,6 @@ class BusinessPageForm extends Component {
                       />
                   </div>
                   <br/>
-                  <br/>
-                  <br/>
-                  <br/>
-                  <br/>
                   <FormControl.Feedback />
                 </Col>
               </FormGroup>
@@ -542,9 +539,9 @@ class BusinessPageForm extends Component {
                       responsive
                       />
                   }
-                  <p>{'Website: '} 
+                  <p>{'Website: '}
                     <a target="_blank" href={this.state.website.value} className="company-website-link">
-                       {this.state.website.value.replace('https://', '').replace('http://')}
+                      {this.state.website.value.replace('https://', '').replace('http://')}
                     </a>
                   </p>
                   <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
