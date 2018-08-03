@@ -10,8 +10,8 @@ import { Redirect } from 'react-router';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 import '../../styles/Profile.css';
 
-const validationFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber', 'avatar', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
-const requiredFields = ['email', 'username', 'firstname', 'lastname', 'phonenumber', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
+const validationFields = ['email', 'username', 'phonenumber', 'avatar', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
+const requiredFields = ['email', 'username', 'phonenumber', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
 const phoneRegEx = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
 
 class BusinessPageForm extends Component {
@@ -19,8 +19,6 @@ class BusinessPageForm extends Component {
   state = {
     email: {value: '', isValid: true, message: '', validState: null},
     username: {value: '', isValid: true, message: '', validState: null},
-    firstname: {value: '', isValid: true, message: '', validState: null},
-    lastname: {value: '', isValid: true, message: '', validState: null},
     name: {value: '', isValid: true, message: '', validState: null},
     description: {value: '', isValid: true, message: '', validState: null},
     phonenumber: {value: '', isValid: true, message: '', validState: null},
@@ -45,17 +43,18 @@ class BusinessPageForm extends Component {
     for (let i = 0; i < this.props.user.files.length; i++) {
       if (this.props.user.files[i].filetype === 'PROFILEIMAGE') state.avatar.path = this.props.user.files[i].path;
     }
+    console.log(this.props.user);
+    console.log(this.state);
 
-    if (this.props.user.userprofile !== null && this.props.user.userprofile.firstname !== '') {
-      state.firstname.value = this.props.user.userprofile.firstname;
-      state.lastname.value = this.props.user.userprofile.lastname;
+    if (this.props.user.businessprofile !== null && this.props.user.businessprofile.name !== '') {
       state.preferredname.value = this.props.user.userprofile.preferredname;
       state.phonenumber.value = this.props.user.businessprofile.phonenumber;
-      state.city.value = this.props.user.businessprofile.city;
-      state.country.value = this.props.user.businessprofile.country;
-      state.region.value = this.props.user.businessprofile.region;
-      state.postalcode.value = this.props.user.businessprofile.country;
-      state.address.value = this.props.user.businessprofile.address;
+      //TODO: Uncomment this line with properly updating location values
+      state.city.value = this.props.user.businessprofile.location.city;
+      state.country.value = this.props.user.businessprofile.location.country;
+      state.region.value = this.props.user.businessprofile.location.region;
+      state.postalcode.value = this.props.user.businessprofile.location.postalcode;
+      state.address.value = this.props.user.businessprofile.location.address;
       state.name.value = this.props.user.businessprofile.name;
       state.description.value = this.props.user.businessprofile.description;
       state.website.value = this.props.user.businessprofile.website;
@@ -93,8 +92,6 @@ class BusinessPageForm extends Component {
     let state = this.state;
     const username = state.username.value;
     const email = state.email.value;
-    const firstname = state.firstname.value;
-    const lastname = state.lastname.value;
     const preferredname = state.preferredname.value;
     const phonenumber = state.phonenumber.value;
     const description = state.description.value;
@@ -111,8 +108,6 @@ class BusinessPageForm extends Component {
       variables: {
         username,
         email,
-        firstname,
-        lastname,
         preferredname,
         phonenumber,
         description,
@@ -128,6 +123,8 @@ class BusinessPageForm extends Component {
     });
 
     const { user, errors } = updateResult.data.updatebusinessuser;
+
+    console.log(updateResult);
 
     if (user === null) {
 
@@ -179,6 +176,7 @@ class BusinessPageForm extends Component {
   selectCountry(val) {
     let state = this.state;
     state.country.value = val;
+    console.log(val);
     this.setState(state);
   }
 
@@ -230,6 +228,7 @@ class BusinessPageForm extends Component {
   buttonDisabled = () => {
     return (this.requiredFieldsSet() && this.formIsValid()) ? false : true;
   }
+
 
   render() {
 
@@ -300,52 +299,7 @@ class BusinessPageForm extends Component {
           </FormGroup>
           </div>
         }
-        <FormGroup controlId="firstname" validationState={this.state.firstname.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        First Name:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        autoFocus
-        type="text"
-        placeholder="First name"
-        value={this.state.firstname.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.firstname.message}</HelpBlock>
-        </Col>
-        </FormGroup>
-        <FormGroup controlId="preferredname" validationState={null}>
-        <Col componentClass={ControlLabel} sm={2}>
-        Preferred Name:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Preferred name"
-        value={this.state.preferredname.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{''}</HelpBlock>
-        </Col>
-        </FormGroup>
-        <FormGroup controlId="lastname" validationState={this.state.lastname.validState}>
-        <Col componentClass={ControlLabel} sm={2} className="required">
-        Last Name:
-        </Col>
-        <Col sm={10}>
-        <FormControl
-        type="text"
-        placeholder="Last name"
-        value={this.state.lastname.value}
-        onChange={this.handleChange}
-        />
-        <FormControl.Feedback />
-        <HelpBlock className="errormessage">{this.state.lastname.message}</HelpBlock>
-        </Col>
-        </FormGroup>
+
 
         <FormGroup controlId="name" validationState={this.state.name.validState}>
         <Col componentClass={ControlLabel} sm={2} className="required">
@@ -534,8 +488,7 @@ class BusinessPageForm extends Component {
       return (
         <div className="UserDetails">
         <h1>
-        {(this.state.preferredname.value !== '') ? this.state.preferredname.value : this.state.firstname.value}{' '}
-        {this.state.lastname.value}
+        {(this.state.name.value)}
         </h1>
         <Panel>
         <Panel.Heading>
@@ -551,11 +504,9 @@ class BusinessPageForm extends Component {
         responsive
         />
       }
-      <p>{'Business Name: ' + this.state.name.value}</p>
-      <p>{'Business Description: ' + this.state.description.value}</p>
-      <p>{'Business Website: ' + this.state.website.value}</p>
-      <p>{'Business Phone Number: ' + this.state.phonenumber.value}</p>
-      <p>{'Phone number: ' + this.state.phonenumber.value}</p>
+      <p>{'Description: ' + this.state.description.value}</p>
+      <p>{'Website: ' + this.state.website.value}</p>
+      <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
       <p>{'Street Address: ' + this.state.address.value}</p>
       <p>{'City: ' + this.state.city.value}</p>
       <p>{'Region: ' + this.state.region.value}</p>
@@ -585,7 +536,6 @@ class BusinessPageForm extends Component {
 const USER_QUERY = gql`
 query UserQuery($where: UserWhereUniqueInput!) {
   user(where: $where) {
-    id
     role
     username
     activated
@@ -607,9 +557,6 @@ const UPDATE_BUSINESS_USER_MUTATION = gql`
 mutation UpdateBusinessUserMutation(
   $email: String!,
   $username: String!,
-  $firstname: String!,
-  $lastname: String!,
-  $preferredname: String,
   $newuser: Boolean!,
   $name: String!,
   $description: String!,
@@ -623,9 +570,6 @@ mutation UpdateBusinessUserMutation(
     updatebusinessuser(
       email: $email,
       username: $username,
-      firstname: $firstname,
-      lastname: $lastname,
-      preferredname: $preferredname,
       newuser: $newuser,
       name: $name,
       description: $description,
@@ -638,7 +582,6 @@ mutation UpdateBusinessUserMutation(
       postalcode: $postalcode,
     ) {
       user {
-        id
         username
         businessprofile {
           id
@@ -654,8 +597,6 @@ mutation UpdateBusinessUserMutation(
       errors {
         username
         email
-        firstname
-        lastname
         phonenumber
         name
         description

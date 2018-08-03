@@ -23,9 +23,6 @@ type Mutation {
   updatebusinessuser (
   username: String!,
   email: String!,
-  firstname: String!,
-  lastname: String!,
-  preferredname: String,
   phonenumber: String!,
   newuser: Boolean!,
   name: String!,

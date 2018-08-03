@@ -7,6 +7,7 @@ const validator = require('validator');
 const moment = require('moment');
 const emailGenerator = require('../emailGenerator');
 const crypto = require('crypto');
+const request = require('request');
 
 require('dotenv').config();
 
@@ -144,15 +145,6 @@ async function signup(parent, args, ctx, info) {
           postalcode: '',
           address: '',
           businessprofile: { connect: { id: businessprofile.id } }
-        },
-      }, `{ id }`);
-      await ctx.db.mutation.createUserProfile({
-        data: {
-          firstname: '',
-          lastname: '',
-          preferredname: '',
-          phonenumber: '',
-          user: { connect: { id: user.id } }
         },
       }, `{ id }`);
     }
@@ -982,12 +974,11 @@ async function forgotPassword (parent, { email }, ctx, info) {
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
-  const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile { id }}`);
 
 
-  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
-  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
-  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  //var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
+  //var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  //var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
   var valid = true;
   var usernameValid = true;
   var emailValid = true;
@@ -999,8 +990,6 @@ async function updatebusinessuser(parent, args, ctx, info) {
     errors: {
       username: '',
       email: '',
-      firstname: '',
-      lastname: '',
       phonenumber: '',
       name: '',
       description: '',
@@ -1013,23 +1002,23 @@ async function updatebusinessuser(parent, args, ctx, info) {
     }
   }
 
-  if (args.username === '' || args.username.trim().length > 32) {
-    valid = false;
-    usernameValid = false;
-    payload.errors.username = 'Username must be between 1 and 32 characters';
-  }
-
-  if (usernameValid && !usernameRegEx.test(args.username)) {
-    valid = false;
-    usernameValid = false;
-    payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
-  }
-
-  if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
-    valid = false;
-    usernameValid = false;
-    payload.errors.username = 'Username already in use';
-  }
+  // if (args.username === '' || args.username.trim().length > 32) {
+  //   valid = false;
+  //   usernameValid = false;
+  //   payload.errors.username = 'Username must be between 1 and 32 characters';
+  // }
+  //
+  // if (usernameValid && !usernameRegEx.test(args.username)) {
+  //   valid = false;
+  //   usernameValid = false;
+  //   payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  // }
+  //
+  // if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
+  //   valid = false;
+  //   usernameValid = false;
+  //   payload.errors.username = 'Username already in use';
+  // }
 
   if (args.email === '') {
     valid = false;
@@ -1043,25 +1032,15 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.email = 'Not a valid email address';
   }
 
-  if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
-    valid = false;
-    emailValid = false;
-    payload.errors.email = 'Email already in use';
-  }
+  // if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+  //   valid = false;
+  //   emailValid = false;
+  //   payload.errors.email = 'Email already in use';
+  // }
 
-  if (args.firstname === '' || args.firstname.trim().length > 32) {
+  if (args.name === '' || args.name.trim().length > 32) {
     valid = false;
-    payload.errors.firstname = 'First name must be between 1 and 32 characters';
-  }
-
-  if (args.lastname === '' || args.lastname.trim().length > 32) {
-    valid = false;
-    payload.errors.lastname = 'Please enter your last name';
-  }
-
-  if (args.name === '') {
-    valid = false;
-    payload.errors.name = 'Please enter a business name.';
+    payload.errors.firstname = 'Business name must be between 1 and 32 characters';
   }
 
   if (args.description === '') {
@@ -1074,9 +1053,20 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.website = 'Please enter a business website.';
   }
 
-  if (!validator.isURL(args.website)) {
+  if (!validator.isURL(args.website, { protocols: ['http','https'], require_tld: true, require_protocol: true, require_host: true, require_valid_protocol: true, allow_underscores: false, host_whitelist: false, host_blacklist: false, allow_trailing_dot: false, allow_protocol_relative_urls: false })) {
     valid = false;
-    payload.errors.website = 'Please enter a valid website';
+    payload.errors.website = 'Please enter a valid website url';
+  }
+
+  if(validator.isURL(args.website)){
+    request(args.website, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        // Valid url with valid status code
+      } else {
+        valid = false;
+        payload.errors.website = 'The website was currently unreachable with a valid status code.';
+      }
+    })
   }
 
   if (args.city === '') {
@@ -1125,16 +1115,8 @@ async function updatebusinessuser(parent, args, ctx, info) {
     valid = false;
     payload.errors.phonenumber = 'Not a valid phone number';
   }
+
 if(valid) {
-  await ctx.db.mutation.updateUserProfile({
-    data: {
-      firstname: args.firstname,
-      lastname: args.lastname,
-      preferredname: '',
-      phonenumber: '',
-    },
-    where: {id: userProfileID.userprofile.id}
-  }, `{ id }`);
   const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
     data: {
       name: args.name,

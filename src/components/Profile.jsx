@@ -156,6 +156,13 @@ const USER_QUERY = gql`
         phonenumber
         address
         website
+        location {
+          city
+          address
+          country
+          region
+          postalcode
+        }
       }
     }
   }
