@@ -38,3 +38,18 @@
 .WelcomePage button {
   margin-top: 25px;
 }
+
+.center-content-div {
+  display: flex;
+  justify-content: center;
+}
+
+a.btn {
+  background-color: #286090;
+  border-color: #286090;
+  margin: 0 2.5px;
+}
+
+.application-table-button {
+  width: 125px;
+}

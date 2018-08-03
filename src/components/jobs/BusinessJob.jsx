@@ -31,11 +31,7 @@ class BusinessJob extends Component{
       return <Redirect to='/login'/>;
     }
 
-    if (this.props.jobQuery.error) {
-      return <Redirect to='/dashboard'/>;
-    }
-
-    if (!this.props.userQuery.user.activated) {
+    if (this.props.jobQuery.error || !this.props.userQuery.user.activated || !this.isBusinessUser() || !this.isCorrectBusinessUser()) {
       return <Redirect to='/dashboard'/>;
     }
 
@@ -45,20 +41,18 @@ class BusinessJob extends Component{
 
     return(
       <div className="Job">
-        {(this.isBusinessUser() && this.isCorrectBusinessUser()) &&
-          <Alert bsStyle="success">
-            <p>This is how a user will view your job posting.</p>
-            <Button
-              type="submit"
-              bsSize="sm"
-              bsStyle="primary"
-              className="manage-postings"
-              onClick={ () => this.props.history.push(`/manage-postings/${this.props.userQuery.user.username}`) }
-            >
-              Go back to Manage Postings
-            </Button>
-          </Alert>
-        }
+        <Alert bsStyle="success">
+          <p>This is how a user will view your job posting.</p>
+          <Button
+            type="submit"
+            bsSize="sm"
+            bsStyle="primary"
+            className="manage-postings"
+            onClick={ () => this.props.history.push(`/manage-postings/${this.props.userQuery.user.username}`) }
+          >
+            Go back to Manage Postings
+          </Button>
+        </Alert>
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
 

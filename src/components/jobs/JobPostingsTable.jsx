@@ -11,6 +11,7 @@ import NumericInput from 'react-numeric-input';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
+import moment from 'moment';
 import { USER_TOKEN } from '../../constants';
 import '../../styles/JobPostingsTable.css'
 
@@ -19,7 +20,7 @@ const monthNames = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const createOption = (label: string) => ({
+const createOption = (label) => ({
   label,
   value: label,
 });
@@ -58,7 +59,7 @@ class JobPostingsTable extends React.Component {
     inputTitle: '',
     title: [],
     filters: {
-      deadline: '',
+      deadline: {value: `${moment().format()}`, date: moment()},
       type: '',
       salary: '',
       wage: '',
@@ -77,7 +78,7 @@ class JobPostingsTable extends React.Component {
       inputTitle: '',
       title: [],
       filters: {
-        deadline: '',
+        deadline: {value: `${moment().format()}`, date: moment()},
         type: '',
         salary: '',
         wage: '',
@@ -92,15 +93,15 @@ class JobPostingsTable extends React.Component {
     });
   }
 
-  handleTitleCreate= (title: any, actionMeta: any) => {
+  handleTitleCreate= (title, actionMeta) => {
     this.setState({ title });
   };
 
-  handleInputChange = (inputTitle: string) => {
+  handleInputChange = (inputTitle) => {
     this.setState({ inputTitle });
   };
 
-  handleKeyDown = (event: SyntheticKeyboardEvent<HTMLElement>) => {
+  handleKeyDown = (event) => {
     const { inputTitle, title} = this.state;
 
     if (!inputTitle) return;
@@ -137,7 +138,8 @@ class JobPostingsTable extends React.Component {
 
   setDeadline = (val) => {
     let state = this.state;
-    state.filters.deadline = val;
+    state.filters.deadline.date = val;
+    state.filters.deadline.value = val.format();
 
     this.setState(state);
   }
@@ -242,7 +244,7 @@ class JobPostingsTable extends React.Component {
   filterPostings = async (e) => {
     e.preventDefault();
 
-    const deadline = this.state.filters.deadline;
+    const deadline = this.state.filters.deadline.value;
     let deadlineQuery = [{
       deadline_gte: new Date(Date.now())
     }];
@@ -406,6 +408,7 @@ class JobPostingsTable extends React.Component {
     }
 
     if (this.props.jobPostingsQuery.error) {
+      console.log(this.props.jobPostingsQuery.error)
       return <h3>Error</h3>
     }
 
@@ -542,10 +545,11 @@ class JobPostingsTable extends React.Component {
       {
         Header: () => <div><strong>Actions</strong></div>,
         accessor: 'job',
+        width: 125,
         Cell: props =>
-          <div className="center-content-div ">
+          <div>
             <a
-              className="btn btn-info job-details-button"
+              className="btn btn-info"
               role="button"
               href={`/jobs/${props.value.id}`}
             >
@@ -559,14 +563,13 @@ class JobPostingsTable extends React.Component {
     return (
       <div id="view-job-postings">
         <h1>Job Postings</h1>
-
         <div id="filter-job-postings">
           <form onSubmit={this.filterPostings}>
             <Panel>
               <Panel.Heading>
-                <Panel.Title componentClass="h3">Filters</Panel.Title>
+                <Panel.Title componentClass="h3" toggle><strong>Filters</strong></Panel.Title>
               </Panel.Heading>
-
+              <Panel.Collapse>
               <div className="panel-form">
 
                 <Row>
@@ -601,10 +604,10 @@ class JobPostingsTable extends React.Component {
                       <InputGroup>
                         <DatePicker
                           className="btn btn-default dropdown-toggle component-field"
-                          placeholderText="Select Date"
                           readOnly
+                          placeholderText="Select Date"
                           dateFormat="DD-MM-YYYY"
-                          selected={this.state.filters.deadline}
+                          selected={this.state.filters.deadline.date}
                           onChange={(date) => this.setDeadline(date)}
                         />
                       </InputGroup>
@@ -754,7 +757,8 @@ class JobPostingsTable extends React.Component {
                   </Col>
                 </Row>
 
-              </div>
+                </div>
+              </Panel.Collapse>
 
             </Panel>
           </form>
@@ -766,6 +770,12 @@ class JobPostingsTable extends React.Component {
           data={postings}
           minRows={5}
           showPagination={false}
+          style={{
+            borderRadius: "5px",
+            overflow: "hidden",
+            padding: "5px",
+            textAlign: "center"
+          }}
         />
       </div>
     );
@@ -793,6 +803,7 @@ const JOB_POSTINGS_QUERY = gql`
       paytype
       salary
       businessprofile {
+        id
         name
       }
       location {

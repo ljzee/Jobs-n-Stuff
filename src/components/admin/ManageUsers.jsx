@@ -79,10 +79,11 @@ class ManageUsers extends React.Component {
       user.files     = result.files;
       user.activated = result.activated;
 
-      if (result.files[0]) {
-        user.avatar = result.files[0].path;
-      } else {
-        user.avatar = "/avatar.png";
+      user.avatar = "/avatar.png";
+      for (let i = 0; i < result.files.length; i++) {
+        if (result.files[i].filetype === 'PROFILEIMAGE') {
+          user.avatar = result.files[i].path;
+        }
       }
 
       if (result.userprofile) {
@@ -260,6 +261,12 @@ class ManageUsers extends React.Component {
           data={users}
           minRows={5}
           showPagination={false}
+          style={{
+            borderRadius: "5px",
+            overflow: "hidden",
+            padding: "5px",
+            textAlign: "center"
+          }}
         />
       </div>
     );
@@ -281,6 +288,7 @@ const USERS_QUERY = gql`
       role
       activated
       files(filetype: PROFILEIMAGE) {
+        filetype
         path
       }
       userprofile {

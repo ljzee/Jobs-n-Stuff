@@ -4,12 +4,8 @@ import '../../styles/ApplyModal.css';
 import Select from 'react-select';
 import {Link} from 'react-router-dom';
 
-let resumeoptions = [
-];
-let coverletteroptions = [
-];
-
-
+let resumeoptions = [];
+let coverletteroptions = [];
 
 class ApplyModal extends Component {
 
@@ -21,15 +17,13 @@ class ApplyModal extends Component {
   }
 
   componentDidMount() {
-    //console.log(this.props.resumechoices);
-    //console.log(this.props.coverletterchoices);
     resumeoptions = this.props.resumechoices;
     coverletteroptions = this.props.coverletterchoices;
   }
 
 
   resumeHandleChange  = (e) => {
-    this.setState({resumeOption: e}); //, ()=>{console.log(this.state)}
+    this.setState({resumeOption: e});
   }
 
   coverletterHandleChange = (e) => {
@@ -69,7 +63,7 @@ class ApplyModal extends Component {
     return (
       <Modal id="apply-modal" show={this.props.showapply} onHide={this.props.closeapply}>
         <Modal.Header>
-          <Modal.Title>Choose Documentation</Modal.Title>
+          <Modal.Title>Documents</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
@@ -102,6 +96,7 @@ class ApplyModal extends Component {
         <Modal.Footer>
           <Link className="footerLink" to={`/documents/${this.props.username}`}>Need to upload some documents?</Link>
           <Button bsSize="large" bsStyle="success" onClick={this.submitApplication}>Apply</Button>
+          <Button bsSize="large" onClick={this.props.closeapply}>Cancel</Button>
         </Modal.Footer>
       </Modal>
     );
