@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Thumbnail, Col, Form, Image, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Panel } from 'react-bootstrap';
-import { USER_TOKEN } from '../../constants';
+import { USER_TOKEN, AUTH_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
@@ -43,13 +43,10 @@ class BusinessPageForm extends Component {
     for (let i = 0; i < this.props.user.files.length; i++) {
       if (this.props.user.files[i].filetype === 'PROFILEIMAGE') state.avatar.path = this.props.user.files[i].path;
     }
-    console.log(this.props.user);
-    console.log(this.state);
 
     if (this.props.user.businessprofile !== null && this.props.user.businessprofile.name !== '') {
       state.preferredname.value = this.props.user.userprofile.preferredname;
       state.phonenumber.value = this.props.user.businessprofile.phonenumber;
-      //TODO: Uncomment this line with properly updating location values
       state.city.value = this.props.user.businessprofile.location.city;
       state.country.value = this.props.user.businessprofile.location.country;
       state.region.value = this.props.user.businessprofile.location.region;
@@ -92,7 +89,6 @@ class BusinessPageForm extends Component {
     let state = this.state;
     const username = state.username.value;
     const email = state.email.value;
-    const preferredname = state.preferredname.value;
     const phonenumber = state.phonenumber.value;
     const description = state.description.value;
     const website = state.website.value;
@@ -108,7 +104,6 @@ class BusinessPageForm extends Component {
       variables: {
         username,
         email,
-        preferredname,
         phonenumber,
         description,
         website,
