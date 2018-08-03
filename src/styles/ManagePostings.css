@@ -2,17 +2,6 @@
   margin: 20px 0;
 }
 
-.ManagePostings .div.button-div {
-  display: flex;
-  justify-content: center;
-}
-
-.ManagePostings a.btn {
-  background-color: #286090;
-  border-color: #286090;
-  margin: 0 2.5px;
-}
-
 .CreateJobPosting .job-posting-submit-button {
   width: 250px !important;
   position: relative;

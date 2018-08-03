@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import '../../styles/Job.css';
-import {Panel, Button, Alert} from 'react-bootstrap';
+import {Panel, Button} from 'react-bootstrap';
 import gql from 'graphql-tag';
 import Loading from '../Loading';
 import { graphql, compose } from 'react-apollo';
@@ -12,12 +12,8 @@ import moment from 'moment';
 import ReactHtmlParser from 'react-html-parser';
 import ApplyModal from './ApplyModal';
 
-
-let resumeoptions = [
-];
-let coverletteroptions = [
-];
-
+let resumeoptions = [];
+let coverletteroptions = [];
 
 class Job extends Component{
 
@@ -25,18 +21,13 @@ class Job extends Component{
     showApply: false
   }
 
-  isBusinessUser = () => {
-    return this.props.userQuery.user.role === 'BUSINESS';
+  isBaseUser = () => {
+    return this.props.userQuery.user.role === 'BASEUSER';
   }
 
-  isCorrectBusinessUser = () => {
-    return this.props.jobQuery.jobPosting.businessprofile.id === this.props.userQuery.user.businessprofile.id;
-  }
-
-  checkIfApplied = () => {
+  userHasApplied = () => {
     let numberOfApplications = this.props.userQuery.user.userprofile.applications.length;
     let currentjobid = this.props.match.params.jobid;
-    //console.log(numberOfApplications);
 
     for(let i = 0; i < numberOfApplications; i++){
       if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === currentjobid){
@@ -47,12 +38,10 @@ class Job extends Component{
   }
 
   submitApplication = async (chosenResume, chosenCoverletter) => {
-    //console.log(chosenResume);
-    //console.log(chosenCoverletter);
     const resume = chosenResume;
     const coverletter = chosenCoverletter;
     const jobpostingid = this.props.match.params.jobid
-    const submittedApplication = await this.props.createApplication({
+    await this.props.createApplication({
       variables: {
         jobpostingid,
         resume,
@@ -66,7 +55,7 @@ class Job extends Component{
   }
 
   cancelApplication = async () => {
-    const deletedapplication = await this.props.deleteApplication({
+   await this.props.deleteApplication({
       variables: {
         where: {
           id: this.props.userQuery.user.userprofile.applications[0].id
@@ -85,33 +74,35 @@ class Job extends Component{
   }
 
   getDocuments = () => {
-
     let numberOfFiles = this.props.userQuery.user.files.length;
-    //console.log(numberOfFiles);
     let roptions = [];
     let coptions = [];
     roptions.push({value: null, label: 'None'});
     coptions.push({value: null, label: 'None'});
     for(let i = 0; i < numberOfFiles; i++){
       if(this.props.userQuery.user.files[i].filetype === 'RESUME'){
-        roptions.push({value: [this.props.userQuery.user.files[i].filetype,
-                                    this.props.userQuery.user.files[i].filename,
-                                    this.props.userQuery.user.files[i].path],
-                            label: this.props.userQuery.user.files[i].name
-                          });
+        roptions.push({
+          value: [
+              this.props.userQuery.user.files[i].filetype,
+              this.props.userQuery.user.files[i].filename,
+              this.props.userQuery.user.files[i].path
+          ],
+          label: this.props.userQuery.user.files[i].name
+        });
       }
       if(this.props.userQuery.user.files[i].filetype === 'COVERLETTER'){
-        coptions.push({value: [this.props.userQuery.user.files[i].filetype,
-                                    this.props.userQuery.user.files[i].filename,
-                                    this.props.userQuery.user.files[i].path],
-                            label: this.props.userQuery.user.files[i].name
-                          });
+        coptions.push({
+          value: [
+            this.props.userQuery.user.files[i].filetype,
+            this.props.userQuery.user.files[i].filename,
+            this.props.userQuery.user.files[i].path
+          ],
+          label: this.props.userQuery.user.files[i].name
+        });
       }
     }
     resumeoptions = roptions;
     coverletteroptions = coptions;
-    //console.log(resumeoptions);
-    //console.log(coverletteroptions);
   }
 
   render(){
@@ -124,12 +115,7 @@ class Job extends Component{
       return <Redirect to='/login'/>;
     }
 
-    if (this.props.jobQuery.error) {
-      //console.log(this.props.jobQuery.error);
-      return <Redirect to='/dashboard'/>;
-    }
-
-    if (!this.props.userQuery.user.activated) {
+    if (this.props.jobQuery.error || !this.props.userQuery.user.activated || !this.isBaseUser()) {
       return <Redirect to='/dashboard'/>;
     }
 
@@ -137,57 +123,38 @@ class Job extends Component{
       return <h1>Sorry, this job doesn't exist.</h1>
     }
 
-    if (this.props.userQuery.user.role === 'BASEUSER'){
-      this.getDocuments();
-    }
+    this.getDocuments();
 
     return(
       <div className="Job">
-        {(this.isBusinessUser() && this.isCorrectBusinessUser()) &&
-          <Alert bsStyle="success">
-            <p>This is how a user will view your job posting.</p>
-            <Button
-              type="submit"
-              bsSize="sm"
-              bsStyle="primary"
-              className="manage-postings"
-              onClick={ () => this.props.history.push(`/manage-postings/${this.props.userQuery.user.username}`) }
-            >
-              Go back to Manage Postings
-            </Button>
-          </Alert>
-        }
-
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
-
-        {!this.isBusinessUser() && !this.checkIfApplied() &&
-          <div>
-            <Button
-              type="submit"
-              bsSize="large"
-              className="pull-right user-buttons applybutton"
-              bsStyle="success"
-              onClick={this.openApply}
-            >
-              Apply
-            </Button>
-          </div>
+        {this.userHasApplied()
+          ?
+            <div>
+              <Button
+                type="submit"
+                bsSize="large"
+                className="pull-right user-buttons applybutton"
+                bsStyle="danger"
+                onClick={this.cancelApplication}
+              >
+                Cancel Application
+              </Button>
+            </div>
+          :
+            <div>
+              <Button
+                type="submit"
+                bsSize="large"
+                className="pull-right user-buttons applybutton"
+                bsStyle="success"
+                onClick={this.openApply}
+              >
+                Apply
+              </Button>
+            </div>
         }
-        {!this.isBusinessUser() && this.checkIfApplied() &&
-          <div>
-            <Button
-              type="submit"
-              bsSize="large"
-              className="pull-right user-buttons applybutton"
-              bsStyle="danger"
-              onClick={this.cancelApplication}
-            >
-              Cancel Application
-            </Button>
-          </div>
-        }
-
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
           <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>
@@ -259,7 +226,6 @@ class Job extends Component{
         <footer>
           <p><strong>Added: </strong>{moment(this.props.jobQuery.jobPosting.updatedAt).format("DD-MM-YYYY")}</p>
         </footer>
-        {!this.isBusinessUser() &&
         <ApplyModal
           showapply={this.state.showApply}
           openapply={this.openApply}
@@ -271,7 +237,6 @@ class Job extends Component{
 
           apply={this.submitApplication}
         />
-        }
       </div>
     )
   }
@@ -281,6 +246,7 @@ class Job extends Component{
 const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
+      id
       role
       username
       activated

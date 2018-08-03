@@ -19,6 +19,8 @@ import Documents from './components/users/Documents';
 import ForgotPassword from './components/authentication/ForgotPassword';
 import ResetPassword from './components/authentication/ResetPassword';
 import ValidateEmail from './components/authentication/ValidateEmail';
+import JobApplications from './components/jobs/JobApplications';
+import UserApplications from './components/users/UserApplications';
 import './styles/App.css';
 
 class App extends Component {
@@ -44,6 +46,8 @@ class App extends Component {
               <AuthenticatedRoute exact path='/jobs/' component={JobPostingsTable} />
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
               <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
+              <AuthenticatedRoute exact path='/job-applications/:jobid' component={JobApplications} />
+              <AuthenticatedRoute exact path='/applications/:username' component={UserApplications} />
             </Switch>
           </div>
         </div>
