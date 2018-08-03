@@ -10,20 +10,8 @@ import { USER_TOKEN } from '../../constants';
 import { Redirect } from 'react-router';
 import moment from 'moment';
 import ReactHtmlParser from 'react-html-parser';
-import ApplyModal from './ApplyModal';
 
-
-let resumeoptions = [
-];
-let coverletteroptions = [
-];
-
-
-class Job extends Component{
-
-  state = {
-    showApply: false
-  }
+class BusinessJob extends Component{
 
   isBusinessUser = () => {
     return this.props.userQuery.user.role === 'BUSINESS';
@@ -31,87 +19,6 @@ class Job extends Component{
 
   isCorrectBusinessUser = () => {
     return this.props.jobQuery.jobPosting.businessprofile.id === this.props.userQuery.user.businessprofile.id;
-  }
-
-  checkIfApplied = () => {
-    let numberOfApplications = this.props.userQuery.user.userprofile.applications.length;
-    let currentjobid = this.props.match.params.jobid;
-    //console.log(numberOfApplications);
-
-    for(let i = 0; i < numberOfApplications; i++){
-      if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === currentjobid){
-        return true;
-      }
-    }
-    return false;
-  }
-
-  submitApplication = async (chosenResume, chosenCoverletter) => {
-    //console.log(chosenResume);
-    //console.log(chosenCoverletter);
-    const resume = chosenResume;
-    const coverletter = chosenCoverletter;
-    const jobpostingid = this.props.match.params.jobid
-    const submittedApplication = await this.props.createApplication({
-      variables: {
-        jobpostingid,
-        resume,
-        coverletter
-      },
-    });
-    this.props.userQuery.refetch();
-    this.setState({
-      showApply: false
-    })
-  }
-
-  cancelApplication = async () => {
-    const deletedapplication = await this.props.deleteApplication({
-      variables: {
-        where: {
-          id: this.props.userQuery.user.userprofile.applications[0].id
-        }
-      },
-    });
-    this.props.userQuery.refetch();
-  }
-
-  openApply = () => {
-    this.setState({ showApply: true });
-  }
-
-  closeApply = () => {
-    this.setState({ showApply: false });
-  }
-
-  getDocuments = () => {
-
-    let numberOfFiles = this.props.userQuery.user.files.length;
-    //console.log(numberOfFiles);
-    let roptions = [];
-    let coptions = [];
-    roptions.push({value: null, label: 'None'});
-    coptions.push({value: null, label: 'None'});
-    for(let i = 0; i < numberOfFiles; i++){
-      if(this.props.userQuery.user.files[i].filetype === 'RESUME'){
-        roptions.push({value: [this.props.userQuery.user.files[i].filetype,
-                                    this.props.userQuery.user.files[i].filename,
-                                    this.props.userQuery.user.files[i].path],
-                            label: this.props.userQuery.user.files[i].name
-                          });
-      }
-      if(this.props.userQuery.user.files[i].filetype === 'COVERLETTER'){
-        coptions.push({value: [this.props.userQuery.user.files[i].filetype,
-                                    this.props.userQuery.user.files[i].filename,
-                                    this.props.userQuery.user.files[i].path],
-                            label: this.props.userQuery.user.files[i].name
-                          });
-      }
-    }
-    resumeoptions = roptions;
-    coverletteroptions = coptions;
-    //console.log(resumeoptions);
-    //console.log(coverletteroptions);
   }
 
   render(){
@@ -125,7 +32,6 @@ class Job extends Component{
     }
 
     if (this.props.jobQuery.error) {
-      //console.log(this.props.jobQuery.error);
       return <Redirect to='/dashboard'/>;
     }
 
@@ -135,10 +41,6 @@ class Job extends Component{
 
     if (this.props.jobQuery.jobPosting === null){
       return <h1>Sorry, this job doesn't exist.</h1>
-    }
-
-    if (this.props.userQuery.user.role === 'BASEUSER'){
-      this.getDocuments();
     }
 
     return(
@@ -157,37 +59,32 @@ class Job extends Component{
             </Button>
           </Alert>
         }
-
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
-
-        {!this.isBusinessUser() && !this.checkIfApplied() &&
+        {!this.isBusinessUser() &&
           <div>
             <Button
               type="submit"
               bsSize="large"
               className="pull-right user-buttons applybutton"
               bsStyle="success"
-              onClick={this.openApply}
+              onClick={ () => {
+              }}
             >
               Apply
             </Button>
-          </div>
-        }
-        {!this.isBusinessUser() && this.checkIfApplied() &&
-          <div>
             <Button
               type="submit"
               bsSize="large"
-              className="pull-right user-buttons applybutton"
-              bsStyle="danger"
-              onClick={this.cancelApplication}
+              className="pull-right user-buttons bookmarkbutton"
+              bsStyle="primary"
+              onClick={ () => {
+              }}
             >
-              Cancel Application
+              Bookmark
             </Button>
           </div>
         }
-
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
           <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>
@@ -259,19 +156,6 @@ class Job extends Component{
         <footer>
           <p><strong>Added: </strong>{moment(this.props.jobQuery.jobPosting.updatedAt).format("DD-MM-YYYY")}</p>
         </footer>
-        {!this.isBusinessUser() &&
-        <ApplyModal
-          showapply={this.state.showApply}
-          openapply={this.openApply}
-          closeapply={this.closeApply}
-
-          requirecoverletter={this.props.jobQuery.jobPosting.coverletter}
-          resumechoices={resumeoptions}
-          coverletterchoices={coverletteroptions}
-
-          apply={this.submitApplication}
-        />
-        }
       </div>
     )
   }
@@ -286,22 +170,6 @@ const USER_QUERY = gql`
       activated
       businessprofile {
         id
-      }
-      userprofile {
-        id
-        applications{
-          id
-          jobposting {
-            id
-          }
-        }
-      }
-      files {
-        name
-        id
-        path
-        filename
-        filetype
       }
     }
   }
@@ -337,24 +205,6 @@ const JOB_QUERY = gql`
   }
 `
 
-const CREATE_APPLICATION = gql`
-  mutation CreateApplication($jobpostingid: ID!, $resume: [String], $coverletter: [String]) {
-    createApplication(jobpostingid: $jobpostingid, resume: $resume, coverletter: $coverletter) {
-      application {
-        id
-      }
-    }
-  }
-`
-const DELETE_APPLICATION = gql`
-  mutation DeleteApplication($where: ApplicationWhereUniqueInput!) {
-    deleteApplication(where: $where) {
-      id
-    }
-  }
-`
-
-
 export default compose(
   graphql(JOB_QUERY, {
     name: 'jobQuery',
@@ -376,12 +226,6 @@ export default compose(
         },
     }),
   }),
-  graphql(CREATE_APPLICATION, {
-    name: 'createApplication'
-  }),
-  graphql(DELETE_APPLICATION, {
-    name: 'deleteApplication'
-  }),
   withRouter,
   withApollo
-)(Job)
+)(BusinessJob)

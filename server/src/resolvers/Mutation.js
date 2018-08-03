@@ -8,6 +8,7 @@ const moment = require('moment');
 const emailGenerator = require('../emailGenerator');
 const crypto = require('crypto');
 const request = require('request');
+const {forwardTo} = require('prisma-binding');
 
 require('dotenv').config();
 
@@ -170,12 +171,12 @@ async function login(parent, args, ctx, info) {
   if (!user) {
     validLogin = false;
     payload.errors.login = 'Invalid username or password';
-  }
-
-  const valid = await bcrypt.compare(args.password, user.password);
-  if (!valid) {
-    validLogin = false;
-    payload.errors.login = 'Invalid username or password';
+  } else {
+    const valid = await bcrypt.compare(args.password, user.password);
+    if (!valid) {
+      validLogin = false;
+      payload.errors.login = 'Invalid username or password';
+    }
   }
 
   if (validLogin) {
@@ -346,6 +347,12 @@ async function updateuser(parent, args, ctx, info) {
   }
 
   return payload;
+}
+
+async function deleteUser(parent, args, ctx, info) {
+  return await ctx.db.mutation.deleteUser({
+    where: { id: args.id }
+  }, `{ id }`);
 }
 
 async function uploadFile(parent, args, ctx, info) {
@@ -785,7 +792,8 @@ async function createApplication(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   //from userid, query for userprofileid
   const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile {id}}`);
-
+  //console.log(args.resume);
+  //console.log(args.coverletter);
 
   const newapplication = await ctx.db.mutation.createApplication({
     data: {
@@ -795,6 +803,37 @@ async function createApplication(parent, args, ctx, info) {
       jobposting: { connect: { id: args.jobpostingid}}
     }
   })
+
+  if(args.resume != null){
+    if(args.resume.length === 3){
+
+      const resumeapplicationfile = await ctx.db.mutation.createApplicationFile({
+      data: {
+        path: args.resume[2],
+        filename: args.resume[1],
+        filetype: args.resume[0],
+        application: {
+          connect: {id: newapplication.id}
+        }
+      }
+    });
+    }
+  }
+
+  if(args.coverletter != null){
+    if(args.resume.length === 3){
+      const coverletterapplicationfile = await ctx.db.mutation.createApplicationFile({
+        data: {
+          path: args.coverletter[2],
+          filename: args.coverletter[1],
+          filetype: args.coverletter[0],
+          application: {
+            connect: {id: newapplication.id}
+          }
+        }
+      });
+    }
+  }
 
   let payload = {
     application: newapplication
@@ -1152,6 +1191,7 @@ const Mutation = {
   signup,
   login,
   updateuser,
+  deleteUser,
   uploadFile,
   createOrEditPosting,
   updatePassword,
@@ -1166,7 +1206,16 @@ const Mutation = {
   resetPassword,
   validateEmail,
   forgotPassword,
-  activatePosting
+  activatePosting,
+  deleteApplication: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  },
+  createApplicationFile: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  },
+  updateApplication: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  }
 }
 
 module.exports = {

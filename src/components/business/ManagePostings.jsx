@@ -423,7 +423,7 @@ class ManagePostings extends Component {
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.props.history.push(`/jobs/${props.value}`) }
+                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
                 >
                   View
                 </a>
@@ -433,7 +433,7 @@ class ManagePostings extends Component {
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.props.history.push(`/jobs/${props.value}`) }
+                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
                 >
                   View
                 </a>

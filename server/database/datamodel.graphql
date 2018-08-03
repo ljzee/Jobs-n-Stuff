@@ -21,7 +21,7 @@ type UserProfile {
   preferredname: String
   phonenumber: String
   user: User! @unique @relation(name: "UserProfileDetails")
-  applications: [Application!]!
+  applications: [Application!]! @relation(name: "ApplicationUser" onDelete: CASCADE)
 }
 
 type BusinessProfile {
@@ -86,11 +86,11 @@ type JobPosting {
   salary: Float
   deadline: DateTime!
   coverletter: Boolean
-  applications: [Application!]!
   paytype: PayType
   activated: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
+  applications: [Application!]! @relation(name: "JobApplications" onDelete: CASCADE)
   businessprofile: BusinessProfile! @unique @relation(name: "JobPostingDetails")
 }
 
@@ -102,9 +102,12 @@ enum StatusType {
 
 type Application {
   id: ID! @unique
+  createdAt: DateTime!
+  updatedAt: DateTime!
   status: StatusType!
-  user: UserProfile!
-  jobposting: JobPosting!
+  files: [ApplicationFile!]! @relation(name: "ApplicationFiles" onDelete: CASCADE)
+  user: UserProfile! @unique @relation(name: "ApplicationUser")
+  jobposting: JobPosting! @unique @relation(name: "JobApplications")
 }
 
 enum PositionType {
@@ -115,4 +118,11 @@ enum PositionType {
 enum PayType {
   HOURLY
   SALARY
+}
+
+type ApplicationFile {
+  path: String!
+  filename: String!
+  filetype: Filetype!
+  application: Application! @unique @relation(name: "ApplicationFiles")
 }

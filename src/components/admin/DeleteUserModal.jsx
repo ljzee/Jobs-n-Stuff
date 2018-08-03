@@ -1,23 +1,23 @@
 import React, { Component } from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import '../styles/Modal.css';
+import '../../styles/Modal.css';
 
-class LogoutModal extends Component {
+class DeleteUserModal extends Component {
   render() {
     return (
-      <Modal id="logout-modal" show={this.props.show} onHide={this.props.close}>
+      <Modal id="delete-user-modal" show={this.props.show} onHide={this.props.close}>
         <Modal.Header>
-          <Modal.Title>Logout</Modal.Title>
+          <Modal.Title>Confirm User Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body className="modal-body">
-          Are you sure you want to logout?
+          <p>Are you sure you want to delete user {this.props.user.username}?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button
             className="modal-button"
             bsSize="large"
             bsStyle="danger"
-            onClick={this.props.logout}
+            onClick={this.props.delete}
           >
           Yes
           </Button>
@@ -27,7 +27,7 @@ class LogoutModal extends Component {
             bsSize="large"
             onClick={this.props.close}
           >
-          No
+            No
           </Button>
         </Modal.Footer>
       </Modal>
@@ -35,4 +35,4 @@ class LogoutModal extends Component {
   }
 }
 
-export default LogoutModal;
+export default DeleteUserModal;

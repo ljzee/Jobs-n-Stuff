@@ -1,6 +1,6 @@
 .modal-body {
   font-size: 14pt;
-  text-align: center;
+  text-align: left;
 }
 
 .rename-modal-body {
@@ -23,8 +23,4 @@
 .activate-modal-body {
   font-size: 14pt;
   text-align: left;
-}
-
-.modal-button {
-  width: 100px;
 }
