@@ -1024,7 +1024,6 @@ async function updatebusinessuser(parent, args, ctx, info) {
   var phonenumberValid = true;
   var urlValid = true;
 
-
   var payload = {
     user: null,
     errors: {
@@ -1088,6 +1087,16 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.description = 'Please enter a business description.';
   }
 
+  if (args.description.trim().length > 250) {
+    valid = false;
+    payload.errors.description = 'Business description must greater than 250 characters.';
+  }
+
+  if (args.description.trim().length < 1000) {
+    valid = false;
+    payload.errors.description = 'Business description must less than 1000 characters.';
+  }
+
   if (args.website === '') {
     valid = false;
     urlValid = false;
@@ -1100,7 +1109,7 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.website = 'Please enter a valid website url including protocol http/https.';
   }
 
-  // TODO: Need to fix as valid state is unchanged inside the response body; so payload passed through with error
+  // TODO: Would require aynsc/await need to fix as valid state is unchanged inside the response body; so payload passed through with error
   // if(urlValid && validator.isURL(args.website)){
   //   request(args.website, function (error, response, body) {
   //     if (error || response.statusCode !== 200) {
@@ -1115,9 +1124,14 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.city = 'Please enter a city name.';
   }
 
-  if (args.address === '') {
+  if (args.city.trim().length > 1000) {
     valid = false;
-    payload.errors.address = 'Please enter an address.';
+    payload.errors.city = 'City name must be less than a 1000 characters.';
+  }
+
+  if (args.address.trim().length > 1000) {
+    valid = false;
+    payload.errors.address = 'Address must be less than a 1000 characters.';
   }
 
   if (args.postalcode === '') {
