@@ -9,7 +9,6 @@ import Loading from '../Loading';
 import { Redirect } from 'react-router';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
 import ReactQuill from 'react-quill';
-import moment from 'moment';
 import ReactHtmlParser from 'react-html-parser';
 import '../../styles/Profile.css';
 import '../../styles/BusinessPageForm.css';
@@ -543,7 +542,11 @@ class BusinessPageForm extends Component {
                       responsive
                       />
                   }
-                  <p>{'Website: ' + this.state.website.value}</p>
+                  <p>{'Website: '} 
+                    <a target="_blank" href={this.state.website.value} className="company-website-link">
+                       {this.state.website.value.replace('https://', '').replace('http://')}
+                    </a>
+                  </p>
                   <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
                   <p>{'Street Address: ' + this.state.address.value}</p>
                   <p>{'City: ' + this.state.city.value}</p>
