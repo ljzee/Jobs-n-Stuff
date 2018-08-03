@@ -392,7 +392,7 @@ class ManagePostings extends Component {
 
     const columns = [
       {
-        Header: () => <div><strong>Title</strong></div>,
+        Header: () => <div><strong>Job Title</strong></div>,
         accessor: 'title'
       },
       {
@@ -403,7 +403,7 @@ class ManagePostings extends Component {
       },
       {
         id: 'activated',
-        Header: () => <div><strong>Activated</strong></div>,
+        Header: () => <div><strong>Status</strong></div>,
         width: 125,
         accessor: props =>
         <div>
@@ -414,18 +414,28 @@ class ManagePostings extends Component {
         </div>
       },
       {
+        id: 'applications',
+        Header: () => <div><strong>Applications</strong></div>,
+        width: 115,
+        accessor: props =>
+        <div>
+          {props.activated && <span>{props.applications.length}</span>}
+        </div>
+      },
+      {
         accessor: 'id',
+        Header: () => <div><strong>Actions</strong></div>,
         Cell: props =>
-        <div className="manage-postings-button-div">
+        <div>
           {props.original.activated
             ?
               <div>
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
+                  onClick={ () => this.props.history.push(`/job-applications/${props.value}`) }
                 >
-                  View
+                  View Applications
                 </a>
               </div>
             :
@@ -513,9 +523,9 @@ class ManagePostings extends Component {
                             dateFormat="DD-MM-YYYY"
                             selected={this.state.deadline.date}
                             onChange={(date) => this.setDate(date)}
+                            className="btn btn-default dropdown-toggle component-field"
                             ref={(c) => this._calendar = c}
                           />
-                          <InputGroup.Addon><i className="fa fa-calendar" onClick={() => this._calendar.setOpen(true)}/></InputGroup.Addon>
                         </InputGroup>
                       </div>
                       <FormControl.Feedback />
@@ -800,6 +810,9 @@ const USER_QUERY = gql`
           paytype
           deadline
           coverletter
+          applications {
+            id
+          }
         }
       }
     }

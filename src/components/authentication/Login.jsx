@@ -28,10 +28,9 @@ class Login extends React.Component {
       }
       return null;
     });
-    console.log(values);
     const result = await this.props.loginMutation({
       variables: values,
-    }); 
+    });
     const { token, user, errors } = result.data.login;
 
     if (token !== null && user !== null) {
