@@ -1087,12 +1087,12 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.description = 'Please enter a business description.';
   }
 
-  if (args.description.trim().length > 250) {
+  if (args.description.trim().length < 250) {
     valid = false;
     payload.errors.description = 'Business description must greater than 250 characters.';
   }
 
-  if (args.description.trim().length < 1000) {
+  if (args.description.trim().length > 1000) {
     valid = false;
     payload.errors.description = 'Business description must less than 1000 characters.';
   }
