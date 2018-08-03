@@ -1,0 +1,26 @@
+.modal-body {
+  font-size: 14pt;
+  text-align: left;
+}
+
+.rename-modal-body {
+  font-size: 14pt;
+  text-align: left;
+}
+
+.rename-modal-body .form-control {
+  width: 50% !important;
+}
+
+.modal-medium-text {
+  font-size: 16pt;
+}
+
+.modal-small-text {
+  font-size: 12pt;
+}
+
+.activate-modal-body {
+  font-size: 14pt;
+  text-align: left;
+}

@@ -1,4 +1,4 @@
-# import Query.user, Query.jobPosting, Mutation.updateUserProfile from "./generated/prisma.graphql"
+# import Query.user, Query.jobPosting, Mutation.deleteApplication, Mutation.updateUserProfile, Mutation.createApplicationFile, Mutation.updateApplication from "./generated/prisma.graphql"
 # import PayType, PositionType, User, Role, ID, File, Filetype, UserProfile, BusinessProfile, Location from "./generated/prisma.graphql"
 # import JobPosting, Application, UserOrderByInput from "./generated/prisma.graphql"
 
@@ -19,7 +19,7 @@ type Mutation {
   renameFile (path: String!, name: String!): RenameFilePayload!
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
-  createApplication (jobpostingid: ID!): ApplicationPayload!
+  createApplication (jobpostingid: ID!, resume: [String], coverletter: [String]): ApplicationPayload!
   toggleUserActive (id: ID!, activated: Boolean!): User!
   createOrEditPosting (
     title: String,

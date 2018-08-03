@@ -7,6 +7,7 @@ const validator = require('validator');
 const moment = require('moment');
 const emailGenerator = require('../emailGenerator');
 const crypto = require('crypto');
+const {forwardTo} = require('prisma-binding');
 
 require('dotenv').config();
 
@@ -773,7 +774,8 @@ async function createApplication(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   //from userid, query for userprofileid
   const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile {id}}`);
-
+  //console.log(args.resume);
+  //console.log(args.coverletter);
 
   const newapplication = await ctx.db.mutation.createApplication({
     data: {
@@ -783,6 +785,37 @@ async function createApplication(parent, args, ctx, info) {
       jobposting: { connect: { id: args.jobpostingid}}
     }
   })
+
+  if(args.resume != null){
+    if(args.resume.length === 3){
+
+      const resumeapplicationfile = await ctx.db.mutation.createApplicationFile({
+      data: {
+        path: args.resume[2],
+        filename: args.resume[1],
+        filetype: args.resume[0],
+        application: {
+          connect: {id: newapplication.id}
+        }
+      }
+    });
+    }
+  }
+
+  if(args.coverletter != null){
+    if(args.resume.length === 3){
+      const coverletterapplicationfile = await ctx.db.mutation.createApplicationFile({
+        data: {
+          path: args.coverletter[2],
+          filename: args.coverletter[1],
+          filetype: args.coverletter[0],
+          application: {
+            connect: {id: newapplication.id}
+          }
+        }
+      });
+    }
+  }
 
   let payload = {
     application: newapplication
@@ -976,7 +1009,16 @@ const Mutation = {
   resetPassword,
   validateEmail,
   forgotPassword,
-  activatePosting
+  activatePosting,
+  deleteApplication: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  },
+  createApplicationFile: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  },
+  updateApplication: (parent, args, ctx, info)=>{
+    return forwardTo('db')(parent, args, ctx, info);
+  }
 }
 
 module.exports = {
