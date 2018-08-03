@@ -61,30 +61,7 @@ class BusinessJob extends Component{
         }
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
-        {!this.isBusinessUser() &&
-          <div>
-            <Button
-              type="submit"
-              bsSize="large"
-              className="pull-right user-buttons applybutton"
-              bsStyle="success"
-              onClick={ () => {
-              }}
-            >
-              Apply
-            </Button>
-            <Button
-              type="submit"
-              bsSize="large"
-              className="pull-right user-buttons bookmarkbutton"
-              bsStyle="primary"
-              onClick={ () => {
-              }}
-            >
-              Bookmark
-            </Button>
-          </div>
-        }
+
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
           <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>

@@ -270,6 +270,7 @@ class Job extends Component{
           coverletterchoices={coverletteroptions}
 
           apply={this.submitApplication}
+          username={this.props.userQuery.user.username}
         />
         }
       </div>
