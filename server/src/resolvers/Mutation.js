@@ -158,12 +158,12 @@ async function login(parent, args, ctx, info) {
   if (!user) {
     validLogin = false;
     payload.errors.login = 'Invalid username or password';
-  }
-
-  const valid = await bcrypt.compare(args.password, user.password);
-  if (!valid) {
-    validLogin = false;
-    payload.errors.login = 'Invalid username or password';
+  } else {
+    const valid = await bcrypt.compare(args.password, user.password);
+    if (!valid) {
+      validLogin = false;
+      payload.errors.login = 'Invalid username or password';
+    }
   }
 
   if (validLogin) {
