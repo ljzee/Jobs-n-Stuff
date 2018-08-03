@@ -1015,9 +1015,9 @@ async function updatebusinessuser(parent, args, ctx, info) {
   const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
 
 
-  //var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email role validateEmailToken userprofile { id } }`);
-  //var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
-  //var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
+  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
   var valid = true;
   var usernameValid = true;
   var emailValid = true;
@@ -1042,23 +1042,23 @@ async function updatebusinessuser(parent, args, ctx, info) {
     }
   }
 
-  // if (args.username === '' || args.username.trim().length > 32) {
-  //   valid = false;
-  //   usernameValid = false;
-  //   payload.errors.username = 'Username must be between 1 and 32 characters';
-  // }
-  //
-  // if (usernameValid && !usernameRegEx.test(args.username)) {
-  //   valid = false;
-  //   usernameValid = false;
-  //   payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
-  // }
-  //
-  // if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
-  //   valid = false;
-  //   usernameValid = false;
-  //   payload.errors.username = 'Username already in use';
-  // }
+  if (args.username === '' || args.username.trim().length > 32) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username must be between 1 and 32 characters';
+  }
+
+  if (usernameValid && !usernameRegEx.test(args.username)) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  }
+
+  if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username already in use';
+  }
 
   if (args.email === '') {
     valid = false;
@@ -1072,11 +1072,11 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.email = 'Not a valid email address';
   }
 
-  // if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
-  //   valid = false;
-  //   emailValid = false;
-  //   payload.errors.email = 'Email already in use';
-  // }
+  if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Email already in use';
+  }
 
   if (args.name === '' || args.name.trim().length > 32) {
     valid = false;
@@ -1100,15 +1100,15 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.website = 'Please enter a valid website url including protocol http/https.';
   }
 
-  if(urlValid){
-    request(args.website, function (error, response, body) {
-      if (error || response.statusCode !== 200) {
-        valid = false;
-        urlValid = false;
-        payload.errors.website = 'The website was currently unreachable with a valid status code.';
-      }
-    })
-  }
+  // TODO: Need to fix as valid state is unchanged inside the response body; so payload passed through with error
+  // if(urlValid && validator.isURL(args.website)){
+  //   request(args.website, function (error, response, body) {
+  //     if (error || response.statusCode !== 200) {
+  //         valid = false;
+  //         payload.errors.website = 'The website unreachable with a valid status code.';
+  //     }
+  //   });
+  // }
 
   if (args.city === '') {
     valid = false;

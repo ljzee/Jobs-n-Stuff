@@ -33,7 +33,6 @@ class BusinessPageForm extends Component {
     city: {value: '', isValid: true, message: '', validState: null},
     region: {value: '', isValid: true, message: '', validState: null},
     country: {value: '', isValid: true, message: '', validState: null},
-    preferredname: {value: ''},
     avatar: {selectedFile: null, size: 0.0, filename: '', path: '/avatar.png', isValid: true, message: '', validState: null, mimetype: ''},
     isNewUser: true,
     isEditMode: false,
@@ -50,7 +49,6 @@ class BusinessPageForm extends Component {
     }
 
     if (this.props.user.businessprofile !== null && this.props.user.businessprofile.name !== '') {
-      state.preferredname.value = this.props.user.userprofile.preferredname;
       state.phonenumber.value = this.props.user.businessprofile.phonenumber;
       state.city.value = this.props.user.businessprofile.location.city;
       state.country.value = this.props.user.businessprofile.location.country;
