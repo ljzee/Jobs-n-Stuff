@@ -1092,7 +1092,7 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.website = 'Please enter a business website.';
   }
 
-  if(!validator.isURL(args.website, { protocols: ['http','https'], require_tld: true, require_protocol: true, require_host: true, require_valid_protocol: true, allow_underscores: false, host_whitelist: false, host_blacklist: false, allow_trailing_dot: false, allow_protocol_relative_urls: false })){
+  if(!validator.isURL(args.website, { protocols: ['http','https'],  require_protocol: true })){
     valid = false;
     urlValid = false;
     payload.errors.website = 'Please enter a valid website url including protocol http/https.';

@@ -527,7 +527,7 @@ class BusinessPageForm extends Component {
                   }
                   <p>{'Website: '}
                     <a target="_blank" href={this.state.website.value} className="company-website-link">
-                      {this.state.website.value.replace('https://', '').replace('http://')}
+                      {this.state.website.value.replace('https://', '').replace('http://', '')}
                     </a>
                   </p>
                   <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
