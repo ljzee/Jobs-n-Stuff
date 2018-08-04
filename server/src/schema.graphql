@@ -21,6 +21,20 @@ type Mutation {
   updatePassword (username: String!, oldpassword: String!, newpassword: String!, newpassword2: String!): UpdatePasswordPayload!
   fileDelete (path: String!): File!
   createApplication (jobpostingid: ID!, resume: [String], coverletter: [String]): ApplicationPayload!
+  updatebusinessuser (
+  username: String!,
+  email: String!,
+  phonenumber: String!,
+  newuser: Boolean!,
+  name: String!,
+  description: String!,
+  phonenumber: String!,
+  address: String!,
+  city: String!,
+  region: String!,
+  country: String!,
+  postalcode: String!
+  website: String!): BusinessUserPayload!
   toggleUserActive (id: ID!, activated: Boolean!): User!
   createOrEditPosting (
     title: String,
@@ -114,6 +128,20 @@ type UserErrors {
   phonenumber: String
 }
 
+type BusinessUserErrors {
+  username: String
+  email: String
+  phonenumber: String
+  name: String
+  description: String
+  address: String
+  website: String
+  city: String
+  country: String
+  region: String
+  postalcode: String
+}
+
 type UserPayload {
   user: User
   errors: UserErrors
@@ -180,4 +208,8 @@ type ApplicationPayload {
 type RenameFilePayload {
   success: Boolean
   error: String
+}
+type BusinessUserPayload {
+  user: User
+  errors: BusinessUserErrors
 }
