@@ -7,7 +7,6 @@ const validator = require('validator');
 const moment = require('moment');
 const emailGenerator = require('../emailGenerator');
 const crypto = require('crypto');
-const request = require('request');
 const {forwardTo} = require('prisma-binding');
 
 require('dotenv').config();
@@ -1098,16 +1097,6 @@ async function updatebusinessuser(parent, args, ctx, info) {
     urlValid = false;
     payload.errors.website = 'Please enter a valid website url including protocol http/https.';
   }
-
-  // TODO: Would require aynsc/await need to fix as valid state is unchanged inside the response body; so payload passed through with error
-  // if(urlValid && validator.isURL(args.website)){
-  //   request(args.website, function (error, response, body) {
-  //     if (error || response.statusCode !== 200) {
-  //         valid = false;
-  //         payload.errors.website = 'The website unreachable with a valid status code.';
-  //     }
-  //   });
-  // }
 
   if (args.city === '') {
     valid = false;
