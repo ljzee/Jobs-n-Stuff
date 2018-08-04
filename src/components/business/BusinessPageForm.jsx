@@ -67,12 +67,12 @@ class BusinessPageForm extends Component {
 
     switch (e.target.id) {
       case 'avatar':
-      state.avatar.size = e.target.files[0].size;
-      state.avatar.path = URL.createObjectURL(e.target.files[0]);
-      state.avatar.selectedFile = e.target.files[0];
-      state.avatar.filename = e.target.files[0].name;
-      state.avatar.mimetype = e.target.files[0].type;
-      break;
+        state.avatar.size = e.target.files[0].size;
+        state.avatar.path = URL.createObjectURL(e.target.files[0]);
+        state.avatar.selectedFile = e.target.files[0];
+        state.avatar.filename = e.target.files[0].name;
+        state.avatar.mimetype = e.target.files[0].type;
+        break;
       default:
       state[e.target.id].value = e.target.value;
     }
@@ -119,8 +119,6 @@ class BusinessPageForm extends Component {
     });
 
     const { user, errors } = updateResult.data.updatebusinessuser;
-
-    console.log(updateResult);
 
     if (user === null) {
 

@@ -1071,9 +1071,9 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.email = 'Email already in use';
   }
 
-  if (args.name === '' || args.name.trim().length > 32) {
+  if (args.name === '' || args.name.trim().length > 128) {
     valid = false;
-    payload.errors.firstname = 'Business name must be between 1 and 32 characters';
+    payload.errors.firstname = 'Business name must be between 1 and 128 characters';
   }
 
   if (args.description === '') {
@@ -1083,7 +1083,7 @@ async function updatebusinessuser(parent, args, ctx, info) {
 
   if (args.description.trim().length > 1000) {
     valid = false;
-    payload.errors.description = 'Business description must less than 1000 characters.';
+    payload.errors.description = 'Business description must be less than 1000 characters.';
   }
 
   if (args.website === '') {
@@ -1103,14 +1103,14 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.city = 'Please enter a city name.';
   }
 
-  if (args.city.trim().length > 1000) {
+  if (args.city.trim().length > 128) {
     valid = false;
-    payload.errors.city = 'City name must be less than a 1000 characters.';
+    payload.errors.city = 'City name must be less than a 128 characters.';
   }
 
-  if (args.address.trim().length > 1000) {
+  if (args.address.trim().length > 256) {
     valid = false;
-    payload.errors.address = 'Address must be less than a 1000 characters.';
+    payload.errors.address = 'Address must be less than a 256 characters.';
   }
 
   if (args.postalcode === '') {
