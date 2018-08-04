@@ -55,11 +55,15 @@ class Job extends Component{
   }
 
   cancelApplication = async () => {
-   await this.props.deleteApplication({
+    let applicationID = null;
+    for(let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++){
+      if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === this.props.match.params.jobid){
+        applicationID = this.props.userQuery.user.userprofile.applications[i].id;
+      }
+    }
+    await this.props.cancelApplication({
       variables: {
-        where: {
-          id: this.props.userQuery.user.userprofile.applications[0].id
-        }
+        id: applicationID
       },
     });
     this.props.userQuery.refetch();
@@ -313,9 +317,9 @@ const CREATE_APPLICATION = gql`
     }
   }
 `
-const DELETE_APPLICATION = gql`
-  mutation DeleteApplication($where: ApplicationWhereUniqueInput!) {
-    deleteApplication(where: $where) {
+const CANCEL_APPLICATION = gql`
+  mutation CancelApplication($id: ID!) {
+    cancelApplication(id: $id) {
       id
     }
   }
@@ -346,8 +350,8 @@ export default compose(
   graphql(CREATE_APPLICATION, {
     name: 'createApplication'
   }),
-  graphql(DELETE_APPLICATION, {
-    name: 'deleteApplication'
+  graphql(CANCEL_APPLICATION, {
+    name: 'cancelApplication'
   }),
   withRouter,
   withApollo

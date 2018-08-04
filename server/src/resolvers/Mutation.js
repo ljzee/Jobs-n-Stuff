@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { processSingleUpload, multipleUpload, closeStream } = require('../files/fileApi');
+const { processSingleUpload, multipleUpload, closeStream, copyFile } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
 const moment = require('moment');
@@ -492,6 +492,8 @@ async function uploadFiles(parent, args, ctx, info) {
   if (allValid) {
     const uploadResult = await multipleUpload(uploads);
     for (let i = 0; i < uploadResult.length; i++) {
+      console.log('Upload result:')
+      console.log(uploadResult)
       const file = uploadResult[i];
       const path = `/uploads/${user.username}/${file.storedName}`;
       if (file.filename !== 'temp-file.pdf') {
@@ -507,6 +509,11 @@ async function uploadFiles(parent, args, ctx, info) {
             user: { connect: { id: userId } }
           }
         }, `{ id }`);
+      } else {
+        const deleteFilePath = `..public/uploads/${user.username}/${file.storedName}`
+        console.log('Delete file path:')
+        console.log(deleteFilePath)
+        if (fs.existsSync(deleteFilePath)) fs.unlinkSync(deleteFilePath);
       }
     }
     payload.success = true;
@@ -789,27 +796,34 @@ async function createApplication(parent, args, ctx, info) {
 
   if(args.resume !== null){
     if(args.resume.length === 3){
-
+      const resumeFiletype = args.resume[0];
+      const resumeFilename = args.resume[1];
+      const resumePath = args.resume[2];
+      const newpath = await copyFile(resumePath, resumeFilename);
       await ctx.db.mutation.createApplicationFile({
-      data: {
-        path: args.resume[2],
-        filename: args.resume[1],
-        filetype: args.resume[0],
-        application: {
-          connect: {id: newapplication.id}
+        data: {
+          path: newpath,
+          filename: resumeFilename,
+          filetype: resumeFiletype,
+          application: {
+            connect: {id: newapplication.id}
+          }
         }
-      }
-    });
+      });
     }
   }
 
   if(args.coverletter !== null){
     if(args.resume.length === 3){
+      const cvFiletype = args.coverletter[0];
+      const cvFilename = args.coverletter[1];
+      const cvPath = args.coverletter[2];
+      const newpath = await copyFile(cvPath, cvFilename);
       await ctx.db.mutation.createApplicationFile({
         data: {
-          path: args.coverletter[2],
-          filename: args.coverletter[1],
-          filetype: args.coverletter[0],
+          path: newpath,
+          filename: cvFilename,
+          filetype: cvFiletype,
           application: {
             connect: {id: newapplication.id}
           }
@@ -993,6 +1007,18 @@ async function forgotPassword (parent, { email }, ctx, info) {
   return payload;
 }
 
+async function cancelApplication(parent, args, ctx, info) {
+  const application = await ctx.db.query.application({ where: { id: args.id} }, `{ id files { path } }`);
+  for (let i = 0; i < application.files.length; i++) {
+    const file = application.files[i];
+    const filePath = `../public${file.path}`
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+  return await ctx.db.mutation.deleteApplication({
+    where: { id: args.id }
+  }, `{ id }`);
+}
+
 const Mutation = {
   signup,
   login,
@@ -1012,9 +1038,7 @@ const Mutation = {
   validateEmail,
   forgotPassword,
   activatePosting,
-  deleteApplication: (parent, args, ctx, info)=>{
-    return forwardTo('db')(parent, args, ctx, info);
-  },
+  cancelApplication,
   createApplicationFile: (parent, args, ctx, info)=>{
     return forwardTo('db')(parent, args, ctx, info);
   },

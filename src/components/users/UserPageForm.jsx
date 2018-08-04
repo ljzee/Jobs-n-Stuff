@@ -332,7 +332,6 @@ class UserPageForm extends React.Component {
           </Form>
         </Panel>
         <Button
-          type="submit"
           bsSize="large"
           className="pull-right cancelbutton"
           onClick={ () => {

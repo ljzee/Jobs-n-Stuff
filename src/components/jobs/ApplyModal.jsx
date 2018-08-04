@@ -59,7 +59,6 @@ class ApplyModal extends Component {
 
   render() {
 
-
     return (
       <Modal id="apply-modal" show={this.props.showapply} onHide={this.props.closeapply}>
         <Modal.Header>

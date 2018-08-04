@@ -437,22 +437,29 @@ class ManagePostings extends Component {
                 >
                   View Applications
                 </a>
+                <a
+                  className="btn btn-info"
+                  role="button"
+                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
+                >
+                  View Job
+                </a>
               </div>
             :
               <div>
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
+                  onClick={ () => this.openActivateModal(props.value, props.original.title) }
                 >
-                  View
+                  Activate
                 </a>
                 <a
                   className="btn btn-info"
                   role="button"
-                  onClick={ () => this.openActivateModal(props.value, props.original.title) }
+                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
                 >
-                  Activate
+                  View
                 </a>
                 <a
                   className="btn btn-info"
