@@ -42,7 +42,6 @@ class ManagePostings extends Component {
     deletePostingTitle: '',
     editPostingId: '',
     isEditMode: false,
-    postings: [],
     title: {value: '', isValid: true, message: '', validState: null},
     duration: {value: '', isValid: true, message: '', validState: null},
     city: {value: '', isValid: true, message: '', validState: null},
@@ -57,6 +56,33 @@ class ManagePostings extends Component {
     selectedOption: {type: '', pay: 'hourly'},
     paytype: '',
     isNewPosting: true
+  }
+
+  resetState = () => {
+    this.setState ({
+      showDeleteModal: false,
+      showActivateModal: false,
+      activatePostingId: '',
+      activatePostingTitle: '',
+      deletePostingId: '',
+      deletePostingTitle: '',
+      editPostingId: '',
+      isEditMode: false,
+      title: {value: '', isValid: true, message: '', validState: null},
+      duration: {value: '', isValid: true, message: '', validState: null},
+      city: {value: '', isValid: true, message: '', validState: null},
+      region: {value: '', isValid: true, message: '', validState: null},
+      country: {value: '', isValid: true, message: '', validState: null},
+      openings: {value: '', isValid: true, message: '', validState: null},
+      description: {value: '', isValid: true, message: '', validState: null},
+      contactname: {value: '', isValid: true, message: '', validState: null},
+      salary: {value: '', isValid: true, message: '', validState: null},
+      deadline: {date: moment(), value: `${moment().format()}`, isValid: true, message: '', validState: null},
+      coverletterrequired: false,
+      selectedOption: {type: '', pay: 'hourly'},
+      paytype: '',
+      isNewPosting: true
+    });
   }
 
   getPostings = () => {
@@ -363,7 +389,7 @@ class ManagePostings extends Component {
       this.setState(state);
     } else {
       this.props.client.resetStore().then(() => {
-        this.setState({isEditMode: false});
+        this.resetState();
       });
     }
   }
@@ -696,11 +722,10 @@ class ManagePostings extends Component {
                   </div>
                 </Panel>
                 <Button
-                  type="submit"
                   bsSize="large"
                   className="pull-right"
                   onClick={ () => {
-                    this.setState({isEditMode: false})
+                    this.resetState();
                   }}
                 >
                   Cancel

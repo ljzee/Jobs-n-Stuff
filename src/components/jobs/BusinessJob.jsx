@@ -114,12 +114,10 @@ class BusinessJob extends Component{
               <strong>Company website: </strong>
               <a
                 target="_blank"
-                // href={this.props.jobQuery.jobPosting.website}
-                href="https://google.ca"
+                href={this.props.jobQuery.jobPosting.businessprofile.website}
                 className="company-website-link"
               >
-                www.google.ca
-                {/* {this.props.jobQuery.jobPosting.website.replace('https://', '').replace('http://')} */}
+                {this.props.jobQuery.jobPosting.businessprofile.website.replace('https://', '').replace('http://')}
               </a>
             </Panel.Body>
           </Panel>

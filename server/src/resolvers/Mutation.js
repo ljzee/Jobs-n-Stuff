@@ -133,7 +133,6 @@ async function signup(parent, args, ctx, info) {
           phonenumber: '',
           address: '',
           website: '',
-          location: {},
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
@@ -1028,7 +1027,7 @@ async function cancelApplication(parent, args, ctx, info) {
 
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
+  const businessUser = await ctx.db.query.user({ where: { id: userId} }, `{ id businessprofile { id } }`);
 
 
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
@@ -1172,34 +1171,35 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.phonenumber = 'Not a valid phone number';
   }
 
-if(valid) {
-  const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
-    data: {
-      name: args.name,
-      description: args.description,
-      phonenumber: formattedPhone,
-      website: args.website
-    },
-    where: {id: businessProfileID.businessprofile.id}
-  }, `{ id location { id } }`);
-  await ctx.db.mutation.updateLocation({
-    data: {
-      city: args.city,
-      region: args.region,
-      country: args.country,
-      address: args.address,
-      postalcode: args.postalcode
-    },
-    where: {id: businessprofileupdate.location.id}
-  }, `{ id }`);
-  payload.user =  await ctx.db.mutation.updateUser({
-    data: {
-      username: args.username,
-      email: args.email
-    },
-    where: {id: userId}
-  }, `{ id username }`);
-}
+  if (valid) {
+    const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
+      data: {
+        name: args.name,
+        description: args.description,
+        phonenumber: formattedPhone,
+        website: args.website
+      },
+      where: {id: businessUser.businessprofile.id}
+    }, `{ id location { id } }`);
+    await ctx.db.mutation.updateLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country,
+        address: args.address,
+        postalcode: args.postalcode
+      },
+      where: {id: businessprofileupdate.location.id}
+    }, `{ id }`);
+    payload.user =  await ctx.db.mutation.updateUser({
+      data: {
+        username: args.username,
+        email: args.email
+      },
+      where: {id: userId}
+    }, `{ id username }`);
+  }
+
   return payload;
 }
 

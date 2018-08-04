@@ -20,7 +20,6 @@
     "apollo-upload-server": "^5.0.0",
     "await-timeout": "^0.2.0",
     "bcryptjs": "^2.4.3",
-    "delay": "^3.0.0",
     "dotenv": "^6.0.0",
     "fs": "0.0.1-security",
     "gm": "^1.23.1",

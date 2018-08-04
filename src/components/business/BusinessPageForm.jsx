@@ -495,56 +495,46 @@ class BusinessPageForm extends Component {
           <h1>
             {(this.state.name.value)}
           </h1>
+            <Panel>
+              <Panel.Heading>
+                <Panel.Title componentClass="h3">Description</Panel.Title>
+              </Panel.Heading>
+              <Panel.Body>
+                <div>{ReactHtmlParser(this.state.description.value)}</div>
+              </Panel.Body>
+            </Panel>
 
-          <Panel>
-            <Panel.Heading>
-              <Panel.Title componentClass="h3">Profile</Panel.Title>
-            </Panel.Heading>
-            <Panel.Body>
+            <Panel>
+              <Panel.Heading>
+                <Panel.Title componentClass="h3">Details</Panel.Title>
+              </Panel.Heading>
+              <Panel.Body>
+                {this.state.avatar.path !== '' &&
+                  <Image
+                    alt="avatar"
+                    src={this.state.avatar.path}
+                    rounded
+                    className="pull-right"
+                    responsive
+                    />
+                }
+                <p>{'Website: '}
+                  <a target="_blank" href={this.state.website.value} className="company-website-link">
+                    {this.state.website.value.replace('https://', '').replace('http://', '')}
+                  </a>
+                </p>
+                <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
+                <p>{'Street Address: ' + this.state.address.value}</p>
+                <p>{'City: ' + this.state.city.value}</p>
+                <p>{'Region: ' + this.state.region.value}</p>
+                <p>{'Country: ' + this.state.country.value}</p>
+                <p>{'Locale Code: ' + this.state.postalcode.value}</p>
 
-              <Panel>
-                <Panel.Heading>
-                  <Panel.Title componentClass="h3">Description</Panel.Title>
-                </Panel.Heading>
-                <Panel.Body>
-                  <div>{ReactHtmlParser(this.state.description.value)}</div>
-                </Panel.Body>
-              </Panel>
-
-              <Panel>
-                <Panel.Heading>
-                  <Panel.Title componentClass="h3">Details</Panel.Title>
-                </Panel.Heading>
-                <Panel.Body>
-                  {this.state.avatar.path !== '' &&
-                    <Image
-                      alt="avatar"
-                      src={this.state.avatar.path}
-                      rounded
-                      className="pull-right"
-                      responsive
-                      />
-                  }
-                  <p>{'Website: '}
-                    <a target="_blank" href={this.state.website.value} className="company-website-link">
-                      {this.state.website.value.replace('https://', '').replace('http://', '')}
-                    </a>
-                  </p>
-                  <p>{'Phone Number: ' + this.state.phonenumber.value}</p>
-                  <p>{'Street Address: ' + this.state.address.value}</p>
-                  <p>{'City: ' + this.state.city.value}</p>
-                  <p>{'Region: ' + this.state.region.value}</p>
-                  <p>{'Country: ' + this.state.country.value}</p>
-                  <p>{'Locale Code: ' + this.state.postalcode.value}</p>
-
-                  {this.props.userQuery.user.username === this.props.match.params.username &&
-                    <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
-                  }
-                </Panel.Body>
-              </Panel>
-
-            </Panel.Body>
-          </Panel>
+                {this.props.userQuery.user.username === this.props.match.params.username &&
+                  <Link to={`/change-password/${this.props.user.username}`}>Change Password</Link>
+                }
+              </Panel.Body>
+            </Panel>
           {this.props.userQuery.user.username === this.props.match.params.username &&
             <Button
               type="submit"
@@ -564,6 +554,7 @@ class BusinessPageForm extends Component {
   const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
+      id
       role
       username
       activated

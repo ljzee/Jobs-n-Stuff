@@ -29,7 +29,6 @@ type BusinessProfile {
   name: String
   description: String
   phonenumber: String
-  address: String
   website: String
   user: User! @unique @relation(name: "BusinessProfileDetails")
   jobpostings: [JobPosting!]! @relation(name: "JobPostingDetails" onDelete: CASCADE)

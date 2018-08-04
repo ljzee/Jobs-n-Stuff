@@ -60,14 +60,23 @@ async function createNewUser(username, email, password, role, activated, deleteU
       }, `{ id }`);
     }
     if (role === 'BUSINESS') {
-      await prisma.mutation.createBusinessProfile({
+      const businessProfile = await prisma.mutation.createBusinessProfile({
         data: {
           name: '',
           description: '',
           phonenumber: '',
-          address: '',
           website: '',
           user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+      await prisma.mutation.createLocation({
+        data: {
+          city: '',
+          region: '',
+          country: '',
+          postalcode: '',
+          address: '',
+          businessprofile: { connect: { id: businessProfile.id } }
         },
       }, `{ id }`);
     }
