@@ -33,6 +33,7 @@ type BusinessProfile {
   website: String
   user: User! @unique @relation(name: "BusinessProfileDetails")
   jobpostings: [JobPosting!]! @relation(name: "JobPostingDetails" onDelete: CASCADE)
+  location: Location @relation(name: "BusinessProfileLocation" onDelete: CASCADE)
 }
 
 type File {
@@ -69,7 +70,8 @@ type Location {
   region: String
   country: String
   postalcode: String
-  jobposting: JobPosting! @unique @relation(name: "JobPostingLocation")
+  jobposting: JobPosting @unique @relation(name: "JobPostingLocation")
+  businessprofile: BusinessProfile @unique @relation(name: "BusinessProfileLocation")
 }
 
 type JobPosting {

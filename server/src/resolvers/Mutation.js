@@ -126,14 +126,25 @@ async function signup(parent, args, ctx, info) {
       }, `{ id }`);
     }
     if (args.role === 'BUSINESS') {
-      await ctx.db.mutation.createBusinessProfile({
+       const businessprofile = await ctx.db.mutation.createBusinessProfile({
         data: {
           name: '',
           description: '',
           phonenumber: '',
           address: '',
           website: '',
+          location: {},
           user: { connect: { id: user.id } }
+        },
+      }, `{ id }`);
+      await ctx.db.mutation.createLocation({
+        data: {
+          city: '',
+          region: '',
+          country: '',
+          postalcode: '',
+          address: '',
+          businessprofile: { connect: { id: businessprofile.id } }
         },
       }, `{ id }`);
     }
@@ -492,8 +503,6 @@ async function uploadFiles(parent, args, ctx, info) {
   if (allValid) {
     const uploadResult = await multipleUpload(uploads);
     for (let i = 0; i < uploadResult.length; i++) {
-      console.log('Upload result:')
-      console.log(uploadResult)
       const file = uploadResult[i];
       const path = `/uploads/${user.username}/${file.storedName}`;
       if (file.filename !== 'temp-file.pdf') {
@@ -511,8 +520,6 @@ async function uploadFiles(parent, args, ctx, info) {
         }, `{ id }`);
       } else {
         const deleteFilePath = `..public/uploads/${user.username}/${file.storedName}`
-        console.log('Delete file path:')
-        console.log(deleteFilePath)
         if (fs.existsSync(deleteFilePath)) fs.unlinkSync(deleteFilePath);
       }
     }
@@ -1019,6 +1026,183 @@ async function cancelApplication(parent, args, ctx, info) {
   }, `{ id }`);
 }
 
+async function updatebusinessuser(parent, args, ctx, info) {
+  const userId = getUserId(ctx);
+  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
+
+
+  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
+  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  var valid = true;
+  var usernameValid = true;
+  var emailValid = true;
+  var phonenumberValid = true;
+  var urlValid = true;
+
+  var payload = {
+    user: null,
+    errors: {
+      username: '',
+      email: '',
+      phonenumber: '',
+      name: '',
+      description: '',
+      address: '',
+      website: '',
+      city: '',
+      country: '',
+      region: '',
+      postalcode: '',
+    }
+  }
+
+  if (args.username === '' || args.username.trim().length > 32) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username must be between 1 and 32 characters';
+  }
+
+  if (usernameValid && !usernameRegEx.test(args.username)) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Not a valid username. Username can only contain letters [a..Z] and numbers [0..9]';
+  }
+
+  if (usernameValid && !sameUser(user, user1) && user1 !== null && args.username === user1.username) {
+    valid = false;
+    usernameValid = false;
+    payload.errors.username = 'Username already in use';
+  }
+
+  if (args.email === '') {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Please enter an email';
+  }
+
+  if (emailValid && !validator.isEmail(args.email)) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Not a valid email address';
+  }
+
+  if (emailValid && !sameUser(user, user2) && user2 !== null && args.email === user2.email) {
+    valid = false;
+    emailValid = false;
+    payload.errors.email = 'Email already in use';
+  }
+
+  if (args.name === '' || args.name.trim().length > 128) {
+    valid = false;
+    payload.errors.firstname = 'Business name must be between 1 and 128 characters';
+  }
+
+  if (args.description === '') {
+    valid = false;
+    payload.errors.description = 'Please enter a business description.';
+  }
+
+  if (args.description.trim().length > 1000) {
+    valid = false;
+    payload.errors.description = 'Business description must be less than 1000 characters.';
+  }
+
+  if (args.website === '') {
+    valid = false;
+    urlValid = false;
+    payload.errors.website = 'Please enter a business website.';
+  }
+
+  if(!validator.isURL(args.website, { protocols: ['http','https'],  require_protocol: true })){
+    valid = false;
+    urlValid = false;
+    payload.errors.website = 'Please enter a valid website url including protocol http/https.';
+  }
+
+  if (args.city === '') {
+    valid = false;
+    payload.errors.city = 'Please enter a city name.';
+  }
+
+  if (args.city === '' || args.city.trim().length > 128) {
+    valid = false;
+    payload.errors.city = 'City name must be between 1 and 128 characters.';
+  }
+
+  if (args.address === '' || args.address.trim().length > 256) {
+    valid = false;
+    payload.errors.address = 'Address must be between 1 and 256 characters.';
+  }
+
+  if (args.postalcode === '') {
+    valid = false;
+    payload.errors.postalcode = 'Please enter a locale code.';
+  }
+
+  // Doesn't check if the locale code matches specific country
+  // Checks whether locale code matches a format from all known types
+  if (!validator.isPostalCode(args.postalcode, 'any')) {
+    valid = false;
+    payload.errors.postalcode = 'Please enter a valid locale code format.';
+  }
+
+  if (args.country === '') {
+    valid = false;
+    payload.errors.country = 'Please select a country.';
+  }
+
+  if (args.region === '') {
+    valid = false;
+    payload.errors.region = 'Please select a region.';
+  }
+
+  if (args.phonenumber === '') {
+    valid = false;
+    phonenumberValid = false;
+    payload.errors.phonenumber = 'Please enter your phone number';
+  }
+
+  var formattedPhone = '';
+  if (phonenumberValid && phoneRegEx.test(args.phonenumber)) {
+    var unformattedPhone = args.phonenumber;
+    formattedPhone = unformattedPhone.replace(phoneRegEx, "($1) $2-$3");
+  } else {
+    valid = false;
+    payload.errors.phonenumber = 'Not a valid phone number';
+  }
+
+if(valid) {
+  const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
+    data: {
+      name: args.name,
+      description: args.description,
+      phonenumber: formattedPhone,
+      website: args.website
+    },
+    where: {id: businessProfileID.businessprofile.id}
+  }, `{ id location { id } }`);
+  await ctx.db.mutation.updateLocation({
+    data: {
+      city: args.city,
+      region: args.region,
+      country: args.country,
+      address: args.address,
+      postalcode: args.postalcode
+    },
+    where: {id: businessprofileupdate.location.id}
+  }, `{ id }`);
+  payload.user =  await ctx.db.mutation.updateUser({
+    data: {
+      username: args.username,
+      email: args.email
+    },
+    where: {id: userId}
+  }, `{ id username }`);
+}
+  return payload;
+}
+
 const Mutation = {
   signup,
   login,
@@ -1031,6 +1215,7 @@ const Mutation = {
   uploadFiles,
   createApplication,
   renameFile,
+  updatebusinessuser,
   toggleUserActive,
   deletePosting,
   sendLinkValidateEmail,
