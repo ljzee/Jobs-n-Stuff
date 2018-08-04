@@ -8,11 +8,9 @@ import { withRouter, Link } from 'react-router-dom';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
-import ReactQuill from 'react-quill';
 import ReactHtmlParser from 'react-html-parser';
 import '../../styles/Profile.css';
 import '../../styles/BusinessPageForm.css';
-import 'react-quill/dist/quill.snow.css';
 
 
 const validationFields = ['email', 'username', 'phonenumber', 'avatar', 'city', 'country', 'region', 'address', 'postalcode', 'name', 'description', 'website'];
@@ -181,15 +179,6 @@ class BusinessPageForm extends Component {
   selectRegion(val) {
     let state = this.state;
     state.region.value = val;
-    this.setState(state);
-  }
-
-  setDescription(val) {
-    let state = this.state;
-    state.description.isValid = true;
-    state.description.validState = null;
-    state.description.message = '';
-    state.description.value = val;
     this.setState(state);
   }
 
@@ -443,21 +432,20 @@ class BusinessPageForm extends Component {
                 </Col>
               </FormGroup>
 
-              <FormGroup controlId="description" bsSize="large" validationState={this.state.description.validState}>
+              <FormGroup controlId="description" validationState={this.state.description.validState}>
                 <Col componentClass={ControlLabel} sm={2} className="required">
                   Description:
                 </Col>
                 <Col sm={10}>
-                  <HelpBlock className="errormessage">{this.state.description.message}</HelpBlock>
-                  <div className="description-text-area">
-                    <ReactQuill
-                      value={this.state.description.value}
-                      style={{ height: 400 }}
-                      onChange={(val) => this.setDescription(val)}
-                      />
-                  </div>
-                  <br/>
+                  <FormControl
+                    componentClass="textarea"
+                    style={{height: '250px',  width: '500px'}}
+                    placeholder="Description"
+                    value={this.state.description.value}
+                    onChange={this.handleChange}
+                    />
                   <FormControl.Feedback />
+                  <HelpBlock className="errormessage">{this.state.description.message}</HelpBlock>
                 </Col>
               </FormGroup>
 

@@ -98,14 +98,6 @@ const business_role = 'BUSINESS';
 const business_activated = true;
 createNewUser(business_username, business_email, business_password, business_role, business_activated);
 
-// Create unactivated business user
-const business_username_na = 'business_na';
-const business_email_na = 'businessna@email.com';
-const business_password_na = 'business_password';
-const business_role_na = 'BUSINESS';
-const business_activated_na = false;
-createNewUser(business_username_na, business_email_na, business_password_na, business_role_na, business_activated_na);
-
 // Create base user
 const base_username = 'baseuser';
 const base_email = 'baseuser@email.com';
