@@ -106,7 +106,7 @@ type Application {
   updatedAt: DateTime!
   status: StatusType!
   files: [ApplicationFile!]! @relation(name: "ApplicationFiles" onDelete: CASCADE)
-  user: UserProfile! @unique @relation(name: "ApplicationUser")
+  userprofile: UserProfile! @unique @relation(name: "ApplicationUser")
   jobposting: JobPosting! @unique @relation(name: "JobApplications")
 }
 

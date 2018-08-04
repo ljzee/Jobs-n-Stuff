@@ -788,26 +788,21 @@ async function renameFile(parent, args, ctx, info) {
 }
 
 async function createApplication(parent, args, ctx, info) {
-  //get userid
   const userId = getUserId(ctx);
-  //from userid, query for userprofileid
   const userProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ userprofile {id}}`);
-  //console.log(args.resume);
-  //console.log(args.coverletter);
 
   const newapplication = await ctx.db.mutation.createApplication({
     data: {
       status: 'PENDING',
-      //connect to userprofileID
-      user: { connect: { id: userProfileID.userprofile.id } },
+      userprofile: { connect: { id: userProfileID.userprofile.id } },
       jobposting: { connect: { id: args.jobpostingid}}
     }
   })
 
-  if(args.resume != null){
+  if(args.resume !== null){
     if(args.resume.length === 3){
 
-      const resumeapplicationfile = await ctx.db.mutation.createApplicationFile({
+      await ctx.db.mutation.createApplicationFile({
       data: {
         path: args.resume[2],
         filename: args.resume[1],
@@ -820,9 +815,9 @@ async function createApplication(parent, args, ctx, info) {
     }
   }
 
-  if(args.coverletter != null){
+  if(args.coverletter !== null){
     if(args.resume.length === 3){
-      const coverletterapplicationfile = await ctx.db.mutation.createApplicationFile({
+      await ctx.db.mutation.createApplicationFile({
         data: {
           path: args.coverletter[2],
           filename: args.coverletter[1],
