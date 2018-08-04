@@ -39,9 +39,9 @@ class LoggedInNavBar extends Component {
     if (this.props.userQuery.user.activated && this.props.userQuery.user.role === 'BASEUSER') {
       return (
         <React.Fragment>
-          <NavItem eventKey={1} href={`/documents/${this.props.username}`}>Documents</NavItem>
-          <NavItem eventKey={2} href={`/jobs`}>Job Postings</NavItem>
-          <NavItem eventKey={3} href={`/applications/${this.props.username}`}>Applications</NavItem>
+          <NavItem eventKey={1} href={`/jobs`}>Job Postings</NavItem>
+          <NavItem eventKey={2} href={`/applications/${this.props.username}`}>Applications</NavItem>
+          <NavItem eventKey={3} href={`/documents/${this.props.username}`}>Documents</NavItem>
           <NavItem eventKey={4} href={`/profile/${this.props.username}`}>Profile</NavItem>
         </React.Fragment>)
     } else if (!this.props.userQuery.user.activated && this.props.userQuery.user.role === 'BASEUSER') {

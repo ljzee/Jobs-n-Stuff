@@ -77,7 +77,7 @@ class Job extends Component{
     this.setState({ showApply: false });
   }
 
-  getDocuments = () => {
+  setDocuments = () => {
     let numberOfFiles = this.props.userQuery.user.files.length;
     let roptions = [];
     let coptions = [];
@@ -127,7 +127,7 @@ class Job extends Component{
       return <h1>Sorry, this job doesn't exist.</h1>
     }
 
-    this.getDocuments();
+    this.setDocuments();
 
     return(
       <div className="Job">

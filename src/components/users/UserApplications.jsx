@@ -4,9 +4,10 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Button, Modal } from 'react-bootstrap';
+import { Button, Modal, HelpBlock } from 'react-bootstrap';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
+import moment from 'moment';
 import ReactTable from "react-table";
 import 'react-table/react-table.css';
 
@@ -34,11 +35,27 @@ class UserApplications extends Component {
     this.setState(state);
   }
 
-  getApplications = () => {
+  getCurrentApplications = () => {
     let applications = []
 
     for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
-      applications.push(this.props.userQuery.user.userprofile.applications[i]);
+      const application = this.props.userQuery.user.userprofile.applications[i];
+      if (moment(application.jobposting.deadline).diff(moment()) > 0) {
+        applications.push(this.props.userQuery.user.userprofile.applications[i]);
+      }
+    }
+
+    return applications;
+  }
+
+  getPastApplications = () => {
+    let applications = []
+
+    for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
+      const application = this.props.userQuery.user.userprofile.applications[i];
+      if (moment(application.jobposting.deadline).diff(moment()) <= 0) {
+        applications.push(this.props.userQuery.user.userprofile.applications[i]);
+      }
     }
 
     return applications;
@@ -72,13 +89,152 @@ class UserApplications extends Component {
       return <Redirect to='/dashboard'/>;
     }
 
+    const columns = [
+      {
+        Header: () => <div><strong>Title</strong></div>,
+        accessor: 'jobposting',
+        Cell: props => <span>{props.value.title}</span>,
+      },
+      {
+        Header: () => <div><strong>Company</strong></div>,
+        accessor: 'jobposting',
+        width: 175,
+        Cell: props => <span>{props.value.businessprofile.name}</span>
+      },
+      {
+        id: 'updatedAt',
+        Header: () => <div><strong>Submitted</strong></div>,
+        width: 160,
+        accessor: props => moment(props.updatedAt).format('DD/MM/YYYY h:mm a')
+      },
+      {
+        Header: () => <div><strong>Job Details</strong></div>,
+        accessor: 'jobposting',
+        width: 110,
+        Cell: props =>
+          <a
+            className="btn btn-info"
+            role="button"
+            onClick={ () => this.props.history.push(`/jobs/${props.value.id}`)}
+          >
+            View Job
+          </a>
+      },
+      {
+        Header: () => <div><strong>Documents</strong></div>,
+        accessor: 'files',
+        Cell: props =>
+        <div className="center-content-div">
+          {props.value.length === 2
+            ?
+              <div>
+                {props.value[0].filetype === 'RESUME'
+                  ?
+                    <div>
+                      <a
+                        href={props.value[0].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        target="_blank"
+                      >
+                        Resume
+                      </a>
+                      <a
+                        href={props.value[1].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        target="_blank"
+                      >
+                        Cover Letter
+                      </a>
+                    </div>
+                  :
+                    <div>
+                      <a
+                        href={props.value[1].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        target="_blank"
+                      >
+                        Resume
+                      </a>
+                      <a
+                        href={props.value[0].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        target="_blank"
+                      >
+                        Cover Letter
+                      </a>
+                    </div>
+                }
+              </div>
+            :
+              <div>
+                <a
+                  href={props.value[0].path}
+                  className="btn btn-info application-table-button"
+                  role="button"
+                  target="_blank"
+                >
+                  Resume
+                </a>
+              </div>
+          }
+        </div>
+      },
+      {
+        Header: () => <div><strong>Cancel Application</strong></div>,
+        accessor: 'id',
+        width: 160,
+        Cell: props =>
+        <div className="center-content-div">
+          <Button
+            bsStyle="danger"
+            role="button"
+            onClick={ () => this.openCancelModal(props.value, props.original.jobposting.title)}
+          >
+            Cancel
+          </Button>
+        </div>
+      }
+    ]
+
     return (
       <div className="UserApplications">
-        <h2 className="form-signin-heading">Your Applications</h2>
-        <br />
+        <h2 className="form-signin-heading">Current Applications</h2>
+        <HelpBlock>
+          The application deadline has not passed for these jobs.
+          You may cancel your application if you no longer wish to be considered for the position.
+        </HelpBlock>
         <ReactTable
           className="-striped"
-          data={this.getApplications()}
+          data={this.getCurrentApplications()}
+          columns={columns}
+          minRows={5}
+          showPagination={false}
+          noDataText='No applications found'
+          style={{
+            borderRadius: "5px",
+            overflow: "hidden",
+            padding: "5px",
+            textAlign: "center"
+          }}
+          defaultSorted={[
+            {
+              id: "updatedAt",
+              desc: true
+            }
+          ]}
+        />
+        <h2 className="form-signin-heading">Past Applications</h2>
+        <HelpBlock>
+          The application deadline has passed for these jobs.
+          You are no longer able to cancel your application.
+        </HelpBlock>
+        <ReactTable
+          className="-striped"
+          data={this.getPastApplications()}
           columns={applications_columns}
           minRows={5}
           showPagination={false}
@@ -135,6 +291,7 @@ const USER_QUERY = gql`
           jobposting {
             id
             title
+            deadline
             businessprofile {
               name
             }

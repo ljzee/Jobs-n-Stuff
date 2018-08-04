@@ -85,11 +85,27 @@ class ManagePostings extends Component {
     });
   }
 
-  getPostings = () => {
+  getCurrentPostings = () => {
     let postings = []
 
     for (let i = 0; i < this.props.userQuery.user.businessprofile.jobpostings.length; i++) {
-      postings.push(this.props.userQuery.user.businessprofile.jobpostings[i]);
+      const posting = this.props.userQuery.user.businessprofile.jobpostings[i];
+      if (moment(posting.deadline).diff(moment()) > 0) {
+        postings.push(this.props.userQuery.user.businessprofile.jobpostings[i]);
+      }
+    }
+
+    return postings;
+  }
+
+  getPastPostings = () => {
+    let postings = []
+
+    for (let i = 0; i < this.props.userQuery.user.businessprofile.jobpostings.length; i++) {
+      const posting = this.props.userQuery.user.businessprofile.jobpostings[i];
+      if (moment(posting.deadline).diff(moment()) <= 0) {
+        postings.push(this.props.userQuery.user.businessprofile.jobpostings[i]);
+      }
     }
 
     return postings;
@@ -433,9 +449,15 @@ class ManagePostings extends Component {
         width: 125,
         accessor: props =>
         <div>
-          {props.activated
-            ? <Label bsStyle="success">Activated</Label>
-            : <Label bsStyle="warning">Pending</Label>
+          {moment(props.deadline).diff(moment()) <= 0
+            ? <Label bsStyle="info">Closed</Label>
+            :
+            <div>
+              {props.activated
+                ? <Label bsStyle="success">Active</Label>
+                : <Label bsStyle="warning">Pending</Label>
+              }
+            </div>
           }
         </div>
       },
@@ -506,8 +528,6 @@ class ManagePostings extends Component {
         </div>
       }
     ];
-
-    let postings = this.getPostings();
 
     return (
       <div className="ManagePostings">
@@ -749,16 +769,43 @@ class ManagePostings extends Component {
                 type="submit"
                 bsSize="large"
                 bsStyle="primary"
-                className="manage-postings-create-new"
                 onClick={ () => {
                   this.setState({isEditMode: true});
                 }}
               >
                 Create New Posting
               </Button>
+              <h3 className="form-signin-heading">Open Positions</h3>
+              <HelpBlock>
+                The application deadline has not passed for these jobs. New applications will be received and existing applications may be cancelled.
+              </HelpBlock>
               <ReactTable
                 className="-striped"
-                data={postings}
+                data={this.getCurrentPostings()}
+                columns={columns}
+                minRows={5}
+                showPagination={false}
+                noDataText='No postings found'
+                style={{
+                  borderRadius: "5px",
+                  overflow: "hidden",
+                  padding: "5px",
+                  textAlign: "center"
+                }}
+                defaultSorted={[
+                  {
+                    id: "updatedAt",
+                    desc: true
+                  }
+                ]}
+              />
+              <h3 className="form-signin-heading">Closed Positions</h3>
+              <HelpBlock>
+                The application deadline has passed for these jobs. No new applications will be received and existing applications cannot be cancelled.
+              </HelpBlock>
+              <ReactTable
+                className="-striped"
+                data={this.getPastPostings()}
                 columns={columns}
                 minRows={5}
                 showPagination={false}

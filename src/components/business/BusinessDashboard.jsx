@@ -56,8 +56,6 @@ class BusinessDashboard extends Component {
       window.alert(this.props.activePostingsQuery.error.toSource())
     }
 
-    let postings = this.getPostings();
-    const drafts   = this.getDrafts();
     const columns = [
       {
         Header: () => <div><strong>Job Title</strong></div>,
@@ -100,7 +98,7 @@ class BusinessDashboard extends Component {
         accessor: props =>
         <div>
           {props.activated
-            ? <Label bsStyle="success">Activated</Label>
+            ? <Label bsStyle="success">Active</Label>
             : <Label bsStyle="warning">Pending</Label>
           }
         </div>
@@ -170,7 +168,7 @@ class BusinessDashboard extends Component {
         <h2>Your Active Job Postings</h2>
         <ReactTable
           columns={columns}
-          data={postings}
+          data={this.getPostings()}
           minRows={5}
           showPagination={false}
           style={{
@@ -190,7 +188,7 @@ class BusinessDashboard extends Component {
         <h2>Your Drafts</h2>
         <ReactTable
           columns={draftsColumns}
-          data={drafts}
+          data={this.getDrafts()}
           minRows={5}
           showPagination={false}
           style={{
