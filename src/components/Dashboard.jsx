@@ -5,6 +5,9 @@ import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import Loading from './Loading';
+import AdminDashboard from './admin/AdminDashboard';
+import BusinessDashboard from './business/BusinessDashboard';
+import UserDashboard from './users/UserDashboard';
 import { Alert } from 'react-bootstrap';
 import { USER_TOKEN } from '../constants';
 
@@ -15,7 +18,6 @@ class Dashboard extends Component {
   }
 
   render() {
-
     if (this.props.userQuery.loading) {
       return <Loading />;
     }
@@ -26,12 +28,23 @@ class Dashboard extends Component {
 
     return (
       <div className="Dashboard">
+        <h1>Dashboard</h1>
         {this.adminDeactivated() &&
           <Alert bsStyle="danger">
             Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
           </Alert>
         }
-        <h1>This will be a landing page for users after logging in</h1>
+        {this.props.userQuery.user.role === 'BASEUSER'
+          ? <UserDashboard />
+
+          : this.props.userQuery.user.role === 'BUSINESS'
+          ? <BusinessDashboard />
+
+          : this.props.userQuery.user.role === 'ADMIN'
+          ? <AdminDashboard />
+
+          : false
+        }
       </div>
     );
   }
@@ -40,23 +53,22 @@ class Dashboard extends Component {
 const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
-      id
+      role
       admindeactivated
     }
   }
 `
-
 export default compose(
   graphql(USER_QUERY, {
     name: 'userQuery',
     options: props => ({
       variables: {
-          where: {
-            id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
-          }
-        },
+        where: {
+          id: JSON.parse(localStorage.getItem(USER_TOKEN)).id
+        }
+      },
     }),
   }),
   withRouter,
   withApollo
-)(Dashboard)
+) (Dashboard);

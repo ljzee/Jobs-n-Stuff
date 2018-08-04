@@ -7,7 +7,7 @@ scalar Upload
 type Query {
   me: User
   users(where: UserWhereInput, orderBy: UserOrderByInput): [User!]!
-  jobpostings(where: JobPostingWhereInput, orderBy: JobPostingOrderByInput): [JobPosting!]!
+  jobpostings(where: JobPostingWhereInput, orderBy: JobPostingOrderByInput, first: Int): [JobPosting!]!
 }
 
 type Mutation {
