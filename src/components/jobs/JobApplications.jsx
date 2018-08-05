@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap';
 import { USER_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
 import { graphql, compose, withApollo } from 'react-apollo';
-import { withRouter, Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
 import ReactTable from "react-table";
