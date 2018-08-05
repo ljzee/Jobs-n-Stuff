@@ -62,8 +62,7 @@ class ManageUsers extends React.Component {
     await this.props.deleteUserMutation({
       variables: {
         id,
-        username,
-        role
+        username
       }
     });
 
@@ -318,8 +317,8 @@ const UPDATE_ACTIVATED_MUTATION = gql`
 `
 
 const DELETE_USER_MUTATION = gql`
-  mutation deleteUserMutation($id: ID!, $username: String!, $role: Role!) {
-    deleteUser(id: $id, username: $username, role: $role) {
+  mutation deleteUserMutation($id: ID!, $username: String!) {
+    deleteUser(id: $id, username: $username) {
       id
     }
   }
