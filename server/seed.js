@@ -25,7 +25,7 @@ async function deleteExistingUser(email) {
   }
 }
 
-async function createNewUser(username, email, password, role, activated, deleteUser=false) {
+async function createNewUser(username, email, password, role, activated, avatar=null, userProfile=null, businessProfile=null, location=null, deleteUser=false) {
   if (deleteUser) {
     await deleteExistingUser(email);
   }
@@ -51,33 +51,45 @@ async function createNewUser(username, email, password, role, activated, deleteU
     if (role === 'BASEUSER') {
       await prisma.mutation.createUserProfile({
         data: {
-          firstname: '',
-          lastname: '',
-          preferredname: '',
-          phonenumber: '',
+          firstname: userProfile.firstname,
+          lastname: userProfile.lastname,
+          preferredname: userProfile.preferredname,
+          phonenumber:userProfile.phonenumber,
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
     }
     if (role === 'BUSINESS') {
-      const businessProfile = await prisma.mutation.createBusinessProfile({
+      const bProfile = await prisma.mutation.createBusinessProfile({
         data: {
-          name: '',
-          description: '',
-          phonenumber: '',
-          website: '',
+          name: businessProfile.name,
+          description: businessProfile.description,
+          phonenumber: businessProfile.phonenumber,
+          website: businessProfile.website,
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
       await prisma.mutation.createLocation({
         data: {
-          city: '',
-          region: '',
-          country: '',
-          postalcode: '',
-          address: '',
-          businessprofile: { connect: { id: businessProfile.id } }
+          city: location.city,
+          region: location.region,
+          country: location.country,
+          postalcode: location.postalcode,
+          address: location.address,
+          businessprofile: { connect: { id: bProfile.id } }
         },
+      }, `{ id }`);
+    }
+    if (role !== 'ADMIN') {
+      await prisma.mutation.createFile({
+        data: {
+          filetype: avatar.filetype,
+          filename: avatar.filename,
+          path: avatar.path,
+          storedName: avatar.storedname,
+          mimetype: avatar.mimetype,
+          user: { connect: { id: user.id } }
+        }
       }, `{ id }`);
     }
     process.stdout.write('New user with username \'' + username + '\' and email \'' + email + '\' created.\n');
@@ -94,23 +106,81 @@ async function createNewUser(username, email, password, role, activated, deleteU
 // Create admin user
 const admin_username = 'admin';
 const admin_email = 'admin@email.com';
-const admin_password = 'admin_password';
+const admin_password = 'password';
 const admin_role = 'ADMIN';
 const admin_activated = true;
 createNewUser(admin_username, admin_email, admin_password, admin_role, admin_activated);
 
-// Create business user
-const business_username = 'business';
-const business_email = 'business@email.com';
-const business_password = 'business_password';
-const business_role = 'BUSINESS';
-const business_activated = true;
-createNewUser(business_username, business_email, business_password, business_role, business_activated);
+// Create business user's
+let business_username = 'business';
+let business_email = 'business@email.com';
+let business_password = 'password';
+let business_role = 'BUSINESS';
+let business_activated = true;
+let business_profile = {
+  name: 'ACME',
+  description: 'We are a small business that provides tons of fake services for our customers.',
+  phonenumber: '(456) 789-1234',
+  website: 'https://www.google.com/'
+}
+let location = {
+  city: 'Vancouver',
+  region: 'British Columbia',
+  country: 'Canada',
+  postalcode: 'T8H1N6',
+  address: '123 Fake Street'
+}
+let avatar = {
+  filetype: 'PROFILEIMAGE',
+  filename: 'business_avatar.png',
+  path: '/uploads/business/business_avatar.png',
+  storedname: 'business_avatar.png',
+  mimetype: 'image/png'
+}
+createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location);
+business_username = 'cyber';
+business_email = 'cyber@email.com';
+business_password = 'password';
+business_role = 'BUSINESS';
+business_activated = true;
+business_profile = {
+  name: 'Cyberlife',
+  description: 'We are a cyber business that does lots of cyber stuff.',
+  phonenumber: '(123) 456-7890',
+  website: 'https://github.com/'
+}
+location = {
+  city: 'Burnaby',
+  region: 'British Columbia',
+  country: 'Canada',
+  postalcode: 'V5C6N4',
+  address: '123 Fake Ave'
+}
+avatar = {
+  filetype: 'PROFILEIMAGE',
+  filename: 'cyber_avatar.png',
+  path: '/uploads/cyber/cyber_avatar.png',
+  storedname: 'cyber_avatar.png',
+  mimetype: 'image/png'
+}
+createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location);
 
 // Create base user
-const base_username = 'baseuser';
-const base_email = 'baseuser@email.com';
-const base_password = 'base_password';
-const base_role = 'BASEUSER';
-const base_activated = true;
-createNewUser(base_username, base_email, base_password, base_role, base_activated);
+let base_username = 'testguy';
+let base_email = 'baseuser@email.com';
+let base_password = 'password';
+let base_role = 'BASEUSER';
+let base_activated = true;
+let base_profile = {
+  firstname: 'Test',
+  lastname: 'Guy',
+  phonenumber: '(789) 555-5555'
+}
+avatar = {
+  filetype: 'PROFILEIMAGE',
+  filename: 'testguy_avatar.png',
+  path: '/uploads/testguy/testguy_avatar.png',
+  storedname: 'testguy_avatar.png',
+  mimetype: 'image/png'
+}
+createNewUser(base_username, base_email, base_password, base_role, base_activated, avatar, base_profile);

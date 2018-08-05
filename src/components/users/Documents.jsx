@@ -26,9 +26,6 @@ class Documents extends Component {
   state = {
     showDeleteModal: false,
     showRenameModal: false,
-    deleteFilePath: '',
-    renamePath: '',
-    renameName: '',
     uploadMode: false,
     summary: '',
     documents: [],
@@ -38,7 +35,8 @@ class Documents extends Component {
     resume: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'RESUME'},
     coverletter: {value: '', isValid: true, message: '', validState: null, document: null, filetype: 'COVERLETTER'},
     temp: {document: null, filetype: 'TEMP'},
-    rename: {value: '', isValid: true, message: '', validState: null, filepath: ''},
+    rename: {value: '', isValid: true, message: '', validState: null, filepath: '', original: ''},
+    delete: {value: '', path: ''}
   }
 
   getDocuments = () => {
@@ -60,10 +58,11 @@ class Documents extends Component {
     return docs;
   }
 
-  openDeleteModal = (path) => {
+  openDeleteModal = (path, name) => {
     let state = this.state;
     state.showDeleteModal = true;
-    state.deleteFilePath = path;
+    state.delete.path = path;
+    state.delete.value = name;
     this.setState(state);
   }
 
@@ -79,6 +78,7 @@ class Documents extends Component {
     state.showRenameModal = true;
     state.rename.filepath = path;
     state.rename.value = name;
+    state.rename.original = name;
     this.setState(state);
   }
 
@@ -93,7 +93,7 @@ class Documents extends Component {
   deleteFile = async (e) => {
     e.preventDefault();
     let state = this.state;
-    const path = state.deleteFilePath;
+    const path = state.delete.path;
 
     await this.props.deleteFile({
       variables: {
@@ -377,9 +377,9 @@ class Documents extends Component {
         accessor: 'path',
         Cell: props =>
         <div className="center-content-div">
-          <a href={props.value} className="btn btn-info" role="button" target="_blank">View</a>
+          <a href={`${process.env.PUBLIC_URL}${props.value}`} className="btn btn-info" role="button" target="_blank">View</a>
           <a
-            href={props.value}
+            href={`${process.env.PUBLIC_URL}${props.value}`}
             className="btn btn-info"
             role="button"
             download={props.original.filename}
@@ -396,15 +396,13 @@ class Documents extends Component {
           <a
             className="btn btn-info"
             role="button"
-            onClick={ () => this.openDeleteModal(props.value) }
+            onClick={ () => this.openDeleteModal(props.value, props.original.name) }
           >
             Delete
           </a>
         </div>
       }
     ];
-
-    let documents = this.getDocuments();
 
     return (
       <div className="documents">
@@ -473,7 +471,7 @@ class Documents extends Component {
         {!this.state.uploadMode &&
           <ReactTable
             className="-striped"
-            data={documents}
+            data={this.getDocuments()}
             columns={columns}
             minRows={5}
             showPagination={false}
@@ -534,7 +532,7 @@ class Documents extends Component {
         {this.state.showDeleteModal &&
           <Modal id="delete-file-modal" show={this.state.showDeleteModal} onHide={this.closeDeleteModal}>
             <Modal.Header>
-              <Modal.Title>Delete File</Modal.Title>
+              <Modal.Title>Delete File - {this.state.delete.value}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="modal-body">
               Are you sure you want to delete this file?
@@ -548,7 +546,7 @@ class Documents extends Component {
         {this.state.showRenameModal &&
           <Modal id="rename-file-modal" show={this.state.showRenameModal} onHide={this.closeRenameModal}>
             <Modal.Header>
-              <Modal.Title>Rename File</Modal.Title>
+              <Modal.Title>Rename File - {this.state.rename.original}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="rename-modal-body">
               Please enter a new name for the file:

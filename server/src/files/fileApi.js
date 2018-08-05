@@ -90,7 +90,7 @@ const multipleUpload = async (uploads) => {
     const fileId = shortid.generate();
     const upload = uploads[i];
 
-    const storedName = `${fileId}-${upload.filename}`;
+    const storedName = `${fileId}-${upload.filename.replace(' ', '')}`;
     const filePath = `${userDir}/${storedName}`;
 
     const file = {
@@ -124,6 +124,8 @@ const multipleUpload = async (uploads) => {
     reject.forEach(({ name, message }) =>
       console.error(`${name}: ${message}`)
     )
+  } else {
+    console.log(resolve)
   }
 
   return files;

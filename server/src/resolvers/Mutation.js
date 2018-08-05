@@ -87,7 +87,6 @@ async function signup(parent, args, ctx, info) {
 
   if (args.password.trim().length < 8 || args.password.trim().length > 32) {
     valid = false;
-    passwordValid = false;
     payload.errors.password = 'Password must be between 8 and 32 characters';
   }
 
@@ -632,14 +631,14 @@ async function createOrEditPosting(parent, args, ctx, info) {
   }
 
   if (args.openings !== '' && args.openings !== null) {
-    if (!validator.isInt(args.openings) || (validator.isInt(args.openings) && parseInt(args.openings) < 0)) {
+    if (!validator.isInt(args.openings) || (validator.isInt(args.openings) && parseInt(args.openings, 10) < 0)) {
       valid = false;
       payload.errors.openings = 'Please enter a whole number greater than 0.';
     }
   }
 
   if (args.duration !== '' && args.duration !== null) {
-    if (!validator.isInt(args.duration) || (validator.isInt(args.duration) && parseInt(args.duration) < 0)) {
+    if (!validator.isInt(args.duration) || (validator.isInt(args.duration) && parseInt(args.duration, 10) < 0)) {
       valid = false;
       payload.errors.duration = 'Please enter a whole number greater than 0.';
     }
@@ -691,8 +690,8 @@ async function createOrEditPosting(parent, args, ctx, info) {
       data: {
         title: args.title,
         type: (args.type !== '') ? args.type : null,
-        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
-        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration, 10) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings, 10) : null,
         description: args.description,
         contactname: args.contactname,
         salary: (formattedSalary!== '') ? formattedSalary : null,
@@ -717,8 +716,8 @@ async function createOrEditPosting(parent, args, ctx, info) {
       data: {
         title: args.title,
         type: (args.type !== '') ? args.type : null,
-        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration) : null,
-        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings) : null,
+        duration: (args.duration !== '' && args.duration !== null) ? parseInt(args.duration, 10) : null,
+        openings: (args.openings !== '' && args.openings !== null) ? parseInt(args.openings, 10) : null,
         description: args.description,
         contactname: args.contactname,
         salary: (formattedSalary!== '') ? formattedSalary : null,
@@ -877,7 +876,7 @@ async function sendLinkValidateEmail (parent, args, ctx, info) {
     await emailGenerator.sendWelcomeEmail(user, firstname, lastname, ctx);
     payload.user = user;
   } catch (e) {
-    payload.error = `Error: cannot send email to ${userMe.email}.`;
+    payload.error = `Error: cannot send email to ${user.email}.`;
   }
 
   return payload;
@@ -912,7 +911,6 @@ async function resetPassword (parent, args, ctx, info) {
 
   if (args.password.trim().length < 8 || args.password.trim().length > 32) {
     valid = false;
-    passwordValid = false;
     payload.errors.password = 'Password must be between 8 and 32 characters';
   }
 
@@ -1036,17 +1034,16 @@ async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
   const businessUser = await ctx.db.query.user({ where: { id: userId} }, `{ id businessprofile { id } }`);
 
+  let user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
+  let user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
+  let user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
+  let valid = true;
+  let usernameValid = true;
+  let emailValid = true;
+  let phonenumberValid = true;
+  let urlValid = true;
 
-  var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
-  var user1 = await ctx.db.query.user({ where: { username: args.username } }, `{ id username }`);
-  var user2 = await ctx.db.query.user({ where: { email: args.email } }, `{ id email }`);
-  var valid = true;
-  var usernameValid = true;
-  var emailValid = true;
-  var phonenumberValid = true;
-  var urlValid = true;
-
-  var payload = {
+  let payload = {
     user: null,
     errors: {
       username: '',
@@ -1120,9 +1117,8 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.website = 'Please enter a business website.';
   }
 
-  if(!validator.isURL(args.website, { protocols: ['http','https'],  require_protocol: true })){
+  if(urlValid && !validator.isURL(args.website, { protocols: ['http','https'],  require_protocol: true })){
     valid = false;
-    urlValid = false;
     payload.errors.website = 'Please enter a valid website url including protocol http/https.';
   }
 
