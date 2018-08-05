@@ -20,8 +20,10 @@ module.exports = {
       <div>Hello ${firstname} ${lastname},</div>
       <div>Welcome to Jobs n' Stuff.</div>
       <div>
-        Click the following link to activate your account.
-        ${ctx.request.headers.origin}/validate-email/${user.validateEmailToken}
+        <p><a href="${ctx.request.headers.origin}/validate-email/${user.validateEmailToken}"> Click here</a> to activate your account.</p>
+        <p>If the above link does not work, try to copy and paste the following link in your browser: <br />
+          ${ctx.request.headers.origin}/validate-email/${user.validateEmailToken}
+        </p>
       </div>
     `
     }
@@ -44,8 +46,10 @@ module.exports = {
       html: `
       <div>Hello ${firstname} ${lastname},</div>
       <div>
-        Click the following link to reset your password.
-        ${ctx.request.headers.origin}/reset-password/${uniqueId}
+        <p><a href="${ctx.request.headers.origin}/reset-password/${uniqueId}"> Click here</a> to reset your password.</p>
+        <p>If the above link does not work, try to copy and paste the following link in your browser: <br />
+          ${ctx.request.headers.origin}/reset-password/${uniqueId}
+        </p>
       </div>
     `
     }
