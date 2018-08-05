@@ -1,98 +1,55 @@
 import React, { Component } from 'react'
 import { graphql, compose } from 'react-apollo'
 import gql from 'graphql-tag'
-import { Button, FormGroup, FormControl, ControlLabel, HelpBlock } from 'react-bootstrap';
+import { HelpBlock } from 'react-bootstrap';
+import { reduxForm, SubmissionError } from 'redux-form';
+import ValidationForm from '../form/ValidationForm';
+import { Link } from 'react-router-dom';
 import '../../styles/ForgotPassword.css';
 
 class ForgotPassword extends Component {
-  state = {
-    email: {value: '', isValid: true, message: '', validState: null},
-  }
 
-  handleChange = (e) => {
-    let state = this.state;
-    state[e.target.id].value = e.target.value;
-    state[e.target.id].message = '';
-    state[e.target.id].validState = null;
+  fields = [
+    { name: 'email', type: 'email', label: 'Email'},
+  ]
 
-    this.setState(state);
-  }
-
-  resetValidationStates = () => {
-    let state = this.state;
-
-    Object.keys(state).forEach(key => {
-      if (state[key].hasOwnProperty('isValid')) {
-        state[key].isValid = true;
-        state[key].message = '';
-        state[key].validState = null;
+  submit = async values => {
+    this.fields.map(field => {
+      if (!values[field.name]) {
+        values[field.name] = '';
       }
+      return null;
     });
-
-    this.setState(state);
-  }
-
-  onSubmit = async (e) => {
-    e.preventDefault();
-    this.resetValidationStates();
-    let state = this.state;
-    const email = state.email.value;
-
     const result = await this.props.forgotPasswordMutation({
-      variables: {
-        email
-      },
+      variables: values,
     });
-
     const { user, error } = result.data.forgotPassword;
 
     if (user !== null) {
       this.props.history.push(`/`);
     } else {
-      state.email.message = error;
-      this.setState(state);
+      throw new SubmissionError({ email: error });
     }
   }
 
   render() {
+    const Form = reduxForm({
+      form: 'forgotPassword'
+    })(ValidationForm);
     return (
       <div className="ForgotPassword">
-        <form>
           <h2 className="form-signin-heading">Forgot Password</h2>
           <HelpBlock>
             After clicking Submit an email will be sent with a link to reset your password.
             The link is valid for 24 hrs.
           </HelpBlock>
-          <FormGroup controlId="email" bsSize="large" validationState={this.state.email.validState}>
-            <ControlLabel>Email</ControlLabel>
-            <FormControl
-              autoFocus
-              type="text"
-              placeholder="Enter your email"
-              value={this.state.email.value}
-              onChange={this.handleChange}
-            />
-            <FormControl.Feedback />
-            <HelpBlock className="errormessage">{this.state.email.message}</HelpBlock>
-          </FormGroup>
-        </form>
-        <Button
-          type="submit"
-          bsSize="large"
-          bsStyle="primary"
-          onClick={this.onSubmit}
-        >
-          Submit
-        </Button>
-        <Button
-          type="submit"
-          bsSize="large"
-          onClick={ () => {
-            this.props.history.push(`/login`);
-          }}
-        >
-          Cancel
-        </Button>
+          <Form
+            fields={this.fields}
+            onSubmit={this.submit}
+            submitText="Send Reset Link"
+          />
+          <br />
+          <p><Link to={'/login'}>Cancel</Link></p>
       </div>
     )
   }

@@ -40,6 +40,9 @@ const ValidationForm = props => {
       block
       bsSize="large"
       bsStyle="primary"
+      style={{
+        margin: '0 auto'
+      }}
     >
       {submitText}
     </Button>
