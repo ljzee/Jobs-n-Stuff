@@ -377,7 +377,7 @@ class Documents extends Component {
         accessor: 'path',
         Cell: props =>
         <div className="center-content-div">
-          <a href={props.value} className="btn btn-info" role="button" target="_blank">View</a>
+          <a href={`/api${props.value}`} className="btn btn-info" role="button" target="_blank">View</a>
           <a
             href={props.value}
             className="btn btn-info"

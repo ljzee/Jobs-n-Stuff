@@ -19,7 +19,11 @@ const server = new GraphQLServer({
 });
 
 server.express.use((req, res, done) => {
-  req.url = '/';
+  if (req.url === '/api') {
+    req.url = '/';
+  } else {
+    req.url = req.url.substring(4);
+  }
   done();
 })
 
