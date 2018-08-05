@@ -31,4 +31,4 @@ package-lock.json
 .vagrant/
 prisma.graphql
 .vscode/
-uploads
+# uploads
