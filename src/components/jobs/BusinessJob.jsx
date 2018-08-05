@@ -3,9 +3,8 @@ import '../../styles/Job.css';
 import {Panel, Button, Alert} from 'react-bootstrap';
 import gql from 'graphql-tag';
 import Loading from '../Loading';
-import { graphql, compose } from 'react-apollo';
-import { withApollo } from 'react-apollo';
-import { withRouter } from 'react-router-dom';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { withRouter, Link } from 'react-router-dom';
 import { USER_TOKEN } from '../../constants';
 import { Redirect } from 'react-router';
 import moment from 'moment';
@@ -55,6 +54,15 @@ class BusinessJob extends Component{
         </Alert>
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
+
+        <Link to={`/manage-postings/`+ this.props.userQuery.user.username}>
+          <Button
+            bsSize="large"
+            className="pull-right"
+          >
+            Back to Postings
+          </Button>
+        </Link>
 
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>

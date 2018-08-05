@@ -170,7 +170,7 @@ class Job extends Component{
               bsSize="large"
               className="pull-right"
             >
-              Back to Jobs
+              Back to Postings
             </Button>
           </Link>
 
