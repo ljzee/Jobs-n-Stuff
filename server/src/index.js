@@ -18,6 +18,11 @@ const server = new GraphQLServer({
   }),
 });
 
+server.express.use((req, res, done) => {
+  req.url = '/';
+  done();
+})
+
 server.express.get(server.options.endpoint + 'user', (req, res, done) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.status(200).json({
@@ -26,4 +31,11 @@ server.express.get(server.options.endpoint + 'user', (req, res, done) => {
   })
 });
 
-server.start(() => console.log(`Server is running on http://localhost:4000`));
+server.start({
+  cors: {
+    'origin': '*',
+    'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    'preflightContinue': false,
+    'optionsSuccessStatus': 204
+  }
+}, () => console.log(`Server is running on http://localhost:4000`));

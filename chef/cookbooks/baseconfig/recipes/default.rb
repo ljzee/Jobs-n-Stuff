@@ -112,14 +112,14 @@ execute 'build front end production mode' do
   cwd '/home/vagrant/project'
 end
 
-# execute 'run application backend' do
-#   command 'pm2 start src/index.js'
-#   cwd '/home/vagrant/project/server'
-# end
+execute 'run application backend' do
+  command 'pm2 start src/index.js'
+  cwd '/home/vagrant/project/server'
+end
 
 # execute 'graphql server' do
-  # command 'npm start > /dev/null &'
-  # cwd '/home/vagrant/project/server'
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project/server'
 # end
 
 # execute 'apollo server' do
