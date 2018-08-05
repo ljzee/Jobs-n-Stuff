@@ -86,7 +86,12 @@ execute 'start docker' do
 end
 
 execute 'sleep before prisma deploy' do
-  command 'sleep 10'
+  command 'sleep 20'
+end
+
+execute 'prisma reset' do
+  command 'prisma reset --force'
+  cwd '/home/vagrant/project/server'
 end
 
 execute 'prisma deploy' do
@@ -99,6 +104,7 @@ package 'nginx'
 cookbook_file 'nginx-default' do
   path '/etc/nginx/sites-available/default'
 end
+
 execute 'nginx_reload' do
   command 'nginx -s reload'
 end
