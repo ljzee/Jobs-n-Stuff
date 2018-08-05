@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { processSingleUpload, multipleUpload, closeStream } = require('../files/fileApi');
+const { processSingleUpload, multipleUpload, closeStream, copyFile } = require('../files/fileApi');
 const { getUserId } = require('../utils');
 const validator = require('validator');
 const moment = require('moment');
@@ -133,7 +133,6 @@ async function signup(parent, args, ctx, info) {
           phonenumber: '',
           address: '',
           website: '',
-          location: {},
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
@@ -518,6 +517,9 @@ async function uploadFiles(parent, args, ctx, info) {
             user: { connect: { id: userId } }
           }
         }, `{ id }`);
+      } else {
+        const deleteFilePath = `..public/uploads/${user.username}/${file.storedName}`
+        if (fs.existsSync(deleteFilePath)) fs.unlinkSync(deleteFilePath);
       }
     }
     payload.success = true;
@@ -800,27 +802,34 @@ async function createApplication(parent, args, ctx, info) {
 
   if(args.resume !== null){
     if(args.resume.length === 3){
-
+      const resumeFiletype = args.resume[0];
+      const resumeFilename = args.resume[1];
+      const resumePath = args.resume[2];
+      const newpath = await copyFile(resumePath, resumeFilename);
       await ctx.db.mutation.createApplicationFile({
-      data: {
-        path: args.resume[2],
-        filename: args.resume[1],
-        filetype: args.resume[0],
-        application: {
-          connect: {id: newapplication.id}
+        data: {
+          path: newpath,
+          filename: resumeFilename,
+          filetype: resumeFiletype,
+          application: {
+            connect: {id: newapplication.id}
+          }
         }
-      }
-    });
+      });
     }
   }
 
   if(args.coverletter !== null){
     if(args.resume.length === 3){
+      const cvFiletype = args.coverletter[0];
+      const cvFilename = args.coverletter[1];
+      const cvPath = args.coverletter[2];
+      const newpath = await copyFile(cvPath, cvFilename);
       await ctx.db.mutation.createApplicationFile({
         data: {
-          path: args.coverletter[2],
-          filename: args.coverletter[1],
-          filetype: args.coverletter[0],
+          path: newpath,
+          filename: cvFilename,
+          filetype: cvFiletype,
           application: {
             connect: {id: newapplication.id}
           }
@@ -1004,9 +1013,21 @@ async function forgotPassword (parent, { email }, ctx, info) {
   return payload;
 }
 
+async function cancelApplication(parent, args, ctx, info) {
+  const application = await ctx.db.query.application({ where: { id: args.id} }, `{ id files { path } }`);
+  for (let i = 0; i < application.files.length; i++) {
+    const file = application.files[i];
+    const filePath = `../public${file.path}`
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+  return await ctx.db.mutation.deleteApplication({
+    where: { id: args.id }
+  }, `{ id }`);
+}
+
 async function updatebusinessuser(parent, args, ctx, info) {
   const userId = getUserId(ctx);
-  const businessProfileID = await ctx.db.query.user({ where: { id: userId} }, `{ businessprofile { id } }`);
+  const businessUser = await ctx.db.query.user({ where: { id: userId} }, `{ id businessprofile { id } }`);
 
 
   var user = await ctx.db.query.user({ where: { id: userId } }, `{ id email }`);
@@ -1103,14 +1124,14 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.city = 'Please enter a city name.';
   }
 
-  if (args.city.trim().length > 128) {
+  if (args.city === '' || args.city.trim().length > 128) {
     valid = false;
-    payload.errors.city = 'City name must be less than a 128 characters.';
+    payload.errors.city = 'City name must be between 1 and 128 characters.';
   }
 
-  if (args.address.trim().length > 256) {
+  if (args.address === '' || args.address.trim().length > 256) {
     valid = false;
-    payload.errors.address = 'Address must be less than a 256 characters.';
+    payload.errors.address = 'Address must be between 1 and 256 characters.';
   }
 
   if (args.postalcode === '') {
@@ -1150,37 +1171,37 @@ async function updatebusinessuser(parent, args, ctx, info) {
     payload.errors.phonenumber = 'Not a valid phone number';
   }
 
-if(valid) {
-  const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
-    data: {
-      name: args.name,
-      description: args.description,
-      phonenumber: formattedPhone,
-      website: args.website
-    },
-    where: {id: businessProfileID.businessprofile.id}
-  }, `{ id location { id } }`);
-  await ctx.db.mutation.updateLocation({
-    data: {
-      city: args.city,
-      region: args.region,
-      country: args.country,
-      address: args.address,
-      postalcode: args.postalcode
-    },
-    where: {id: businessprofileupdate.location.id}
-  }, `{ id }`);
-  payload.user =  await ctx.db.mutation.updateUser({
-    data: {
-      username: args.username,
-      email: args.email
-    },
-    where: {id: userId}
-  }, `{ id username }`);
-}
+  if (valid) {
+    const businessprofileupdate = await ctx.db.mutation.updateBusinessProfile({
+      data: {
+        name: args.name,
+        description: args.description,
+        phonenumber: formattedPhone,
+        website: args.website
+      },
+      where: {id: businessUser.businessprofile.id}
+    }, `{ id location { id } }`);
+    await ctx.db.mutation.updateLocation({
+      data: {
+        city: args.city,
+        region: args.region,
+        country: args.country,
+        address: args.address,
+        postalcode: args.postalcode
+      },
+      where: {id: businessprofileupdate.location.id}
+    }, `{ id }`);
+    payload.user =  await ctx.db.mutation.updateUser({
+      data: {
+        username: args.username,
+        email: args.email
+      },
+      where: {id: userId}
+    }, `{ id username }`);
+  }
+
   return payload;
 }
-
 
 const Mutation = {
   signup,
@@ -1202,9 +1223,7 @@ const Mutation = {
   validateEmail,
   forgotPassword,
   activatePosting,
-  deleteApplication: (parent, args, ctx, info)=>{
-    return forwardTo('db')(parent, args, ctx, info);
-  },
+  cancelApplication,
   createApplicationFile: (parent, args, ctx, info)=>{
     return forwardTo('db')(parent, args, ctx, info);
   },

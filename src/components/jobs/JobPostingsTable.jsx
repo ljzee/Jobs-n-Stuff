@@ -3,7 +3,7 @@ import gql from 'graphql-tag';
 import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Button, Col, ControlLabel, FormControl, FormGroup, Glyphicon, InputGroup, Panel, Radio, Row } from 'react-bootstrap';
+import { Button, Col, ControlLabel, FormControl, FormGroup, Glyphicon, InputGroup, Panel, Radio, Row, Label } from 'react-bootstrap';
 import CreatableSelect from 'react-select';
 import DatePicker from 'react-datepicker';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
@@ -11,7 +11,7 @@ import NumericInput from 'react-numeric-input';
 import ReactTable from 'react-table';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
-import { USER_TOKEN, monthNames, dateDiffInDays, jobposting_columns } from '../../constants';
+import { USER_TOKEN, monthNames, dateDiffInDays } from '../../constants';
 import '../../styles/JobPostingsTable.css'
 
 const createOption = (label) => ({
@@ -49,6 +49,17 @@ class JobPostingsTable extends React.Component {
       duration: '',
       openings: ''
     }
+  }
+
+  userApplied = (posting) => {
+    for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
+      const application = this.props.userQuery.user.userprofile.applications[i];
+      if (application.jobposting.id === posting.job.id) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   resetFilters = async () => {
@@ -398,7 +409,145 @@ class JobPostingsTable extends React.Component {
       return <Redirect to='/dashboard'/>;
     }
 
-    let postings = this.getPostings();
+    const columns = [
+      {
+        Header: () => <div><strong>Deadline</strong></div>,
+        accessor: 'deadline',
+        width: 150,
+        sortMethod: (a, b) => {
+          return a.daysUntil -  b.daysUntil;
+        },
+        Cell: props =>
+          <div>
+            {this.userApplied(props.original)
+              ? <Label bsStyle="success">Applied</Label>
+              :
+                <div>
+                    { props.value.daysUntil > 6
+                      ? <Label bsStyle="primary">In {props.value.daysUntil} Days</Label>
+
+                      : (props.value.daysUntil > 3)
+                      ? <Label bsStyle="warning">In {props.value.daysUntil} Days</Label>
+
+                      : (props.value.daysUntil > 1)
+                      ? <Label bsStyle="danger">In {props.value.daysUntil} Days</Label>
+
+                      : (props.value.daysUntil === 1)
+                      ? <Label bsStyle="danger">In 1 Day</Label>
+
+                      : (props.value.daysUntil === 0)
+                      ? <Label bsStyle="danger">Today</Label>
+
+                      : <Label>Passed</Label>
+                    }
+                    <br />
+                    <span>{props.value.day}</span>
+                  </div>
+            }
+          </div>
+      },
+      {
+        Header: () => <div><strong>Job</strong></div>,
+        accessor: 'job',
+        Cell: props =>
+          <div>
+            <a href={`/jobs/` + props.value.id}>{props.value.title}</a>
+            <br />
+            <span>{props.value.organization}</span>
+          </div>,
+        width: 200,
+        sortMethod: (a, b) => {
+          return a.title > b.title ? 1 : -1;
+        }
+      },
+      {
+        Header: () => <div><strong>Type</strong></div>,
+        accessor: 'type',
+        Cell: props =>
+          <div>
+            {props.value === 'FULLTIME'
+              ? <span>Full-time</span>
+              : props.value === 'PARTTIME'
+              ? <span>Part-time</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
+        Header: () => <div><strong>Location</strong></div>,
+        accessor: 'location',
+        Cell: props =>
+          <div>
+            <span>{props.value.city}, {props.value.region}</span>
+            <br />
+            <span>{props.value.country}</span>
+          </div>,
+        width: 220,
+        sortMethod: (a, b) => {
+          return a.city > b.city ? 1 : -1;
+        }
+      },
+      {
+        Header: () => <div><strong>Openings</strong></div>,
+        accessor: 'openings',
+        Cell: props =>
+          <div className="center-content-div ">
+            {props.value
+              ? <span>{props.value}</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100,
+      },
+      {
+        Header: () => <div><strong>Duration</strong></div>,
+        accessor: 'duration',
+        Cell: props =>
+          <div className="center-content-div ">
+            {props.value
+              ? <span>{props.value} Months</span>
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 100
+      },
+      {
+        Header: () => <div><strong>Pay</strong></div>,
+        accessor: 'pay',
+        Cell: props =>
+          <div>
+            {props.value.salary && props.value.paytype === "SALARY"
+              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}</span>
+
+              : props.value.salary && props.value.paytype === "HOURLY"
+              ? <span>{`$${props.value.salary.toLocaleString("en-US", {minimumFractionDigits: 2})}`}/hr</span>
+
+              : <span>N/A</span>
+            }
+          </div>,
+        width: 120,
+        sortMethod: (a, b) => {
+          return a.salary - b.salary;
+        }
+      },
+      {
+        Header: () => <div><strong>Actions</strong></div>,
+        accessor: 'job',
+        width: 125,
+        Cell: props =>
+          <div>
+            <a
+              className="btn btn-info"
+              role="button"
+              href={`/jobs/${props.value.id}`}
+            >
+              Details
+            </a>
+          </div>,
+        sortable: false
+      }
+    ];
 
     return (
       <div id="view-job-postings">
@@ -613,8 +762,8 @@ class JobPostingsTable extends React.Component {
 
       <ReactTable
         id="job-postings-table"
-        columns={jobposting_columns}
-        data={postings}
+        columns={columns}
+        data={this.getPostings()}
         minRows={5}
         showPagination={false}
         style={{
@@ -632,7 +781,17 @@ class JobPostingsTable extends React.Component {
 const USER_QUERY = gql`
 query UserQuery($where: UserWhereUniqueInput!) {
   user(where: $where) {
+    id
     activated
+    userprofile {
+      id
+      applications {
+        id
+        jobposting {
+          id
+        }
+      }
+    }
   }
 }
 `

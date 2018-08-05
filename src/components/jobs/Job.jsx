@@ -55,11 +55,15 @@ class Job extends Component{
   }
 
   cancelApplication = async () => {
-   await this.props.deleteApplication({
+    let applicationID = null;
+    for(let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++){
+      if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === this.props.match.params.jobid){
+        applicationID = this.props.userQuery.user.userprofile.applications[i].id;
+      }
+    }
+    await this.props.cancelApplication({
       variables: {
-        where: {
-          id: this.props.userQuery.user.userprofile.applications[0].id
-        }
+        id: applicationID
       },
     });
     this.props.userQuery.refetch();
@@ -73,7 +77,7 @@ class Job extends Component{
     this.setState({ showApply: false });
   }
 
-  getDocuments = () => {
+  setDocuments = () => {
     let numberOfFiles = this.props.userQuery.user.files.length;
     let roptions = [];
     let coptions = [];
@@ -123,7 +127,7 @@ class Job extends Component{
       return <h1>Sorry, this job doesn't exist.</h1>
     }
 
-    this.getDocuments();
+    this.setDocuments();
 
     return(
       <div className="Job">
@@ -213,12 +217,10 @@ class Job extends Component{
               <strong>Company website: </strong>
               <a
                 target="_blank"
-                // href={this.props.jobQuery.jobPosting.website}
-                href="https://google.ca"
+                href={this.props.jobQuery.jobPosting.businessprofile.website}
                 className="company-website-link"
               >
-                www.google.ca
-                {/* {this.props.jobQuery.jobPosting.website.replace('https://', '').replace('http://')} */}
+                {this.props.jobQuery.jobPosting.businessprofile.website.replace('https://', '').replace('http://', '')}
               </a>
             </Panel.Body>
           </Panel>
@@ -313,9 +315,9 @@ const CREATE_APPLICATION = gql`
     }
   }
 `
-const DELETE_APPLICATION = gql`
-  mutation DeleteApplication($where: ApplicationWhereUniqueInput!) {
-    deleteApplication(where: $where) {
+const CANCEL_APPLICATION = gql`
+  mutation CancelApplication($id: ID!) {
+    cancelApplication(id: $id) {
       id
     }
   }
@@ -346,8 +348,8 @@ export default compose(
   graphql(CREATE_APPLICATION, {
     name: 'createApplication'
   }),
-  graphql(DELETE_APPLICATION, {
-    name: 'deleteApplication'
+  graphql(CANCEL_APPLICATION, {
+    name: 'cancelApplication'
   }),
   withRouter,
   withApollo

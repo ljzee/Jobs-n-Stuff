@@ -4,13 +4,15 @@ const shortid = require('shortid');
 const gm = require('gm').subClass({imageMagick: true});
 const promisesAll = require('promises-all');
 const Timeout = require('await-timeout');
+const Path = require('path');
 
 require('dotenv').config();
 
 const uploadDir = '../public/uploads';
 const isImageRegEx = new RegExp('^image/.+$');
+const { COPYFILE_EXCL } = fs.constants;
 
-const storeDocument = ({ stream, filePath }) => {
+const storeDocument = (stream, filePath) => {
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
   return new Promise((resolve, reject) =>
@@ -43,7 +45,7 @@ const processUpload = async ( upload ) => {
   let { stream } = await upload.file;
   const filePath = upload.filepath
 
-  return storeDocument({ stream, filePath });
+  return storeDocument(stream, filePath);
 }
 
 const processSingleUpload = async ( upload ) => {
@@ -58,7 +60,7 @@ const processSingleUpload = async ( upload ) => {
   mkdirp.sync(userDir);
 
   const filePath = `${userDir}/${fileId}-${filename}`;
-  await storeDocument({ stream, filePath });
+  await storeDocument(stream, filePath);
 
   if (isImage) {
     const newPath = `${userDir}/${fileId}-avatar.png`
@@ -146,8 +148,24 @@ const closeStream = async (upload) => {
   });
 }
 
+const copyFile = async (oldPath, filename) => {
+  const dir = Path.dirname(oldPath);
+  const fileId = shortid.generate();
+  const storedPath = `../public${dir}/${fileId}-${filename}`;
+  const newPath = `${dir}/${fileId}-${filename}`;
+  fs.copyFile(`../public${oldPath}`, storedPath, COPYFILE_EXCL, (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(`File ${oldPath} copied to ${newPath}`);
+    }
+  });
+  return newPath;
+}
+
 module.exports = {
   processSingleUpload,
   multipleUpload,
-  closeStream
+  closeStream,
+  copyFile
 }

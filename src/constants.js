@@ -96,7 +96,7 @@ export const jobposting_columns = [
       </div>,
     width: 220,
     sortMethod: (a, b) => {
-      return a.city> b.city? 1 : -1;
+      return a.city > b.city ? 1 : -1;
     }
   },
   {

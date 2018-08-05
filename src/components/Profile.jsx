@@ -133,6 +133,7 @@ class Profile extends Component {
 const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
+      id
       role
       email
       username
@@ -154,7 +155,6 @@ const USER_QUERY = gql`
         name
         description
         phonenumber
-        address
         website
         location {
           city

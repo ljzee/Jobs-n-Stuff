@@ -45,9 +45,9 @@ class App extends Component {
               <AuthenticatedRoute exact path='/jobs/:jobid' component={Job} />
               <AuthenticatedRoute exact path='/jobs/' component={JobPostingsTable} />
               <AuthenticatedRoute exact path='/manage-users' component={ManageUsers} />
-              <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
               <AuthenticatedRoute exact path='/job-applications/:jobid' component={JobApplications} />
               <AuthenticatedRoute exact path='/applications/:username' component={UserApplications} />
+              <AuthenticatedRoute exact path='/documents/:username' component={Documents} />
             </Switch>
           </div>
         </div>
