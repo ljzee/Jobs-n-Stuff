@@ -82,6 +82,7 @@ const processSingleUpload = async ( upload ) => {
 const multipleUpload = async (uploads) => {
   let files = [];
   let docs = [];
+  let tempPath = '';
   const userDir = `${uploadDir}/${uploads[0].username}`;
   mkdirp.sync(userDir);
 
@@ -107,11 +108,17 @@ const multipleUpload = async (uploads) => {
       filepath: filePath
     }
     docs.push(doc);
+
+    if (upload.filename === 'temp-file.pdf') {
+      tempPath = filePath;
+    }
   }
 
   const { resolve, reject } = await promisesAll.all(
     docs.map(processUpload)
   );
+
+  if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
 
   if (reject.length) {
     reject.forEach(({ name, message }) =>
