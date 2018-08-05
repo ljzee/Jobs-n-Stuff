@@ -4,6 +4,7 @@ import { graphql, compose } from 'react-apollo';
 import { withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import { Button, Col, ControlLabel, FormControl, FormGroup, Glyphicon, InputGroup, Panel, Radio, Row, Label } from 'react-bootstrap';
+import Select from 'react-select';
 import CreatableSelect from 'react-select';
 import DatePicker from 'react-datepicker';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
@@ -37,6 +38,7 @@ class JobPostingsTable extends React.Component {
     inputTitle: '',
     title: [],
     filters: {
+      organization: [],
       deadline: {value: null, date: null},
       type: '',
       salary: '',
@@ -70,6 +72,7 @@ class JobPostingsTable extends React.Component {
       inputTitle: '',
       title: [],
       filters: {
+        organization: [],
         deadline: {value: null, date: null},
         type: '',
         salary: '',
@@ -123,11 +126,16 @@ class JobPostingsTable extends React.Component {
     }
   }
 
-  handleChange = (e) => {
+  setOrganization = (val) => {
     let state = this.state;
-    if (e.target.id === "city") {
-      state.filters.location[e.target.id] = e.target.value;
-    }
+    state.filters.organization = val;
+
+    this.setState(state);
+  }
+
+  setCity = (e) => {
+    let state = this.state;
+    state.filters.location[e.target.id] = e.target.value;
 
     this.setState(state);
   }
@@ -188,6 +196,22 @@ class JobPostingsTable extends React.Component {
     state.filters.openings = val;
 
     this.setState(state);
+  }
+
+  getCompanies = () => {
+    let nameOptions = [];
+
+    let resultCompanies = this.props.companiesQuery.users;
+
+    resultCompanies.forEach(company => {
+      let name = company.businessprofile.name;
+
+      if (name !== "") {
+        nameOptions.push({label: name, value: name});
+      }
+    });
+
+    return nameOptions;
   }
 
   getPostings = () => {
@@ -255,6 +279,15 @@ class JobPostingsTable extends React.Component {
         title_contains: word.value.charAt(0).toUpperCase() + word.value.slice(1)
       }, {
         title_contains: word.value.charAt(0).toLowerCase() + word.value.slice(1)
+      });
+    });
+
+    let organizationQuery = [];
+    this.state.filters.organization.forEach(option => {
+      organizationQuery.push({
+        businessprofile: {
+          name: option.value
+        }
       });
     });
 
@@ -385,6 +418,8 @@ class JobPostingsTable extends React.Component {
           AND: deadlineQuery,
           OR: titleQuery
         }, {
+          OR: organizationQuery
+        }, {
           OR: payQuery
         }, {
           type_not_in: typeQuery,
@@ -399,7 +434,7 @@ class JobPostingsTable extends React.Component {
   }
 
   render() {
-    if (this.props.jobPostingsQuery.loading || this.props.userQuery.loading) {
+    if (this.props.jobPostingsQuery.loading || this.props.userQuery.loading || this.props.companiesQuery.loading) {
       return <Loading />
     }
 
@@ -575,24 +610,35 @@ class JobPostingsTable extends React.Component {
                 <Col md={6}>
                   <FormGroup controlId="title">
                     <ControlLabel>Job Title Keywords</ControlLabel>
-                      <CreatableSelect
-                        components={{DropdownIndicator: null}}
-                        inputValue={this.state.inputTitle}
-                        isClearable
-                        isMulti
-                        menuIsOpen={false}
-                        onChange={this.handleTitleCreate}
-                        onInputChange={this.handleInputChange}
-                        onKeyDown={this.handleKeyDown}
-                        onBlur={this.handleBlur}
-                        placeholder="Enter Keywords"
-                        value={this.state.title}
-                      />
+                    <CreatableSelect
+                      components={{DropdownIndicator: null}}
+                      inputValue={this.state.inputTitle}
+                      isClearable
+                      isMulti
+                      menuIsOpen={false}
+                      onChange={this.handleTitleCreate}
+                      onInputChange={this.handleInputChange}
+                      onKeyDown={this.handleKeyDown}
+                      onBlur={this.handleBlur}
+                      placeholder="Enter Keywords"
+                      value={this.state.title}
+                    />
                   </FormGroup>
                 </Col>
 
                 <Col md={6}>
-                  {/* Organization name field goes here*/}
+                  <FormGroup controlId="organization">
+                  <ControlLabel>Organizations</ControlLabel>
+                    <Select
+                      isMulti
+                      onChange={this.setOrganization}
+                      value={this.state.filters.organization}
+                      options={this.getCompanies()}
+                      placeholder="Enter and select organization name"
+                      className="basic-multi-select"
+                      classNamePrefix="select"
+                    />
+                  </FormGroup>
                 </Col>
               </Row>
 
@@ -600,16 +646,16 @@ class JobPostingsTable extends React.Component {
                 <Col md={2}>
                   <FormGroup controlId="deadline">
                   <ControlLabel>Deadline Before</ControlLabel>
-                    <InputGroup>
-                      <DatePicker
-                        className="btn btn-default dropdown-toggle component-field"
-                        readOnly
-                        placeholderText="Select Date"
-                        dateFormat="DD-MM-YYYY"
-                        selected={this.state.filters.deadline.date}
-                        onChange={(date) => this.setDeadline(date)}
-                      />
-                    </InputGroup>
+                  <InputGroup>
+                    <DatePicker
+                      className="btn btn-default dropdown-toggle component-field"
+                      readOnly
+                      placeholderText="Select Date"
+                      dateFormat="DD-MM-YYYY"
+                      selected={this.state.filters.deadline.date}
+                      onChange={(date) => this.setDeadline(date)}
+                    />
+                  </InputGroup>
                   </FormGroup>
                 </Col>
 
@@ -644,7 +690,7 @@ class JobPostingsTable extends React.Component {
                       type="text"
                       placeholder="City"
                       value={this.state.filters.location.city}
-                      onChange={this.handleChange}
+                      onChange={this.setCity}
                     />
                   </FormGroup>
                 </Col>
@@ -719,7 +765,6 @@ class JobPostingsTable extends React.Component {
                   </FormGroup>
                 </Col>
 
-
                 <Col md={2}>
                   <FormGroup controlId="duration">
                     <ControlLabel>Minimum Duration</ControlLabel>
@@ -782,47 +827,60 @@ class JobPostingsTable extends React.Component {
 }
 
 const USER_QUERY = gql`
-query UserQuery($where: UserWhereUniqueInput!) {
-  user(where: $where) {
-    id
-    role
-    activated
-    userprofile {
+  query UserQuery($where: UserWhereUniqueInput!) {
+    user(where: $where) {
       id
-      applications {
+      role
+      activated
+      userprofile {
         id
-        jobposting {
+        applications {
           id
+          jobposting {
+            id
+          }
         }
       }
     }
   }
-}
+`
+
+const COMPANIES_QUERY = gql`
+  query CompaniesQuery {
+    users(where: {
+      role: BUSINESS
+      activated: true
+    }) {
+      businessprofile {
+        name
+      }
+    }
+  }
 `
 
 const JOB_POSTINGS_QUERY = gql`
-query JobPostingsQuery($where: JobPostingWhereInput) {
-  jobpostings(where: $where, orderBy: deadline_ASC) {
-    id
-    activated
-    title
-    type
-    deadline
-    duration
-    openings
-    paytype
-    salary
-    businessprofile {
+  query JobPostingsQuery($where: JobPostingWhereInput) {
+    jobpostings(where: $where, orderBy: deadline_ASC) {
       id
-      name
-    }
-    location {
-      city
-      region
-      country
+      activated
+      title
+      type
+      deadline
+      duration
+      openings
+      paytype
+      salary
+      businessprofile {
+        id
+        name
+      }
+      location {
+        city
+        region
+        country
+      }
     }
   }
-}
 `
 
 export default compose(
@@ -845,6 +903,9 @@ graphql(USER_QUERY, {
         }
       },
   }),
+}),
+graphql(COMPANIES_QUERY, {
+  name: 'companiesQuery',
 }),
 withRouter,
 withApollo
