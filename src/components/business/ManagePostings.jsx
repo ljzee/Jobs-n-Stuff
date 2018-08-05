@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import { Modal, Panel, InputGroup, Radio, Checkbox, Button, FormGroup, FormControl, ControlLabel, HelpBlock, Label } from 'react-bootstrap';
 import { USER_TOKEN } from '../../constants';
 import gql from 'graphql-tag';
-import { graphql, compose } from 'react-apollo';
-import { withApollo } from 'react-apollo';
-import { withRouter } from 'react-router-dom';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { withRouter, Link } from 'react-router-dom';
 import Loading from '../Loading';
 import { Redirect } from 'react-router';
 import { CountryDropdown, RegionDropdown } from 'react-country-region-selector';
@@ -478,51 +477,59 @@ class ManagePostings extends Component {
           {props.original.activated
             ?
               <div>
-                <a
-                  className="btn btn-info"
-                  role="button"
-                  onClick={ () => this.props.history.push(`/job-applications/${props.value}`) }
-                >
-                  View Applications
-                </a>
-                <a
-                  className="btn btn-info"
-                  role="button"
-                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
-                >
-                  View Job
-                </a>
+                <Link to={`/job-applications/${props.value}`}>
+                  <Button
+                    className="manage-postings-action-button"
+                    bsStyle="primary"
+                  >
+                    View Applications
+                  </Button>
+                </Link>
+                <Link to={`/manage-postings/${this.props.match.params.username}/${props.value}`}>
+                  <Button
+                    className="manage-postings-action-button"
+                    bsStyle="primary"
+                  >
+                    View Job
+                  </Button>
+                </Link>
               </div>
             :
               <div>
-                <a
-                  className="btn btn-info"
-                  role="button"
+                <Button
+                  className="manage-postings-action-button"
+                  bsStyle="primary"
                   onClick={ () => this.openActivateModal(props.value, props.original.title) }
                 >
                   Activate
-                </a>
-                <a
-                  className="btn btn-info"
-                  role="button"
-                  onClick={ () => this.props.history.push(`/manage-postings/${this.props.match.params.username}/${props.value}`) }
-                >
-                  View
-                </a>
-                <a
-                  className="btn btn-info"
-                  role="button"
+                </Button>
+
+                <Link to={`/manage-postings/${this.props.match.params.username}/${props.value}`}>
+                  <Button
+                    className="manage-postings-action-button"
+                    bsStyle="primary"
+                    onClick={ () => this.openActivateModal(props.value, props.original.title) }
+                  >
+                    View
+                  </Button>
+                </Link>
+
+                <Button
+                  className="manage-postings-action-button"
+                  bsStyle="primary"
                   onClick={ () => this.changeToEditMode(props.value) }
                 >
                   Edit
-                </a>
-                <a
-                  className="btn btn-info"
-                  role="button"
+                </Button>
+
+                <Button
+                  className="manage-postings-action-button"
+                  bsStyle="primary"
                   onClick={ () => this.openDeleteModal(props.value, props.original.title) }
                 >
                   Delete
-                </a>
+                </Button>
+
               </div>
           }
         </div>

@@ -52,10 +52,13 @@ class JobPostingsTable extends React.Component {
   }
 
   userApplied = (posting) => {
-    for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
-      const application = this.props.userQuery.user.userprofile.applications[i];
-      if (application.jobposting.id === posting.job.id) {
-        return true;
+
+    if (this.props.userQuery.user.userprofile) {
+      for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
+        const application = this.props.userQuery.user.userprofile.applications[i];
+        if (application.jobposting.id === posting.job.id) {
+          return true;
+        }
       }
     }
 
@@ -405,8 +408,8 @@ class JobPostingsTable extends React.Component {
       return <h3>Error</h3>
     }
 
-    if (!this.props.userQuery.user.activated) {
-      return <Redirect to='/dashboard'/>;
+    if (!this.props.userQuery.user.activated || this.props.userQuery.user.role === "BUSINESS") {
+      return <Redirect to={`/dashboard`} />
     }
 
     const columns = [
@@ -423,26 +426,26 @@ class JobPostingsTable extends React.Component {
               ? <Label bsStyle="success">Applied</Label>
               :
                 <div>
-                    { props.value.daysUntil > 6
-                      ? <Label bsStyle="primary">In {props.value.daysUntil} Days</Label>
+                  { props.value.daysUntil > 6
+                    ? <Label bsStyle="primary">In {props.value.daysUntil} Days</Label>
 
-                      : (props.value.daysUntil > 3)
-                      ? <Label bsStyle="warning">In {props.value.daysUntil} Days</Label>
+                    : (props.value.daysUntil > 3)
+                    ? <Label bsStyle="warning">In {props.value.daysUntil} Days</Label>
 
-                      : (props.value.daysUntil > 1)
-                      ? <Label bsStyle="danger">In {props.value.daysUntil} Days</Label>
+                    : (props.value.daysUntil > 1)
+                    ? <Label bsStyle="danger">In {props.value.daysUntil} Days</Label>
 
-                      : (props.value.daysUntil === 1)
-                      ? <Label bsStyle="danger">In 1 Day</Label>
+                    : (props.value.daysUntil === 1)
+                    ? <Label bsStyle="danger">In 1 Day</Label>
 
-                      : (props.value.daysUntil === 0)
-                      ? <Label bsStyle="danger">Today</Label>
+                    : (props.value.daysUntil === 0)
+                    ? <Label bsStyle="danger">Today</Label>
 
-                      : <Label>Passed</Label>
-                    }
-                    <br />
-                    <span>{props.value.day}</span>
-                  </div>
+                    : <Label>Passed</Label>
+                  }
+                  <br />
+                  <span>{props.value.day}</span>
+                </div>
             }
           </div>
       },
@@ -782,6 +785,7 @@ const USER_QUERY = gql`
 query UserQuery($where: UserWhereUniqueInput!) {
   user(where: $where) {
     id
+    role
     activated
     userprofile {
       id

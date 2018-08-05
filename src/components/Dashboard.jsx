@@ -53,6 +53,7 @@ class Dashboard extends Component {
 const USER_QUERY = gql`
   query UserQuery($where: UserWhereUniqueInput!) {
     user(where: $where) {
+      id
       role
       admindeactivated
     }

@@ -52,10 +52,6 @@ class BusinessDashboard extends Component {
       return <Loading />;
     }
 
-    if (this.props.activePostingsQuery.error) {
-      window.alert(this.props.activePostingsQuery.error.toSource())
-    }
-
     const columns = [
       {
         Header: () => <div><strong>Job Title</strong></div>,
