@@ -147,24 +147,22 @@ class Documents extends Component {
 
     switch (e.target.id) {
       case 'resumeFile':
-        state.resume.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-        state.resume.document.name = e.target.files[0].name;
+        state.resume.document = e.target.files[0]
         state.resume.isValid = true;
         state.resume.message = '';
         state.resume.validState = null;
-        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+        if (state.largeFileFlag) {
           state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
           state.temp.document.name = 'temp-file.pdf';
           state.largeFileFlag = false;
         }
         break;
       case 'coverletterFile':
-        state.coverletter.document = new Blob([e.target.files[0]], {type:'application/pdf'});
-        state.coverletter.document.name = e.target.files[0].name;
+        state.coverletter.document = e.target.files[0];
         state.coverletter.isValid = true;
         state.coverletter.message = '';
         state.coverletter.validState = null;
-        if (state.largeFileFlag && e.target.files[0].size > 1000000) {
+        if (state.largeFileFlag) {
           state.temp.document = new Blob([e.target.files[0]], {type:'application/pdf'});
           state.temp.document.name = 'temp-file.pdf';
           state.largeFileFlag = false;
