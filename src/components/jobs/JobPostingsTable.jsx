@@ -408,8 +408,8 @@ class JobPostingsTable extends React.Component {
       return <h3>Error</h3>
     }
 
-    if (!this.props.userQuery.user.activated) {
-      return <Redirect to='/dashboard'/>;
+    if (!this.props.userQuery.user.activated || this.props.userQuery.user.role === "BUSINESS") {
+      return <Redirect to={`/dashboard`} />
     }
 
     const columns = [
@@ -785,6 +785,7 @@ const USER_QUERY = gql`
 query UserQuery($where: UserWhereUniqueInput!) {
   user(where: $where) {
     id
+    role
     activated
     userprofile {
       id
