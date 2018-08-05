@@ -1,6 +1,17 @@
 const { Prisma } = require('prisma-binding');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+/*
+Code below is from:
+  https://stackoverflow.com/questions/563406/add-days-to-javascript-date
+By sparebytes
+*/
+function addDays(date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+/* End of referenced code */
 
 require('dotenv').config();
 
@@ -25,7 +36,7 @@ async function deleteExistingUser(email) {
   }
 }
 
-async function createNewUser(username, email, password, role, activated, avatar=null, userProfile=null, businessProfile=null, location=null, deleteUser=false) {
+async function createNewUser(username, email, password, role, activated, avatar=null, userProfile=null, businessProfile=null, location=null, deleteUser=false, jobPostings=null) {
   if (deleteUser) {
     await deleteExistingUser(email);
   }
@@ -79,6 +90,36 @@ async function createNewUser(username, email, password, role, activated, avatar=
           businessprofile: { connect: { id: bProfile.id } }
         },
       }, `{ id }`);
+
+      if (jobPostings !== null) {
+        jobPostings.forEach(async (posting) => {
+          const jPosting = await prisma.mutation.createJobPosting({
+            data: {
+              deadline: posting.deadline,
+              title: posting.title,
+              type: posting.type,
+              openings: posting.openings,
+              description: posting.description,
+              contactname: posting.contactname,
+              paytype: posting.paytype,
+              salary: posting.salary,
+              coverletter: posting.coverletter,
+              activated: posting.activated,
+              businessprofile: { connect: { id: bProfile.id } }
+            }
+          }, `{ id }`);
+
+          await prisma.mutation.createLocation({
+            data: {
+              city: posting.location.city,
+              region: posting.location.region,
+              country: posting.location.country,
+              jobposting: { connect: { id: jPosting.id } }
+            },
+          }, `{ id }`);
+
+        });
+      }
     }
     if (role !== 'ADMIN') {
       await prisma.mutation.createFile({
@@ -130,6 +171,89 @@ let location = {
   postalcode: 'T8H1N6',
   address: '123 Fake Street'
 }
+let job_postings = [{
+  deadline: addDays(new Date(Date.now()), 30),
+  title: 'Project Manager',
+  type: 'FULLTIME',
+  location: {
+    country: 'United States',
+    region: 'Washington',
+    city: 'Seattle'
+  },
+  description: 'We are seeking an effective leader to shape the future of our products.',
+  contactname: 'Arthur Cartwright',
+  openings: 1,
+  salary: 81250.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 7),
+  title: 'Sales Manager',
+  type: 'FULLTIME',
+  location: {
+    country: 'United States',
+    region: 'Michigan',
+    city: 'Detroit'
+  },
+  description: 'We are seeking an effective leader to market our products.',
+  contactname: 'Jessica Able',
+  openings: 1,
+  salary: 62000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 1),
+  title: 'Accounting Assistant',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'Ontario',
+    city: 'Toronto'
+  },
+  description: 'Looking for part time accounting assistants to aid in our recent transitions.',
+  contactname: 'Jason Wong',
+  openings: 5,
+  duration: 8,
+  salary: 27.00,
+  coverletter: true,
+  paytype: 'HOURLY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 20),
+  title: 'Property Administrator',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'Quebec',
+    city: 'Quebec'
+  },
+  description: 'Be the first point of contact for tenant inquiries and maintenance requests and complete the relevant documents for such requests.',
+  contactname: 'Guy Forester',
+  openings: 1,
+  duration: 10,
+  salary: 65000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 6),
+  title: 'Software Developer',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'Vancouver'
+  },
+  description: 'Help us improve and develop software for our clients.',
+  contactname: 'Samantha James',
+  salary: 58000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}];
+
 let avatar = {
   filetype: 'PROFILEIMAGE',
   filename: 'business_avatar.png',
@@ -137,7 +261,7 @@ let avatar = {
   storedname: 'business_avatar.png',
   mimetype: 'image/png'
 }
-createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location);
+createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location, null, job_postings);
 business_username = 'cyber';
 business_email = 'cyber@email.com';
 business_password = 'password';
@@ -156,6 +280,89 @@ location = {
   postalcode: 'V5C6N4',
   address: '123 Fake Ave'
 }
+
+job_postings = [{
+  deadline: addDays(new Date(Date.now()), 16),
+  title: 'Software Engineer',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'Vancouver'
+  },
+  description: 'We are looking for individuals who have a solid background in developing software.',
+  contactname: 'Imogen Reed',
+  openings: 3,
+  salary: 72000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 5),
+  title: 'Secretary',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'Richmond'
+  },
+  description: 'We need someone to answer phone calls, book appointments, and direct visitors.',
+  contactname: 'John Doe',
+  openings: 1,
+  salary: 53000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 10),
+  title: 'Assistant Secretary',
+  type: 'PARTTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'Richmond'
+  },
+  description: 'We need someone to help with answering phone calls, booking appointments, and directing visitors.',
+  contactname: 'Jane Doe',
+  openings: 2,
+  duration: 24,
+  salary: 24.00,
+  coverletter: true,
+  paytype: 'HOURLY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 3),
+  title: 'QA Analyst',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'New Westminster'
+  },
+  description: 'We\'re looking for people that are good at finding bugs in software.',
+  contactname: 'John Doe',
+  openings: 2,
+  salary: 60000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}, {
+  deadline: addDays(new Date(Date.now()), 17),
+  title: 'Senior Network Specialist',
+  type: 'FULLTIME',
+  location: {
+    country: 'Canada',
+    region: 'British Columbia',
+    city: 'Burnaby'
+  },
+  description: 'This postition requires the individual to ensure the optimized performance, integrity, and security of all network access points and network systems, including but not limited to, firewalls, DMZ, external DNS, switches, routers, VoIP, wireless, remote access, video conferencing, and unified communication applications.',
+  contactname: 'John Doe',
+  salary: 91000.00,
+  coverletter: true,
+  paytype: 'SALARY',
+  activated: true
+}];
+
 avatar = {
   filetype: 'PROFILEIMAGE',
   filename: 'cyber_avatar.png',
@@ -163,7 +370,7 @@ avatar = {
   storedname: 'cyber_avatar.png',
   mimetype: 'image/png'
 }
-createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location);
+createNewUser(business_username, business_email, business_password, business_role, business_activated, avatar, null, business_profile, location, null, job_postings);
 
 // Create base user
 let base_username = 'testguy';
