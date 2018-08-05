@@ -56,7 +56,6 @@ class ManageUsers extends React.Component {
 
   deleteUser = async () => {
     const id = this.state.selectedUser.id;
-    const role = this.state.selectedUser.role;
     const username = this.state.selectedUser.username;
 
     await this.props.deleteUserMutation({
