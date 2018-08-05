@@ -348,6 +348,13 @@ async function updateuser(parent, args, ctx, info) {
 }
 
 async function deleteUser(parent, args, ctx, info) {
+  const user = await ctx.db.query.user({ where: { id: args.id } }, `{ id files { id path } }`);
+  for (let i = 0; i < user.files.length; i++) {
+    const deletePath = `../public${user.files[i].path}`;
+    if (fs.existsSync(deletePath)) fs.unlinkSync(deletePath);
+  }
+  const dirPath = `../public/uploads/${args.username}/`;
+  if (fs.existsSync(dirPath)) fs.rmdirSync(dirPath);
   return await ctx.db.mutation.deleteUser({
     where: { id: args.id }
   }, `{ id }`);

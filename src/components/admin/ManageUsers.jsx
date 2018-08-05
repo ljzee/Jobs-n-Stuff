@@ -56,10 +56,12 @@ class ManageUsers extends React.Component {
 
   deleteUser = async () => {
     const id = this.state.selectedUser.id;
+    const username = this.state.selectedUser.username;
 
     await this.props.deleteUserMutation({
       variables: {
-        id
+        id,
+        username
       }
     });
 
@@ -314,8 +316,8 @@ const UPDATE_ACTIVATED_MUTATION = gql`
 `
 
 const DELETE_USER_MUTATION = gql`
-  mutation deleteUserMutation($id: ID!) {
-    deleteUser(id: $id) {
+  mutation deleteUserMutation($id: ID!, $username: String!) {
+    deleteUser(id: $id, username: $username) {
       id
     }
   }

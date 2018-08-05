@@ -10,7 +10,7 @@ class DeleteUserModal extends Component {
           <Modal.Title>Confirm User Deletion</Modal.Title>
         </Modal.Header>
         <Modal.Body className="modal-body">
-          <p>Are you sure you want to delete user {this.props.user.username}?</p>
+          <p>Are you sure you want to delete user <strong>{this.props.user.username}</strong>?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button
