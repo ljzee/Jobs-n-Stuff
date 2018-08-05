@@ -10,7 +10,8 @@ class LoggedInNavBar extends Component {
     if (this.props.userQuery.user.role === 'ADMIN') {
       return (
         <React.Fragment>
-          <NavItem eventKey={2} href="/manage-users">Manage Users</NavItem>
+          <NavItem eventKey={1} href="/manage-users">Manage Users</NavItem>
+          <NavItem eventKey={2} href={`/jobs`}>Job Postings</NavItem>
         </React.Fragment>)
     }
 

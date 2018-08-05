@@ -3,9 +3,8 @@ import '../../styles/Job.css';
 import {Panel, Button} from 'react-bootstrap';
 import gql from 'graphql-tag';
 import Loading from '../Loading';
-import { graphql, compose } from 'react-apollo';
-import { withApollo } from 'react-apollo';
-import { withRouter } from 'react-router-dom';
+import { graphql, compose, withApollo } from 'react-apollo';
+import { withRouter, Link } from 'react-router-dom';
 import { USER_TOKEN } from '../../constants';
 import { Redirect } from 'react-router';
 import moment from 'moment';
@@ -21,19 +20,26 @@ class Job extends Component{
     showApply: false
   }
 
+  isAdminUser = () => {
+    return this.props.userQuery.user.role === 'ADMIN';
+  }
+
   isBaseUser = () => {
     return this.props.userQuery.user.role === 'BASEUSER';
   }
 
   userHasApplied = () => {
-    let numberOfApplications = this.props.userQuery.user.userprofile.applications.length;
-    let currentjobid = this.props.match.params.jobid;
+    if (this.props.userQuery.user.userprofile) {
+      let numberOfApplications = this.props.userQuery.user.userprofile.applications.length;
+      let currentjobid = this.props.match.params.jobid;
 
-    for(let i = 0; i < numberOfApplications; i++){
-      if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === currentjobid){
-        return true;
+      for(let i = 0; i < numberOfApplications; i++){
+        if(this.props.userQuery.user.userprofile.applications[i].jobposting.id === currentjobid){
+          return true;
+        }
       }
     }
+
     return false;
   }
 
@@ -119,7 +125,7 @@ class Job extends Component{
       return <Redirect to='/login'/>;
     }
 
-    if (this.props.jobQuery.error || !this.props.userQuery.user.activated || !this.isBaseUser()) {
+    if (this.props.jobQuery.error || !this.props.userQuery.user.activated || !(this.isBaseUser() || this.isAdminUser())) {
       return <Redirect to='/dashboard'/>;
     }
 
@@ -133,9 +139,10 @@ class Job extends Component{
       <div className="Job">
         <h1>{this.props.jobQuery.jobPosting.title}</h1>
         <h3>{this.props.jobQuery.jobPosting.businessprofile.name}</h3>
-        {this.userHasApplied()
-          ?
-            <div>
+        <div>
+          {this.isBaseUser()
+            ? this.userHasApplied()
+            ?
               <Button
                 type="submit"
                 bsSize="large"
@@ -145,9 +152,7 @@ class Job extends Component{
               >
                 Cancel Application
               </Button>
-            </div>
-          :
-            <div>
+            :
               <Button
                 type="submit"
                 bsSize="large"
@@ -157,12 +162,25 @@ class Job extends Component{
               >
                 Apply
               </Button>
-            </div>
-        }
+            : false
+          }
+
+          <Link to={`/jobs`}>
+            <Button
+              bsSize="large"
+              className="pull-right"
+            >
+              Back to Jobs
+            </Button>
+          </Link>
+
+        </div>
+
         <div className="predescription">
           <p>{this.props.jobQuery.jobPosting.location.city}</p>
           <p>{this.props.jobQuery.jobPosting.location.region}{', '}{this.props.jobQuery.jobPosting.location.country}</p>
         </div>
+
         <div className="jobdetailspanel">
           <Panel>
             <Panel.Heading>
