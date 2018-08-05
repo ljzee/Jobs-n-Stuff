@@ -94,12 +94,35 @@ execute 'prisma deploy' do
   cwd '/home/vagrant/project/server'
 end
 
-execute 'graphql server' do
-  command 'npm start > /dev/null &'
+# Install and configure nginx
+package 'nginx'
+cookbook_file 'nginx-default' do
+  path '/etc/nginx/sites-available/default'
+end
+execute 'nginx_reload' do
+  command 'nginx -s reload'
+end
+
+execute 'install pm2' do
+  command 'npm install -g pm2'
+end
+
+execute 'build front end production mode' do
+  command 'npm run build'
+  cwd '/home/vagrant/project'
+end
+
+execute 'run application backend' do
+  command 'pm2 start src/index.js'
   cwd '/home/vagrant/project/server'
 end
 
-execute 'apollo server' do
-  command 'npm start > /dev/null &'
-  cwd '/home/vagrant/project'
-end
+# execute 'graphql server' do
+#   command 'npm start > /dev/null &'
+#   cwd '/home/vagrant/project/server'
+# end
+
+# execute 'apollo server' do
+  # command 'npm start > /dev/null &'
+  # cwd '/home/vagrant/project'
+# end
