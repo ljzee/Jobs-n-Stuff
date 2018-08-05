@@ -5,6 +5,8 @@ import { HelpBlock } from 'react-bootstrap';
 import { reduxForm, SubmissionError } from 'redux-form';
 import ValidationForm from '../form/ValidationForm';
 import { Link } from 'react-router-dom';
+import * as actions from '../../store/actions/index';
+import { connect } from 'react-redux';
 import '../../styles/ForgotPassword.css';
 
 class ForgotPassword extends Component {
@@ -26,6 +28,7 @@ class ForgotPassword extends Component {
     const { user, error } = result.data.forgotPassword;
 
     if (user !== null) {
+      this.props.onEmailSent();
       this.props.history.push(`/`);
     } else {
       throw new SubmissionError({ email: error });
@@ -66,6 +69,12 @@ const FORGOT_PASSWORD_MUTATION = gql`
   }
 `
 
+const mapDispatchToProps = dispatch => {
+  return {
+    onEmailSent: () => dispatch(actions.passwordRestEmailSent()),
+  }
+}
+
 export default compose(
   graphql(FORGOT_PASSWORD_MUTATION, { name: 'forgotPasswordMutation' }),
-)(ForgotPassword)
+)(connect(null, mapDispatchToProps)(ForgotPassword))
