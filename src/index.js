@@ -33,7 +33,7 @@ const middlewareAuthLink = new ApolloLink((operation, forward) => {
 });
 
 const client = new ApolloClient({
-  link: middlewareAuthLink.concat(createUploadLink({ uri: 'http://localhost:4000' })),
+  link: middlewareAuthLink.concat(createUploadLink({ uri: 'http://localhost:3000/api' })),
   cache: new InMemoryCache()
 });
 
