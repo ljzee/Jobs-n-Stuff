@@ -53,6 +53,7 @@ server {
   }
 
   location /uploads/ {
+    default_type  application/pdf;
 	  root /home/vagrant/project/public;
     try_files $uri =404;
   }
