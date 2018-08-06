@@ -152,7 +152,9 @@ class BusinessPageForm extends Component {
           state.avatar.path = uploadResult.data.uploadFile.file.path;
           state.isNewUser = false;
           state.isEditMode = false;
-          this.setState(state);
+          this.props.client.resetStore().then(() => {
+            this.setState(state);
+          });
         } else {
           state.avatar.isValid = false;
           state.avatar.message = uploadResult.data.uploadFile.error.message;
