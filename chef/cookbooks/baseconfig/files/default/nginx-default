@@ -44,17 +44,43 @@ server {
 	index index.html index.htm index.nginx-debian.html;
 
 	server_name _;
+
+	client_max_body_size 3M;
   
   location /api {
     proxy_pass http://localhost:4000;
 		proxy_http_version 1.1;
   }
 
+  location /uploads/ {
+    # Set path
+    root /home/vagrant/project/build;
+    try_files $uri =404;
+  }
+
+	location ~* /(.*\.png) {
+    gzip on;
+    expires 365d;
+    add_header Content-Type "image/png";
+  }
+
+  location ~* ^.+\.(jpg|svg|jpeg|gif|ico|css|zip|tgz|gz|rar|bz2|txt|tar|wav|bmp|rtf|js|flv|swf|html|htm)$ {
+    gzip on;
+    expires 365d;
+    root /home/vagrant/project/build;
+  }
+
 	location / {
+    # Set path
+		root /home/vagrant/project/build;
+    try_files $uri /index.html;
+  }
+
+	# location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ =404;
-	}
+		# try_files $uri $uri/ =404;
+	# }
 
 	# pass PHP scripts to FastCGI server
 	#
