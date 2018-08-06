@@ -5,10 +5,39 @@ import { graphql, compose, withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
 import Loading from '../Loading';
 import ReactTable from 'react-table';
-import { Label } from 'react-bootstrap';
+import { Label, Alert, Button } from 'react-bootstrap';
 import { USER_TOKEN, monthNames, dateDiffInDays, applications_columns } from '../../constants';
 
 class UserDashboard extends Component {
+
+  state = {
+    emailError: ''
+  }
+
+  showActivationWarning = () => {
+    return this.props.userQuery.user.role === "BASEUSER" && !this.props.userQuery.user.activated;
+  }
+
+  resendActivationEmail = async (e) => {
+    let state = this.state;
+
+    const result = await this.props.sendLinkValidateEmail({
+      variables: {
+        email: this.props.userQuery.user.email
+      },
+    });
+
+    const { user, error } = result.data.sendLinkValidateEmail;
+
+    if (user !== null) {
+      this.props.client.resetStore().then(() => {
+
+      });
+    } else {
+      state.emailError = error;
+      this.setState(state);
+    }
+  }
 
   userApplied = (posting) => {
     for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
@@ -24,60 +53,63 @@ class UserDashboard extends Component {
   getPostings = () => {
     let postings = [];
 
-    let resultPostings = this.props.jobPostingsQuery.jobpostings;
+    if (this.props.userQuery.user.activated) {
+      let resultPostings = this.props.jobPostingsQuery.jobpostings;
 
-    resultPostings.forEach(result => {
-      if (result.activated) {
-        let posting = {};
+      resultPostings.forEach(result => {
+        if (result.activated) {
+          let posting = {};
 
-        let date = new Date(result.deadline);
+          let date = new Date(result.deadline);
 
-        posting.deadline = {
-          day: monthNames[date.getMonth()] + " " +
-              date.getDate().toString() + ", " +
-              date.getFullYear().toString(),
+          posting.deadline = {
+            day: monthNames[date.getMonth()] + " " +
+                date.getDate().toString() + ", " +
+                date.getFullYear().toString(),
 
-          daysUntil: dateDiffInDays(new Date(Date.now()), date)
+            daysUntil: dateDiffInDays(new Date(Date.now()), date)
+          }
+
+          posting.job = {
+            id:           result.id,
+            title:        result.title,
+            organization: result.businessprofile.name
+          };
+
+          posting.location = {
+            country: result.location.country,
+            region:  result.location.region,
+            city:    result.location.city
+          }
+
+          posting.type     = result.type;
+          posting.duration = result.duration;
+          posting.openings = result.openings;
+
+          posting.pay = {
+            paytype: result.paytype,
+            salary:  result.salary
+          }
+
+          postings.push(posting);
         }
-
-        posting.job = {
-          id:           result.id,
-          title:        result.title,
-          organization: result.businessprofile.name
-        };
-
-        posting.location = {
-          country: result.location.country,
-          region:  result.location.region,
-          city:    result.location.city
-        }
-
-        posting.type     = result.type;
-        posting.duration = result.duration;
-        posting.openings = result.openings;
-
-        posting.pay = {
-          paytype: result.paytype,
-          salary:  result.salary
-        }
-
-        postings.push(posting);
-      }
-    });
+      });
+    }
 
     return postings;
   }
 
   getApplications = () => {
-    let applications = []
+    let applications = [];
 
-    for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
-      applications.push(this.props.userQuery.user.userprofile.applications[i]);
+    if (this.props.userQuery.user.activated) {
+      for (let i = 0; i < this.props.userQuery.user.userprofile.applications.length; i++) {
+        applications.push(this.props.userQuery.user.userprofile.applications[i]);
+      }
     }
 
     return applications;
   }
-
 
   render() {
     if (this.props.userQuery.loading || this.props.jobPostingsQuery.loading) {
@@ -87,9 +119,6 @@ class UserDashboard extends Component {
     if (this.props.userQuery.error) {
       return <Redirect to='/login'/>;
     }
-
-    const postings = this.getPostings();
-    const applications = this.getApplications();
 
     const columns = [
       {
@@ -233,10 +262,30 @@ class UserDashboard extends Component {
 
     return (
       <div id="user-dashboard">
+        {!this.props.userQuery.user.admindeactivated && this.showActivationWarning() &&
+          <Alert bsStyle="warning">
+            <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
+            <div>
+              <Button
+                type="submit"
+                bsSize="small"
+                bsStyle="primary"
+                onClick={this.resendActivationEmail}
+              >
+                Resend Activation Link
+              </Button>
+            </div>
+          </Alert>
+        }
+        {this.state.emailError !== '' &&
+          <Alert bsStyle="danger">
+            {`${this.state.emailError}`}
+          </Alert>
+        }
         <h2>Newest Job Postings</h2>
         <ReactTable
           columns={columns}
-          data={postings}
+          data={this.getPostings()}
           minRows={5}
           showPagination={false}
           style={{
@@ -250,7 +299,7 @@ class UserDashboard extends Component {
         <h2>Your Most Recent Applications</h2>
         <ReactTable
           className="-striped"
-          data={applications}
+          data={this.getApplications()}
           columns={applications_columns}
           minRows={5}
           showPagination={false}
@@ -278,7 +327,9 @@ const USER_QUERY = gql`
     user(where: $where) {
       id
       role
+      activated
       admindeactivated
+      email
       userprofile {
         applications(first: 5){
           id
@@ -325,6 +376,17 @@ const JOB_POSTINGS_QUERY = gql`
   }
 `
 
+const SEND_VALIDATION_LINK_MUTATION = gql`
+  mutation SendValidationLinkMutation($email: String!) {
+    sendLinkValidateEmail(email: $email) {
+      user {
+        id
+      }
+      error
+    }
+  }
+`
+
 export default compose(
   graphql(USER_QUERY, {
     name: 'userQuery',
@@ -346,6 +408,7 @@ export default compose(
       },
     }),
   }),
+  graphql(SEND_VALIDATION_LINK_MUTATION, { name: 'sendLinkValidateEmail' }),
   withRouter,
   withApollo
 )(UserDashboard)

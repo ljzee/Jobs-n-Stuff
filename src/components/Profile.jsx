@@ -39,6 +39,7 @@ class Profile extends Component {
   }
 
   adminDeactivated = () => {
+    this.props.userQuery.refetch();
     return this.props.userQuery.user.admindeactivated;
   }
 
@@ -74,29 +75,25 @@ class Profile extends Component {
     if (authToken) {
       return (
         <div className="Profile">
-          {this.adminDeactivated()
-            ?
-              <Alert bsStyle="danger">
-                Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
-              </Alert>
-            :
+          {this.props.userQuery.user.admindeactivated &&
+            <Alert bsStyle="danger">
+              Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
+            </Alert>
+          }
+          {!this.props.userQuery.user.admindeactivated && this.showActivationWarning() &&
+            <Alert bsStyle="warning">
+              <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
               <div>
-                {this.showActivationWarning() &&
-                  <Alert bsStyle="warning">
-                    <div className="activation-warning-first">Your account has not been activated. Please check your email for the activation link.</div>
-                    <div>
-                      <Button
-                        type="submit"
-                        bsSize="small"
-                        bsStyle="primary"
-                        onClick={this.resendActivationEmail}
-                      >
-                        Resend Activation Link
-                      </Button>
-                    </div>
-                  </Alert>
-                }
+                <Button
+                  type="submit"
+                  bsSize="small"
+                  bsStyle="primary"
+                  onClick={this.resendActivationEmail}
+                >
+                  Resend Activation Link
+                </Button>
               </div>
+            </Alert>
           }
           {this.state.emailError !== '' &&
             <Alert bsStyle="danger">

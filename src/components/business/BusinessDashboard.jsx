@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import gql from 'graphql-tag';
 import { graphql, compose, withApollo } from 'react-apollo';
 import { withRouter } from 'react-router-dom';
-import { Label } from 'react-bootstrap';
+import { Label, Alert } from 'react-bootstrap';
 import Loading from '../Loading';
 import ReactTable from 'react-table';
 import moment from 'moment';
@@ -13,26 +13,28 @@ class BusinessDashboard extends Component {
   getPostings = () => {
     let postings = [];
 
-    this.props.activePostingsQuery.me.businessprofile.jobpostings.forEach(result => {
-      let posting = {};
+    if (this.props.activePostingsQuery.me.activated) {
+      this.props.activePostingsQuery.me.businessprofile.jobpostings.forEach(result => {
+        let posting = {};
 
-      posting.id           = result.id
-      posting.title        = result.title
-      posting.activated    = result.activated
-      posting.applications = result.applications
+        posting.id           = result.id
+        posting.title        = result.title
+        posting.activated    = result.activated
+        posting.applications = result.applications
 
-      let date = new Date(result.deadline);
+        let date = new Date(result.deadline);
 
-      posting.deadline = {
-        day: monthNames[date.getMonth()] + " " +
-            date.getDate().toString() + ", " +
-            date.getFullYear().toString(),
+        posting.deadline = {
+          day: monthNames[date.getMonth()] + " " +
+              date.getDate().toString() + ", " +
+              date.getFullYear().toString(),
 
-        daysUntil: dateDiffInDays(new Date(Date.now()), date)
-      }
+          daysUntil: dateDiffInDays(new Date(Date.now()), date)
+        }
 
-      postings.push(posting);
-    })
+        postings.push(posting);
+      })
+    }
 
     return postings;
   }
@@ -40,9 +42,11 @@ class BusinessDashboard extends Component {
   getDrafts = () => {
     let postings = [];
 
-    this.props.draftsQuery.me.businessprofile.jobpostings.forEach(result => {
-      postings.push(result);
-    })
+    if (this.props.activePostingsQuery.me.activated) {
+      this.props.draftsQuery.me.businessprofile.jobpostings.forEach(result => {
+        postings.push(result);
+      })
+    }
 
     return postings;
   }
@@ -161,6 +165,16 @@ class BusinessDashboard extends Component {
 
     return (
       <div id="business-dashboard">
+        {this.props.activePostingsQuery.me.admindeactivated &&
+          <Alert bsStyle="danger">
+            Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
+          </Alert>
+        }
+        {!this.props.activePostingsQuery.me.admindeactivated && !this.props.activePostingsQuery.me.activated &&
+          <Alert bsStyle="warning">
+            Your account is not activated. Please email jobsnstuff001@gmail.com for more details.
+          </Alert>
+        }
         <h2>Your Active Job Postings</h2>
         <ReactTable
           columns={columns}
@@ -204,6 +218,8 @@ const ACTIVE_POSTINGS_QUERY = gql`
     me {
       id
       username
+      activated
+      admindeactivated
       businessprofile {
         jobpostings(where: $where) {
           id
@@ -223,6 +239,7 @@ const ACTIVE_POSTINGS_QUERY = gql`
 const DRAFTS_QUERY = gql`
   query DraftsQuery {
     me {
+      id
       businessprofile {
         jobpostings(where: { activated: false } ) {
           id
