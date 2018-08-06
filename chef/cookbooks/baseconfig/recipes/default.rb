@@ -105,6 +105,10 @@ cookbook_file 'nginx-default' do
   path '/etc/nginx/sites-available/default'
 end
 
+cookbook_file 'nginx-conf' do
+  path '/etc/nginx/nginx.conf'
+end
+
 execute 'nginx_reload' do
   command 'nginx -s reload'
 end
