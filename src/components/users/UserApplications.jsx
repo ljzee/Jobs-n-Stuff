@@ -75,6 +75,27 @@ class UserApplications extends Component {
     this.setState({showCancelModal: false})
   }
 
+  viewDocument = (e, path) => {
+    e.preventDefault();
+    var client = new XMLHttpRequest();
+    // Snippet from https://stackoverflow.com/questions/32623731/how-to-make-browser-download-file-from-xhr-request
+    client.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        let downloadUrl = URL.createObjectURL(client.response);
+        let a = document.createElement('a');
+        document.body.appendChild(a);
+        a.style = 'display: none';
+        a.href = downloadUrl;
+        a.target = '_blank';
+        a.click();
+      }
+    };
+    client.open('GET', path);
+    client.setRequestHeader('Accept', 'application/pdf');
+    client.responseType='blob';
+    client.send();
+  }
+
   render() {
 
     if (this.props.userQuery.loading) {
@@ -135,7 +156,7 @@ class UserApplications extends Component {
                         href={props.value[0].path}
                         className="btn btn-info application-table-button"
                         role="button"
-                        target="_blank"
+                        onClick={(e) => this.viewDocument(e, props.value[0].path)}
                       >
                         Resume
                       </a>
@@ -143,7 +164,7 @@ class UserApplications extends Component {
                         href={props.value[1].path}
                         className="btn btn-info application-table-button"
                         role="button"
-                        target="_blank"
+                        onClick={(e) => this.viewDocument(e, props.value[1].path)}
                       >
                         Cover Letter
                       </a>
@@ -154,15 +175,15 @@ class UserApplications extends Component {
                         href={props.value[1].path}
                         className="btn btn-info application-table-button"
                         role="button"
-                        target="_blank"
+                        onClick={(e) => this.viewDocument(e, props.value[1].path)}
                       >
                         Resume
                       </a>
                       <a
-                        href={props.value[0].path}
+                        href={props.value[1].path}
                         className="btn btn-info application-table-button"
                         role="button"
-                        target="_blank"
+                        onClick={(e) => this.viewDocument(e, props.value[0].path)}
                       >
                         Cover Letter
                       </a>
@@ -175,7 +196,7 @@ class UserApplications extends Component {
                   href={props.value[0].path}
                   className="btn btn-info application-table-button"
                   role="button"
-                  target="_blank"
+                  onClick={(e) => this.viewDocument(e, props.value[0].path)}
                 >
                   Resume
                 </a>

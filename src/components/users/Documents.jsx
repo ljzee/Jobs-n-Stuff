@@ -326,19 +326,23 @@ class Documents extends Component {
     });
   }
 
-  downloadDocument = (e, path) => {
+  viewOrDownloadDocument = (e, path, filename, download=false) => {
     e.preventDefault();
     var client = new XMLHttpRequest();
     // Snippet from https://stackoverflow.com/questions/32623731/how-to-make-browser-download-file-from-xhr-request
     client.onreadystatechange = function() {
       if (this.readyState === 4 && this.status === 200) {
-          var downloadUrl = URL.createObjectURL(client.response);
-          var a = document.createElement('a');
-          document.body.appendChild(a);
-          a.style = 'display: none';
-          a.href = downloadUrl;
-          a.download = '';
-          a.click();
+        let downloadUrl = URL.createObjectURL(client.response);
+        let a = document.createElement('a');
+        document.body.appendChild(a);
+        a.style = 'display: none';
+        a.href = downloadUrl;
+        if (download) {
+          a.download = filename;
+        } else {
+          a.target = '_blank';
+        }
+        a.click();
       }
     };
     client.open('GET', path);
@@ -402,7 +406,15 @@ class Documents extends Component {
             href={props.value}
             className="btn btn-info"
             role="button"
-            onClick={(e) => this.downloadDocument(e, props.value)}
+            onClick={(e) => this.viewOrDownloadDocument(e, props.value, props.original.filename)}
+          >
+            View
+          </a>
+          <a
+            href={props.value}
+            className="btn btn-info"
+            role="button"
+            onClick={(e) => this.viewOrDownloadDocument(e, props.value, props.original.filename, true)}
             download={props.original.filename}
           >
             Download

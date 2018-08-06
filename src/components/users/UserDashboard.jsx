@@ -6,7 +6,8 @@ import { withRouter } from 'react-router-dom';
 import Loading from '../Loading';
 import ReactTable from 'react-table';
 import { Label, Alert, Button } from 'react-bootstrap';
-import { USER_TOKEN, monthNames, dateDiffInDays, applications_columns } from '../../constants';
+import moment from 'moment';
+import { USER_TOKEN, monthNames, dateDiffInDays } from '../../constants';
 
 class UserDashboard extends Component {
 
@@ -109,6 +110,27 @@ class UserDashboard extends Component {
     }
 
     return applications;
+  }
+
+  viewDocument = (e, path) => {
+    e.preventDefault();
+    var client = new XMLHttpRequest();
+    // Snippet from https://stackoverflow.com/questions/32623731/how-to-make-browser-download-file-from-xhr-request
+    client.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        let downloadUrl = URL.createObjectURL(client.response);
+        let a = document.createElement('a');
+        document.body.appendChild(a);
+        a.style = 'display: none';
+        a.href = downloadUrl;
+        a.target = '_blank';
+        a.click();
+      }
+    };
+    client.open('GET', path);
+    client.setRequestHeader('Accept', 'application/pdf');
+    client.responseType='blob';
+    client.send();
   }
 
   render() {
@@ -260,6 +282,102 @@ class UserDashboard extends Component {
       }
     ];
 
+    const applications_columns = [
+      {
+        Header: () => <div><strong>Title</strong></div>,
+        accessor: 'jobposting',
+        Cell: props => <span>{props.value.title}</span>,
+      },
+      {
+        Header: () => <div><strong>Company</strong></div>,
+        accessor: 'jobposting',
+        width: 175,
+        Cell: props => <span>{props.value.businessprofile.name}</span>
+      },
+      {
+        id: 'updatedAt',
+        Header: () => <div><strong>Submitted</strong></div>,
+        width: 160,
+        accessor: props => moment(props.updatedAt).format('DD/MM/YYYY h:mm a')
+      },
+      {
+        Header: () => <div><strong>Job Details</strong></div>,
+        accessor: 'jobposting',
+        width: 110,
+        Cell: props =>
+          <a
+            className="btn btn-info"
+            role="button"
+            onClick={ () => this.props.history.push(`/jobs/${props.value.id}`)}
+          >
+            View Job
+          </a>
+      },
+      {
+        Header: () => <div><strong>Documents</strong></div>,
+        accessor: 'files',
+        Cell: props =>
+        <div className="center-content-div">
+          {props.value.length === 2
+            ?
+              <div>
+                {props.value[0].filetype === 'RESUME'
+                  ?
+                    <div>
+                      <a
+                        href={props.value[0].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        onClick={(e) => this.viewDocument(e, props.value[0].path)}
+                      >
+                        Resume
+                      </a>
+                      <a
+                        href={props.value[1].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        onClick={(e) => this.viewDocument(e, props.value[1].path)}
+                      >
+                        Cover Letter
+                      </a>
+                    </div>
+                  :
+                    <div>
+                      <a
+                        href={props.value[1].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        onClick={(e) => this.viewDocument(e, props.value[1].path)}
+                      >
+                        Resume
+                      </a>
+                      <a
+                        href={props.value[1].path}
+                        className="btn btn-info application-table-button"
+                        role="button"
+                        onClick={(e) => this.viewDocument(e, props.value[0].path)}
+                      >
+                        Cover Letter
+                      </a>
+                    </div>
+                }
+              </div>
+            :
+              <div>
+                <a
+                  href={props.value[0].path}
+                  className="btn btn-info application-table-button"
+                  role="button"
+                  onClick={(e) => this.viewDocument(e, props.value[0].path)}
+                >
+                  Resume
+                </a>
+              </div>
+          }
+        </div>
+      }
+    ]
+
     return (
       <div id="user-dashboard">
         {!this.props.userQuery.user.admindeactivated && this.showActivationWarning() &&
@@ -286,6 +404,7 @@ class UserDashboard extends Component {
         <ReactTable
           columns={columns}
           data={this.getPostings()}
+          noDataText='No job postings found'
           minRows={5}
           showPagination={false}
           style={{
