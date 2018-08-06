@@ -24,12 +24,12 @@ class Dashboard extends Component {
 
     return (
       <div className="Dashboard">
-        <h1>Dashboard</h1>
         {this.props.userQuery.user.admindeactivated &&
           <Alert bsStyle="danger">
             Your account has been deactivated by an administrator. Please email jobsnstuff001@gmail.com for more details.
           </Alert>
         }
+        <h1>Dashboard</h1>
         {this.props.userQuery.user.role === 'BASEUSER'
           ? <UserDashboard />
 

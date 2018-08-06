@@ -150,11 +150,17 @@ class BusinessPageForm extends Component {
         });
         if (uploadResult.data.uploadFile.file !== null) {
           state.avatar.path = uploadResult.data.uploadFile.file.path;
-          state.isNewUser = false;
-          state.isEditMode = false;
-          this.props.client.resetStore().then(() => {
-            this.setState(state);
-          });
+          if (state.isNewUser) {
+            this.props.client.resetStore().then(() => {
+              this.props.history.push('/dashboard');
+            });
+          } else {
+            state.isNewUser = false;
+            state.isEditMode = false;
+            this.props.client.resetStore().then(() => {
+              this.setState(state);
+            });
+          }
         } else {
           state.avatar.isValid = false;
           state.avatar.message = uploadResult.data.uploadFile.error.message;
@@ -172,7 +178,6 @@ class BusinessPageForm extends Component {
   selectCountry(val) {
     let state = this.state;
     state.country.value = val;
-    console.log(val);
     this.setState(state);
   }
 
