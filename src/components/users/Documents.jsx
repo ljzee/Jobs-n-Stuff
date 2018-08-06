@@ -326,6 +326,27 @@ class Documents extends Component {
     });
   }
 
+  downloadDocument = (e, path) => {
+    e.preventDefault();
+    var client = new XMLHttpRequest();
+    // Snippet from https://stackoverflow.com/questions/32623731/how-to-make-browser-download-file-from-xhr-request
+    client.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+          var downloadUrl = URL.createObjectURL(client.response);
+          var a = document.createElement('a');
+          document.body.appendChild(a);
+          a.style = 'display: none';
+          a.href = downloadUrl;
+          a.download = '';
+          a.click();
+      }
+    };
+    client.open('GET', path);
+    client.setRequestHeader('Accept', 'application/pdf');
+    client.responseType='blob';
+    client.send();
+  }
+
   onSubmit = async (e) => {
     e.preventDefault();
     this.resetValidationStates();
@@ -381,6 +402,7 @@ class Documents extends Component {
             href={props.value}
             className="btn btn-info"
             role="button"
+            onClick={(e) => this.downloadDocument(e, props.value)}
             download={props.original.filename}
           >
             Download
