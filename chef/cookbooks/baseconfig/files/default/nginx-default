@@ -38,7 +38,7 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /home/vagrant/project/build;
+	root /home/vagrant/project/public;
 
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
@@ -53,12 +53,12 @@ server {
   }
 
   location /uploads/ {
-    # Set path
-    root /home/vagrant/project/build;
+	  root /home/vagrant/project/public;
     try_files $uri =404;
   }
 
 	location ~* /(.*\.png) {
+	  root /home/vagrant/project/public;
     gzip on;
     expires 365d;
     add_header Content-Type "image/png";
