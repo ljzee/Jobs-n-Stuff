@@ -19,7 +19,7 @@ The following list contains usernames to login as those users.<br />
 
 ### Usage scenarios
 
-### Base User
+#### Base User
 ##### Sign up for a personal account
 1. Create an account using your email.
 2. Use account activation link sent to your email.
@@ -53,37 +53,37 @@ The following list contains usernames to login as those users.<br />
 19. Finish the application process by selecting 'Apply' in the pop-up window.
 20. Check that your application exists in the 'Applications' page and dashboard.
 
-### Business User
-#### Sign in as existing business user
+#### Business User
+##### Sign in as existing business user
 21. Logout of your personal account
 22. Sign into the respective business account you applied for. <br />
     (ACME has username business, Cyberlife has username cyber).
 
-#### Review applications to a posting
+##### Review applications to a posting
 23. Review the application you've made by selecting 'View Applications' in <br />
     the respective posting in either the dashboard or manage postings page.
 24. Download the resume and or cover letter you uploaded as a user.
 
-#### Create a job posting
+##### Create a job posting
 25. From the manage postings page, select 'Create New Posting'
 26. Fill in the required fields and any optional fields you desire.
 27. Save your posting and notice it is in the 'Pending' state.
 28. Activate your posting to make it viewable by users.
 
-#### Create a new business user
+##### Create a new business user
 29. Logout of the current user account
 30. Sign up for a new business account
 31. Fill in the required fields for your business profile and save.
 32. Notice that 'Manage Postings' is not available on your account because it <br />
     has not yet been activated by the admin.
 
-### Admin User
-#### User activation
+#### Admin User
+##### User activation
 33. Logout of the business user account
 34. Sign in to admin user (Username - admin)
 35. Activate your created business account from the dashboard
 
-#### Suspend, Reactivate, or Delete user
+##### Suspend, Reactivate, or Delete user
 36. From the manage users page, deactivate a user to prevent them from viewing <br />
     or creating job postings.
 37. You may reactivate this user from the current page or the dashboard.
