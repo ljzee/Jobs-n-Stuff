@@ -377,9 +377,9 @@ class Documents extends Component {
         accessor: 'path',
         Cell: props =>
         <div className="center-content-div">
-          <a href={`${process.env.PUBLIC_URL}${props.value}`} className="btn btn-info" role="button" target="_blank">View</a>
+          <a href={props.value} className="btn btn-info" role="button" target="_blank">View</a>
           <a
-            href={`${process.env.PUBLIC_URL}${props.value}`}
+            href={props.value}
             className="btn btn-info"
             role="button"
             download={props.original.filename}

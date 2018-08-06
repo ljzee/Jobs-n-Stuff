@@ -65,7 +65,7 @@ async function createNewUser(username, email, password, role, activated, avatar=
           firstname: userProfile.firstname,
           lastname: userProfile.lastname,
           preferredname: userProfile.preferredname,
-          phonenumber:userProfile.phonenumber,
+          phonenumber: userProfile.phonenumber,
           user: { connect: { id: user.id } }
         },
       }, `{ id }`);
@@ -105,6 +105,7 @@ async function createNewUser(username, email, password, role, activated, avatar=
               salary: posting.salary,
               coverletter: posting.coverletter,
               activated: posting.activated,
+              duration: posting.duration,
               businessprofile: { connect: { id: bProfile.id } }
             }
           }, `{ id }`);
@@ -381,6 +382,7 @@ let base_activated = true;
 let base_profile = {
   firstname: 'Test',
   lastname: 'Guy',
+  preferredname: '',
   phonenumber: '(789) 555-5555'
 }
 avatar = {
