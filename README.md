@@ -19,6 +19,7 @@ The following list contains usernames to login as those users.<br />
 ## Screenshots:
 
 Frontpage
+<br />
 ![](screenshots/welcome.jpg)
 
 Login
