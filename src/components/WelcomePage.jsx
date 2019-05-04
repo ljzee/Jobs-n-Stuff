@@ -29,11 +29,10 @@ class WelcomePage extends Component {
             A password reset email has been sent. Please check your inbox.
           </Alert>
         }
-        <Jumbotron>
-          <div className="WelcomePage">
-            <h1>Welcome to Jobs n' Stuff!</h1>
-            <h3>Made for CMPT 470 by Group 1</h3>
-            <Button href="/signup" bsStyle="primary">Create Account</Button>
+        <Jumbotron  className="WelcomeJumbotron">
+          <div>
+            <h4 className="JumbotronMessage">The best time to start was yesterday, the next best time is now.</h4>
+            <Button className="JumbotronButton" href="/signup" bsStyle="primary">Start Here</Button>
           </div>
         </Jumbotron>
       </React.Fragment>

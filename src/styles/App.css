@@ -31,12 +31,25 @@
   content: "* ";
 }
 
-.WelcomePage {
-  text-align: center;
+.WelcomeJumbotron {
+  background-image: url(../WelcomeBackground.jpg);
+  background-size: cover;
+  height: wrap-content;
+  text-align: left;
 }
 
-.WelcomePage button {
-  margin-top: 25px;
+.JumbotronMessage{
+  text-align: left;
+  font-weight: lighter;
+  width: 60%;
+  color: white;
+}
+
+.JumbotronButton {
+  margin-top: 70px !important;
+  background-color: transparent !important;
+  border: 1px solid white !important;
+  border-radius: 0 !important;
 }
 
 .center-content-div {
