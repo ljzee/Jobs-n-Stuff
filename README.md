@@ -19,33 +19,25 @@ The following list contains usernames to login as those users.<br />
 ## Screenshots:
 
 *Frontpage*\
-\
 ![](screenshots/welcome.jpg)
-
+\
 *Login*\
-\
 ![](screenshots/login.png)
-
+\
 *User Dashboard*\
-\
 ![](screenshots/userdashboard.png)
-
+\
 *User Perspective of Job Posting*\
-\
 ![](screenshots/jobposting.png)
-
+\
 *Pick Documents For Application*\
-\
 ![](screenshots/pickdocuments.png)
-
+\
 *Business's Current Openings*\
-\
 ![](screenshots/businessmanage.png)
-
+\
 *Business Profile*\
-\
 ![](screenshots/businessprofile.png)
-
-*Admin Perspective*\
 \
+*Admin Perspective*\
 ![](screenshots/admin.png)
