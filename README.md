@@ -16,4 +16,28 @@ The following list contains usernames to login as those users.<br />
 * Base User:
  * Username - testguy
 
+## Screenshots:
+
+Frontpage
 ![](screenshots/welcome.jpg)
+
+Login
+![](screenshots/login.png)
+
+User Dashboard
+![](screenshots/userdashboard.png)
+
+User Perspective of Job Posting
+![](screenshots/jobposting.png)
+
+Pick Documents For Applcation
+![](screenshots/pickdocuments.png)
+
+Business's Current Openings 
+![](screenshots/businessmanage.png)
+
+Business Profile
+![](screenshots/businessprofile.png)
+
+Admin Perspective
+![](screenshots/admin.png)
