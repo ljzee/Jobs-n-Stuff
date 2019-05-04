@@ -15,3 +15,5 @@ The following list contains usernames to login as those users.<br />
  * Username - cyber
 * Base User:
  * Username - testguy
+
+![](screenshots/welcome.jpg)
